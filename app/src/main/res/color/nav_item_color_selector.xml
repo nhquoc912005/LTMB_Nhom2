@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="#C0410D" android:state_checked="true" />
+    <item android:color="#5D4037" /> <!-- Màu nâu đậm cho các mục không được chọn để dễ nhìn hơn trên nền cam -->
+</selector>

@@ -4,10 +4,13 @@ import android.app.Dialog;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -42,7 +45,6 @@ public class CheckoutFragment extends Fragment {
         llDatePicker = view.findViewById(R.id.llDatePicker);
         recyclerView = view.findViewById(R.id.recyclerViewCheckout);
 
-        // Bấm vào cả layout chứa text và icon để hiện lịch
         View.OnClickListener dateClickListener = v -> showDatePicker();
         if (llDatePicker != null) {
             llDatePicker.setOnClickListener(dateClickListener);
@@ -102,7 +104,8 @@ public class CheckoutFragment extends Fragment {
         Dialog dialog = new Dialog(requireContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog_payment_checkout);
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        
+        setupDialogWindow(dialog);
 
         TextView tvName = dialog.findViewById(R.id.tvDialogName);
         TextView tvRoom = dialog.findViewById(R.id.tvDialogRoom);
@@ -113,10 +116,10 @@ public class CheckoutFragment extends Fragment {
         Button btnRedInvoice = dialog.findViewById(R.id.btnRedInvoice);
         Button btnConfirmPrint = dialog.findViewById(R.id.btnConfirmPrint);
 
-        tvName.setText(bill.getRoomModel().getCustomerName());
-        tvRoom.setText("Phòng " + bill.getRoomModel().getRoomNumber());
-        tvDateRange.setText(bill.getCheckInDate() + " - " + bill.getCheckOutDate());
-        tvTotal.setText(formatter.format(bill.getTotalFee()));
+        if (tvName != null) tvName.setText(bill.getRoomModel().getCustomerName());
+        if (tvRoom != null) tvRoom.setText("Phòng " + bill.getRoomModel().getRoomNumber());
+        if (tvDateRange != null) tvDateRange.setText(bill.getCheckInDate() + " - " + bill.getCheckOutDate());
+        if (tvTotal != null) tvTotal.setText(formatter.format(bill.getTotalFee()));
 
         String[] methods = {"Tiền mặt", "Chuyển khoản"};
         ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, methods);
@@ -147,12 +150,32 @@ public class CheckoutFragment extends Fragment {
         Dialog successDialog = new Dialog(requireContext());
         successDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         successDialog.setContentView(R.layout.layout_dialog_success_print);
-        successDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        
+        setupDialogWindow(successDialog);
         successDialog.setCancelable(false);
 
         Button btnDone = successDialog.findViewById(R.id.btnDone);
-        btnDone.setOnClickListener(v -> successDialog.dismiss());
+        if (btnDone != null) btnDone.setOnClickListener(v -> successDialog.dismiss());
 
         successDialog.show();
+    }
+
+    private void setupDialogWindow(Dialog dialog) {
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            
+            DisplayMetrics displayMetrics = new DisplayMetrics();
+            requireActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            int width = displayMetrics.widthPixels;
+            
+            WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+            lp.copyFrom(dialog.getWindow().getAttributes());
+            // Updated to 16dp to match items as requested previously
+            float marginPx = 16 * displayMetrics.density;
+            lp.width = (int) (width - 2 * marginPx);
+            lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+            lp.gravity = Gravity.CENTER;
+            dialog.getWindow().setAttributes(lp);
+        }
     }
 }

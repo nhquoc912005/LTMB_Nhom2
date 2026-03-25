@@ -2,7 +2,9 @@ package com.project_mobile;
 
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.project_mobile.check_in.StayFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -14,21 +16,27 @@ public class MainActivity extends AppCompatActivity {
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
         
         // Mặc định chọn Quản lý phòng
-        bottomNav.setSelectedItemId(R.id.nav_room_manage);
-        
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, new RoomManagementFragment())
-                .commit();
+        if (savedInstanceState == null) {
+            bottomNav.setSelectedItemId(R.id.nav_room_manage);
+            loadFragment(new RoomManagementFragment());
+        }
 
         bottomNav.setOnItemSelectedListener(item -> {
-            // Logic chuyển fragment có thể thêm ở đây
-            if (item.getItemId() == R.id.nav_room_manage) {
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, new RoomManagementFragment())
-                        .commit();
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_room_manage) {
+                loadFragment(new RoomManagementFragment());
+                return true;
+            } else if (itemId == R.id.nav_stay) {
+                loadFragment(new StayFragment());
                 return true;
             }
             return true;
         });
+    }
+
+    private void loadFragment(Fragment fragment) {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .commit();
     }
 }

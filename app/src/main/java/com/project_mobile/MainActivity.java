@@ -3,6 +3,7 @@ package com.project_mobile;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.project_mobile.service.RoomMapFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -21,10 +22,17 @@ public class MainActivity extends AppCompatActivity {
                 .commit();
 
         bottomNav.setOnItemSelectedListener(item -> {
-            // Logic chuyển fragment có thể thêm ở đây
-            if (item.getItemId() == R.id.nav_room_manage) {
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_room_manage) {
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, new RoomManagementFragment())
+                        .commit();
+                return true;
+            } 
+            // Xử lý khi nhấn vào Dịch vụ -> Hiện sơ đồ phòng
+            else if (itemId == R.id.nav_service) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, new RoomMapFragment())
                         .commit();
                 return true;
             }

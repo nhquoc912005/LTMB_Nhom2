@@ -3,6 +3,7 @@ package com.project_mobile;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.project_mobile.datphong_mobile.BookingManagementFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -21,10 +22,14 @@ public class MainActivity extends AppCompatActivity {
                 .commit();
 
         bottomNav.setOnItemSelectedListener(item -> {
-            // Logic chuyển fragment có thể thêm ở đây
             if (item.getItemId() == R.id.nav_room_manage) {
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, new RoomManagementFragment())
+                        .commit();
+                return true;
+            } else if (item.getItemId() == R.id.nav_booking) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, new BookingManagementFragment())
                         .commit();
                 return true;
             }

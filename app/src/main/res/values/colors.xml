@@ -13,14 +13,21 @@
     <color name="text_secondary">#4A5565</color>
     <color name="text_hint">#757575</color>
 
-    <!-- Status Colors from Design -->
+    <!-- Status Colors -->
     <color name="status_empty_bg">#F6F3EB</color>
     <color name="status_empty_text">#C58959</color>
     <color name="status_in_use_bg">#DBEAFE</color>
     <color name="status_in_use_text">#1447E6</color>
-    <color name="status_maintenance_bg">#FFEDD4</color>
-    <color name="status_maintenance_text">#C0410D</color>
+
+    <color name="booking_status_pending_bg">#FFF9C4</color>
+    <color name="booking_status_checked_in_bg">#C8E6C9</color>
+    <color name="booking_status_checked_in_text">#2E7D32</color>
+
+    <!-- New Cancelled Status Colors -->
+    <color name="booking_status_cancelled_bg">#FFADAD</color>
+    <color name="booking_status_cancelled_text">#D32F2F</color>
 
     <color name="room_nav_bg">#D1C19F</color>
     <color name="nav_inactive">#8D6E63</color>
+    <color name="app_brown">#A3734D</color>
 </resources>

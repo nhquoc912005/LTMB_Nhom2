@@ -4,9 +4,7 @@ plugins {
 
 android {
     namespace = "com.project_mobile"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.project_mobile"

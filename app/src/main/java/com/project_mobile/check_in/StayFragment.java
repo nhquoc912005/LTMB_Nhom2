@@ -1,4 +1,4 @@
-package com.project_mobile.checkout;
+package com.project_mobile.check_in;
 
 import android.graphics.Color;
 import android.os.Bundle;
@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.project_mobile.R;
+import com.project_mobile.checkout.CheckoutFragment;
 
 public class StayFragment extends Fragment {
 
@@ -24,13 +25,13 @@ public class StayFragment extends Fragment {
         tabCheckIn = view.findViewById(R.id.tabCheckIn);
         tabCheckOut = view.findViewById(R.id.tabCheckOut);
 
-        // Mặc định chọn Trả phòng để hiển thị giống hình của bạn
-        loadFragment(new CheckoutFragment());
-        updateTabUI(false);
+        // Mặc định chọn Nhận phòng khi mới vào
+        loadFragment(new CheckInFragment());
+        updateTabUI(true);
 
         tabCheckIn.setOnClickListener(v -> {
             updateTabUI(true);
-            // Sau này bạn thêm CheckInFragment vào đây: loadFragment(new CheckInFragment());
+            loadFragment(new CheckInFragment());
         });
 
         tabCheckOut.setOnClickListener(v -> {

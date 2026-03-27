@@ -1,4 +1,4 @@
-package com.project_mobile;
+package com.project_mobile.dat_phong;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 import com.google.android.material.button.MaterialButton;
+import com.project_mobile.R;
 
 public class SuccessDialog {
 

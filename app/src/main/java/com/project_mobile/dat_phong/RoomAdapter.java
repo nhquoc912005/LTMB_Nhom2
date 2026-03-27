@@ -1,4 +1,4 @@
-package com.project_mobile;
+package com.project_mobile.dat_phong;
 
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
@@ -9,6 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
+import com.project_mobile.R;
 import java.util.List;
 
 public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.ViewHolder> {

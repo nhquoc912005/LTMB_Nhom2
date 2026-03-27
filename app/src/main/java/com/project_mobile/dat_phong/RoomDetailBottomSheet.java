@@ -1,4 +1,4 @@
-package com.project_mobile;
+package com.project_mobile.dat_phong;
 
 import android.graphics.Color;
 import android.os.Bundle;
@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.project_mobile.R;
 
 public class RoomDetailBottomSheet extends BottomSheetDialogFragment {
 

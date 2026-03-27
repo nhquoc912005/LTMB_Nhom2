@@ -11,7 +11,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.project_mobile.R;
-import com.project_mobile.check_in.CheckInFragment;
 
 public class StayFragment extends Fragment {
 
@@ -25,19 +24,18 @@ public class StayFragment extends Fragment {
         tabCheckIn = view.findViewById(R.id.tabCheckIn);
         tabCheckOut = view.findViewById(R.id.tabCheckOut);
 
-        // Mặc định chọn Nhận phòng
-        loadFragment(new CheckInFragment());
-        updateTabUI(true);
+        // Mặc định chọn Trả phòng để hiển thị giống hình của bạn
+        loadFragment(new CheckoutFragment());
+        updateTabUI(false);
 
         tabCheckIn.setOnClickListener(v -> {
             updateTabUI(true);
-            loadFragment(new CheckInFragment());
+            // Sau này bạn thêm CheckInFragment vào đây: loadFragment(new CheckInFragment());
         });
 
         tabCheckOut.setOnClickListener(v -> {
             updateTabUI(false);
-            // Sau này bạn có thể load CheckoutFragment tại đây
-            // loadFragment(new CheckoutFragment());
+            loadFragment(new CheckoutFragment());
         });
 
         return view;

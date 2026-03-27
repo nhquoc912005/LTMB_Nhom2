@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F6EFE9"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Search Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/etSearch"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_edittext_border"
+            android:drawableStart="@drawable/ic_search"
+            android:drawablePadding="8dp"
+            android:fontFamily="@font/livvic"
+            android:hint="Tìm kiếm khách hàng, phòng..."
+            android:paddingHorizontal="12dp"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/btnSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:layout_marginStart="8dp"
+            android:backgroundTint="#DE6F42"
+            android:fontFamily="@font/livvic"
+            android:text="Tìm kiếm"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+
+    <!-- Date Selection -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_edittext_border"
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/livvic"
+            android:text="Chọn ngày"
+            android:textColor="@color/black"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <!-- Check-in Date Column -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ngày nhận"
+                    android:textSize="12sp"
+                    android:textColor="#555555"
+                    android:fontFamily="@font/livvic"
+                    android:textStyle="italic"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginBottom="4dp"/>
+
+                <LinearLayout
+                    android:id="@+id/llCheckInDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_edittext_border"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="12dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <TextView
+                        android:id="@+id/tvCheckInDate"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/livvic"
+                        android:text="17/02/2026"
+                        android:textColor="@color/black" />
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_calendar" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <View
+                android:layout_width="8dp"
+                android:layout_height="0dp" />
+
+            <!-- Check-out Date Column -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ngày trả"
+                    android:textSize="12sp"
+                    android:textColor="#555555"
+                    android:fontFamily="@font/livvic"
+                    android:textStyle="italic"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginBottom="4dp"/>
+
+                <LinearLayout
+                    android:id="@+id/llCheckOutDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_edittext_border"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="12dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <TextView
+                        android:id="@+id/tvCheckOutDate"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/livvic"
+                        android:text="19/02/2026"
+                        android:textColor="@color/black" />
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_calendar" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- RecyclerView for Check-in Items -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvCheckIn"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</LinearLayout>

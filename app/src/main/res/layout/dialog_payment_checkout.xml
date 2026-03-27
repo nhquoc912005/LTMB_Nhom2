@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="16dp"
+    android:layout_margin="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Thanh toán &amp; Trả phòng"
+            android:textSize="22sp"
+            android:fontFamily="@font/livvic"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginBottom="16dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#F5F5F5"
+            android:padding="12dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/user"
+                android:layout_marginEnd="12dp"
+                app:tint="@color/black"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <TextView android:id="@+id/tvDialogName" android:layout_width="match_parent" android:layout_height="wrap_content" android:textStyle="bold" android:fontFamily="@font/livvic" android:textColor="@color/black" android:textSize="16sp"/>
+                <TextView android:id="@+id/tvDialogRoom" android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="@font/livvic" android:textColor="#888888" android:textSize="14sp"/>
+                <TextView android:id="@+id/tvDialogDateRange" android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="@font/livvic" android:textColor="#888888" android:textSize="14sp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="8dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Tiền phòng:" android:fontFamily="@font/livvic" android:textColor="#333333"/>
+            <TextView android:id="@+id/tvDialogRoomFee" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/livvic" android:textColor="@color/black"/>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="12dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Dịch vụ:" android:fontFamily="@font/livvic" android:textColor="#333333"/>
+            <TextView android:id="@+id/tvDialogServiceFee" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/livvic" android:textColor="@color/black"/>
+        </LinearLayout>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginBottom="12dp"/>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="16dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="TỔNG CỘNG:" android:fontFamily="@font/livvic" android:textStyle="bold" android:textSize="16sp" android:textColor="@color/black"/>
+            <TextView android:id="@+id/tvDialogTotal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/livvic" android:textStyle="bold" android:textSize="16sp" android:textColor="#AA7E5A"/>
+        </LinearLayout>
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Ngày trả phòng" android:fontFamily="@font/livvic" android:textColor="@color/black" android:textSize="14sp"/>
+        <TextView android:id="@+id/tvDialogCheckoutDate" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="16/02/2026" android:fontFamily="@font/livvic" android:textColor="#888888" android:textSize="14sp" android:layout_marginBottom="12dp"/>
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Phương thức thanh toán" android:fontFamily="@font/livvic" android:textColor="@color/black" android:textSize="14sp"/>
+        <Spinner android:id="@+id/spinnerPayment" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/bg_spinner_border" android:layout_marginTop="4dp" android:layout_marginBottom="12dp"/>
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Ghi chú" android:fontFamily="@font/livvic" android:textColor="@color/black" android:textSize="14sp"/>
+        <EditText android:id="@+id/etNote" android:layout_width="match_parent" android:layout_height="70dp" android:background="@drawable/bg_edittext_border" android:gravity="top|start" android:hint="Ghi chú về tình trạng phòng, thiết bị..." android:fontFamily="@font/livvic" android:textSize="14sp" android:padding="10dp" android:layout_marginTop="4dp" android:layout_marginBottom="24dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="4.4">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnCancel"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_btn_cancel"
+                android:textColor="@color/black"
+                android:text="Huỷ"
+                android:fontFamily="@font/livvic"
+                android:textStyle="bold"
+                android:textAllCaps="false"
+                android:textSize="12sp"
+                android:layout_marginEnd="8dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnRedInvoice"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1.5"
+                android:background="@drawable/bg_btn_red_invoice"
+                android:textColor="@android:color/white"
+                android:text="Xuất hoá đơn đỏ"
+                android:fontFamily="@font/livvic"
+                android:textStyle="bold"
+                android:textAllCaps="false"
+                android:layout_marginEnd="8dp"
+                android:textSize="11sp"
+                android:padding="0dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnConfirmPrint"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1.9"
+                android:background="@drawable/bg_btn_confirm_print"
+                android:textColor="@android:color/white"
+                android:text="Xác nhận &amp; In hoá đơn"
+                android:fontFamily="@font/livvic"
+                android:textStyle="bold"
+                android:textAllCaps="false"
+                android:textSize="11sp"
+                android:padding="0dp" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

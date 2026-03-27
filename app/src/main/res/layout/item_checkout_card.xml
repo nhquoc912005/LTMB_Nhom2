@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    android:backgroundTint="@android:color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/tvCustomerName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Tên khách hàng"
+                android:fontFamily="@font/livvic"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:textColor="@color/black"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="#FFCDD2"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:text="Đang lưu trú"
+                android:fontFamily="@font/livvic"
+                android:textColor="#D32F2F"
+                android:textSize="12sp"
+                app:cornerRadius="4dp"/>
+        </LinearLayout>
+
+        <TextView android:id="@+id/tvRoomInfo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/livvic" android:textColor="#555555" android:textSize="14sp" android:layout_marginBottom="4dp"/>
+        <TextView android:id="@+id/tvPhone" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/livvic" android:textColor="#555555" android:textSize="14sp" android:layout_marginBottom="4dp"/>
+        <TextView android:id="@+id/tvEmail" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/livvic" android:textColor="#555555" android:textSize="14sp" android:layout_marginBottom="4dp"/>
+        <TextView android:id="@+id/tvDate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/livvic" android:textColor="#555555" android:textSize="14sp" android:layout_marginBottom="12dp"/>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginBottom="8dp"/>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="4dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Tiền phòng:" android:fontFamily="@font/livvic" android:textColor="#555555"/>
+            <TextView android:id="@+id/tvRoomFee" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/livvic" android:textColor="#333333"/>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="8dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Dịch vụ:" android:fontFamily="@font/livvic" android:textColor="#555555"/>
+            <TextView android:id="@+id/tvServiceFee" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/livvic" android:textColor="#333333"/>
+        </LinearLayout>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginBottom="8dp"/>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="16dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="TỔNG CỘNG:" android:fontFamily="@font/livvic" android:textStyle="bold" android:textSize="16sp" android:textColor="#555555"/>
+            <TextView android:id="@+id/tvTotalFee" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/livvic" android:textStyle="bold" android:textSize="16sp" android:textColor="#AA7E5A"/>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnPayAndCheckout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#B88A68"
+            android:text="Thanh toán &amp; Trả phòng"
+            android:fontFamily="@font/livvic"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

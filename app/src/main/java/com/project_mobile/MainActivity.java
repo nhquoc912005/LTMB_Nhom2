@@ -4,7 +4,6 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.project_mobile.check_in.StayFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -24,10 +23,13 @@ public class MainActivity extends AppCompatActivity {
         bottomNav.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_room_manage) {
-                loadFragment(new RoomManagementFragment());
                 return true;
-            } else if (itemId == R.id.nav_stay) {
-                loadFragment(new StayFragment());
+            } 
+            // Xử lý khi nhấn vào Dịch vụ -> Hiện sơ đồ phòng
+            else if (itemId == R.id.nav_service) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, new RoomMapFragment())
+                        .commit();
                 return true;
             }
             return true;

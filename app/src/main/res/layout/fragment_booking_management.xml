@@ -1,251 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F4EFE9">
+    android:background="@color/brand_beige">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Header/Toolbar -->
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="62dp"
-            android:background="#D1C19F">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="80dp"> <!-- Padding để không bị che bởi Nav chính -->
 
-            <ImageView
-                android:id="@+id/ivLogo"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_marginStart="30dp"
-                android:adjustViewBounds="true"
-                android:scaleType="fitCenter"
-                android:src="@drawable/logo" />
-
-            <ImageView
-                android:layout_width="29dp"
-                android:layout_height="29dp"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:layout_marginEnd="25dp"
-                android:src="@drawable/ic_hamburger"
-                app:tint="#404040" />
-        </RelativeLayout>
-
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <LinearLayout
+            <!-- Header -->
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingBottom="20dp">
-
-                <!-- Title Section -->
-                <LinearLayout
-                    android:layout_width="match_parent"
+                android:padding="16dp">
+                <ImageView
+                    android:id="@+id/ivLogo"
+                    android:layout_width="80dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/logo_dang_nhap" />
+                <TextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="20dp"
-                    android:paddingTop="20dp">
+                    android:layout_below="@id/ivLogo"
+                    android:layout_marginTop="16dp"
+                    android:text="Quản lý đặt phòng"
+                    android:textColor="@color/brand_text_main"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Quản lý đặt phòng"
-                        android:textColor="#403020"
-                        android:textSize="28sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Thứ Hai, 16 tháng 2, 2026"
-                        android:textColor="#999999"
-                        android:textSize="16sp" />
+            <!-- Statistics Grid -->
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="12dp"
+                android:columnCount="4"
+                android:useDefaultMargins="true">
+                <LinearLayout android:id="@+id/boxTotal" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:background="@drawable/bg_stat_box_selector" android:gravity="center" android:orientation="vertical" android:padding="8dp" android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tổng số" android:textColor="@color/stat_text_color_selector" android:textSize="10sp" />
+                    <TextView android:id="@+id/tvCountTotal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="@color/stat_text_color_selector" android:textSize="20sp" android:textStyle="bold" />
                 </LinearLayout>
-
-                <!-- Summary Cards -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:orientation="horizontal"
-                    android:paddingVertical="20dp">
-
-                    <!-- Tổng số đặt -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="85dp"
-                        android:layout_height="95dp"
-                        android:layout_margin="5dp"
-                        app:cardBackgroundColor="#A3734D"
-                        app:cardCornerRadius="12dp">
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:orientation="vertical">
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Tổng số đặt"
-                                android:textColor="#FFFFFF"
-                                android:textSize="10sp"
-                                android:textStyle="bold" />
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="05"
-                                android:textColor="#FFFFFF"
-                                android:textSize="24sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <!-- Chờ Check-in -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="85dp"
-                        android:layout_height="95dp"
-                        android:layout_margin="5dp"
-                        app:cardBackgroundColor="#FFFFFF"
-                        app:cardCornerRadius="12dp">
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:orientation="vertical">
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Chờ Check-in"
-                                android:textColor="#333333"
-                                android:textSize="10sp"
-                                android:textStyle="bold" />
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="03"
-                                android:textColor="#000000"
-                                android:textSize="24sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <!-- Đã Check-in -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="85dp"
-                        android:layout_height="95dp"
-                        android:layout_margin="5dp"
-                        app:cardBackgroundColor="#FFFFFF"
-                        app:cardCornerRadius="12dp">
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:orientation="vertical">
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Đã Check-in"
-                                android:textColor="#333333"
-                                android:textSize="10sp"
-                                android:textStyle="bold" />
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="01"
-                                android:textColor="#000000"
-                                android:textSize="24sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <!-- Đã hủy -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="85dp"
-                        android:layout_height="95dp"
-                        android:layout_margin="5dp"
-                        app:cardBackgroundColor="#FFFFFF"
-                        app:cardCornerRadius="12dp">
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:orientation="vertical">
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Đã hủy"
-                                android:textColor="#333333"
-                                android:textSize="10sp"
-                                android:textStyle="bold" />
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="01"
-                                android:textColor="#000000"
-                                android:textSize="24sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
-
+                <LinearLayout android:id="@+id/boxPending" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:background="@drawable/bg_stat_box_selector" android:gravity="center" android:orientation="vertical" android:padding="8dp" android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Chờ CI" android:textColor="@color/stat_text_color_selector" android:textSize="10sp" />
+                    <TextView android:id="@+id/tvCountPending" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="@color/stat_text_color_selector" android:textSize="20sp" android:textStyle="bold" />
                 </LinearLayout>
-
-                <!-- Filter Buttons -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="20dp"
-                    android:layout_marginBottom="10dp">
-
-                    <Button
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="8dp"
-                        android:backgroundTint="#A3734D"
-                        android:text="Tất cả"
-                        android:textAllCaps="false"
-                        android:textColor="#FFFFFF" />
-
-                    <Button
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="8dp"
-                        android:text="Hôm nay"
-                        android:textAllCaps="false"
-                        android:textColor="#A3734D"
-                        app:strokeColor="#D1C19F" />
-
-                    <Button
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Tháng này"
-                        android:textAllCaps="false"
-                        android:textColor="#A3734D"
-                        app:strokeColor="#D1C19F" />
+                <LinearLayout android:id="@+id/boxCheckedIn" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:background="@drawable/bg_stat_box_selector" android:gravity="center" android:orientation="vertical" android:padding="8dp" android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Đã CI" android:textColor="@color/stat_text_color_selector" android:textSize="10sp" />
+                    <TextView android:id="@+id/tvCountCheckedIn" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="@color/stat_text_color_selector" android:textSize="20sp" android:textStyle="bold" />
                 </LinearLayout>
+                <LinearLayout android:id="@+id/boxCancelled" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:background="@drawable/bg_stat_box_selector" android:gravity="center" android:orientation="vertical" android:padding="8dp" android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Đã hủy" android:textColor="@color/stat_text_color_selector" android:textSize="10sp" />
+                    <TextView android:id="@+id/tvCountCancelled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="@color/stat_text_color_selector" android:textSize="20sp" android:textStyle="bold" />
+                </LinearLayout>
+            </GridLayout>
 
-                <!-- Booking List -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvBookings"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:nestedScrollingEnabled="false" />
-
+            <!-- Filter Buttons -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:gravity="center" android:paddingHorizontal="16dp">
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnFilterAll" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Tất cả" app:cornerRadius="20dp" style="@style/Widget.MaterialComponents.Button.UnelevatedButton" android:layout_marginEnd="4dp" android:checkable="true"/>
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnFilterToday" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Hôm nay" app:cornerRadius="20dp" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_marginEnd="4dp" android:checkable="true"/>
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnFilterMonth" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Tháng này" app:cornerRadius="20dp" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:checkable="true"/>
             </LinearLayout>
-        </ScrollView>
 
-    </LinearLayout>
-
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvBookings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:nestedScrollingEnabled="false" />
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -12,49 +14,106 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.project_mobile.R;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class BookingManagementFragment extends Fragment {
 
     private RecyclerView rvBookings;
     private BookingAdapter adapter;
-    private List<Booking> bookingList;
+    private List<Booking> fullList = new ArrayList<>();
+    private TextView tvTotal, tvPending, tvCheckedIn, tvCancelled;
+    private LinearLayout boxTotal, boxPending, boxCheckedIn, boxCancelled;
+    private List<View> statBoxes = new ArrayList<>();
+    private List<View> filterButtons = new ArrayList<>();
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_booking_management, container, false);
-
-        rvBookings = view.findViewById(R.id.rvBookings);
-        rvBookings.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        bookingList = new ArrayList<>();
-        // Dữ liệu mẫu y chang trong hình
-        bookingList.add(new Booking(
-                "Phòng 101",
-                "Chờ check-in",
-                "Nguyễn Văn A",
-                "nguyenvana@gmail.com",
-                "090 123 4567",
-                "01 Th2, 2026",
-                "03 Th2, 2026",
-                "2,000,000đ"
-        ));
-        
-        // Thêm vài mẫu nữa để cuộn được
-        bookingList.add(new Booking(
-                "Phòng 102",
-                "Đã Check-in",
-                "Trần Thị B",
-                "tranb@gmail.com",
-                "091 888 9999",
-                "02 Th2, 2026",
-                "04 Th2, 2026",
-                "1,500,000đ"
-        ));
-
-        adapter = new BookingAdapter(bookingList);
-        rvBookings.setAdapter(adapter);
-
+        initViews(view);
+        setupData();
+        setupFilters(view);
         return view;
+    }
+
+    private void initViews(View view) {
+        rvBookings = view.findViewById(R.id.rvBookings);
+        tvTotal = view.findViewById(R.id.tvCountTotal);
+        tvPending = view.findViewById(R.id.tvCountPending);
+        tvCheckedIn = view.findViewById(R.id.tvCountCheckedIn);
+        tvCancelled = view.findViewById(R.id.tvCountCancelled);
+
+        boxTotal = view.findViewById(R.id.boxTotal);
+        boxPending = view.findViewById(R.id.boxPending);
+        boxCheckedIn = view.findViewById(R.id.boxCheckedIn);
+        boxCancelled = view.findViewById(R.id.boxCancelled);
+
+        statBoxes.add(boxTotal);
+        statBoxes.add(boxPending);
+        statBoxes.add(boxCheckedIn);
+        statBoxes.add(boxCancelled);
+
+        filterButtons.add(view.findViewById(R.id.btnFilterAll));
+        filterButtons.add(view.findViewById(R.id.btnFilterToday));
+        filterButtons.add(view.findViewById(R.id.btnFilterMonth));
+
+        rvBookings.setLayoutManager(new LinearLayoutManager(getContext()));
+        
+        // Mặc định chọn box đầu tiên
+        boxTotal.setSelected(true);
+        filterButtons.get(0).setSelected(true);
+    }
+
+    private void updateSelection(View selectedView, List<View> group) {
+        for (View v : group) {
+            v.setSelected(v == selectedView);
+        }
+    }
+
+    private void setupData() {
+        fullList.clear();
+        fullList.add(new Booking("Phòng 101", "Chờ check-in", "Nguyễn Văn A", "a@gmail.com", "090123", "01/02", "03/02", "2.000.000đ"));
+        fullList.add(new Booking("Phòng 102", "Đã Check-in", "Trần B", "b@gmail.com", "091888", "02/02", "04/02", "1.500.000đ"));
+        fullList.add(new Booking("Phòng 103", "Đã hủy", "Lê C", "c@gmail.com", "091222", "05/02", "06/02", "500.000đ"));
+
+        updateStats();
+        filterList("Tất cả");
+    }
+
+    private void updateStats() {
+        tvTotal.setText(String.format("%02d", fullList.size()));
+        tvPending.setText(String.format("%02d", (int) fullList.stream().filter(b -> b.getStatus().equals("Chờ check-in")).count()));
+        tvCheckedIn.setText(String.format("%02d", (int) fullList.stream().filter(b -> b.getStatus().equals("Đã Check-in")).count()));
+        tvCancelled.setText(String.format("%02d", (int) fullList.stream().filter(b -> b.getStatus().equals("Đã hủy")).count()));
+    }
+
+    private void filterList(String status) {
+        List<Booking> filtered;
+        if (status.equals("Tất cả")) {
+            filtered = new ArrayList<>(fullList);
+        } else {
+            filtered = fullList.stream().filter(b -> b.getStatus().equalsIgnoreCase(status)).collect(Collectors.toList());
+        }
+
+        adapter = new BookingAdapter(filtered, booking -> {
+            booking.setStatus("Đã hủy");
+            updateStats();
+            filterList("Tất cả");
+        });
+        rvBookings.setAdapter(adapter);
+    }
+
+    private void setupFilters(View view) {
+        boxTotal.setOnClickListener(v -> { filterList("Tất cả"); updateSelection(v, statBoxes); });
+        boxPending.setOnClickListener(v -> { filterList("Chờ check-in"); updateSelection(v, statBoxes); });
+        boxCheckedIn.setOnClickListener(v -> { filterList("Đã Check-in"); updateSelection(v, statBoxes); });
+        boxCancelled.setOnClickListener(v -> { filterList("Đã hủy"); updateSelection(v, statBoxes); });
+
+        for (View btn : filterButtons) {
+            btn.setOnClickListener(v -> {
+                if (v.getId() == R.id.btnFilterAll) filterList("Tất cả");
+                updateSelection(v, filterButtons);
+            });
+        }
     }
 }

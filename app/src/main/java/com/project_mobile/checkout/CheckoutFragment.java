@@ -1,6 +1,5 @@
 package com.project_mobile.checkout;
 
-import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -19,10 +18,9 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.project_mobile.R;
-import com.project_mobile.RoomModel;
+import com.project_mobile.Quan_ly_phong.RoomModel;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 public class CheckoutFragment extends Fragment {

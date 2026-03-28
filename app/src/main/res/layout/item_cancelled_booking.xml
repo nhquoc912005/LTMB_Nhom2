@@ -40,11 +40,11 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/tvRoomNameC4"
                 android:layout_marginTop="8dp"
-                android:background="@color/booking_status_cancelled_bg"
+                android:background="@color/status_cancelled_bg"
                 android:paddingHorizontal="16dp"
                 android:paddingVertical="6dp"
                 android:text="Đã hủy"
-                android:textColor="@color/booking_status_cancelled_text"
+                android:textColor="@color/status_cancelled_text"
                 android:textSize="12sp"
                 android:textStyle="bold" />
         </RelativeLayout>

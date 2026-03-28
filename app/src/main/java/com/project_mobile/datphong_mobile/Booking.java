@@ -23,6 +23,7 @@ public class Booking {
 
     public String getRoomName() { return roomName; }
     public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
     public String getCustomerName() { return customerName; }
     public String getCustomerEmail() { return customerEmail; }
     public String getCustomerPhone() { return customerPhone; }

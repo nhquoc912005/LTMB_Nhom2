@@ -1,6 +1,6 @@
 package com.project_mobile.checkout;
 
-import com.project_mobile.RoomModel;
+import com.project_mobile.Quan_ly_phong.RoomModel;
 
 public class CheckoutBill {
     private RoomModel roomModel;

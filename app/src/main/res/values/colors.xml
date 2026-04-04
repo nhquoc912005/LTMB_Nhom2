@@ -2,25 +2,45 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="darker_gray">#757575</color>
 
-    <color name="primary_accent">#C0410D</color>
-    <color name="background_main">#F4EFE9</color>
-    <color name="card_background">#FFFFFF</color>
-    <color name="secondary_text">#C58959</color>
+    <!-- Homestay Branding Colors -->
+    <color name="brand_orange">#B85A1B</color> <!-- Cam đất -->
+    <color name="brand_green">#0E6B57</color>  <!-- Xanh lá đậm -->
+    <color name="brand_beige">#E6D8BF</color>  <!-- Nền be sáng -->
+    <color name="brand_cream">#FDFBF7</color>  <!-- Trắng kem cho card -->
+    <color name="brand_text_main">#2D241E</color>
+    <color name="brand_text_secondary">#6D5D51</color>
+
+    <color name="primary_accent">#B85A1B</color>
+    <color name="background_main">#E6D8BF</color>
+    <color name="card_background">#FDFBF7</color>
+    <color name="secondary_text">#6D5D51</color>
 
     <!-- Text Colors -->
-    <color name="text_main">#101828</color>
-    <color name="text_secondary">#4A5565</color>
-    <color name="text_hint">#757575</color>
+    <color name="text_main">#2D241E</color>
+    <color name="text_secondary">#6D5D51</color>
+    <color name="text_hint">#A4978E</color>
 
-    <!-- Status Colors from Design -->
-    <color name="status_empty_bg">#F6F3EB</color>
-    <color name="status_empty_text">#C58959</color>
-    <color name="status_in_use_bg">#DBEAFE</color>
-    <color name="status_in_use_text">#1447E6</color>
-    <color name="status_maintenance_bg">#FFEDD4</color>
-    <color name="status_maintenance_text">#C0410D</color>
+    <!-- Status Colors -->
+    <color name="status_pending_bg">#FFF3E0</color>
+    <color name="status_pending_text">#E65100</color>
+    <color name="status_checked_in_bg">#E8F5E9</color>
+    <color name="status_checked_in_text">#2E7D32</color>
+    <color name="status_cancelled_bg">#FFEBEE</color>
+    <color name="status_cancelled_text">#C62828</color>
+    <color name="status_empty_bg">#E8F5E9</color>
+    <color name="status_empty_text">#2E7D32</color>
 
-    <color name="room_nav_bg">#D1C19F</color>
-    <color name="nav_inactive">#8D6E63</color>
+    <!-- Missing status colors for RoomAdapter -->
+    <color name="status_in_use_bg">#E3F2FD</color>
+    <color name="status_in_use_text">#1565C0</color>
+    <color name="status_maintenance_bg">#F5F5F5</color>
+    <color name="status_maintenance_text">#616161</color>
+
+    <!-- UI Colors -->
+    <color name="color_accent_brown">#9C6B42</color> <!-- Updated to requested color -->
+    <color name="color_inactive_gray">#BDBDBD</color>
+    <color name="nav_inactive">#BDBDBD</color>
+    <color name="room_nav_bg">#B85A1B</color>
 </resources>

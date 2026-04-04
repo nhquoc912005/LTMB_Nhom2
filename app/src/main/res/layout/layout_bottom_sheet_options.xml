@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom_sheet"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/tvBottomSheetTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Dịch vụ"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:id="@+id/tvOption1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingVertical="16dp"
+        android:text="Buffet sáng"
+        android:textColor="@color/black"
+        android:textSize="18sp" />
+
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F0F0F0"/>
+
+    <TextView
+        android:id="@+id/tvOption2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingVertical="16dp"
+        android:text="Giặt ủi"
+        android:textColor="@color/black"
+        android:textSize="18sp" />
+
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F0F0F0"/>
+
+    <TextView
+        android:id="@+id/tvOption3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingVertical="16dp"
+        android:text="Đưa đón sân bay"
+        android:textColor="@color/black"
+        android:textSize="18sp" />
+
+    <View android:id="@+id/lineOption4" android:layout_width="match_parent" android:layout_height="1dp" android:background="#F0F0F0"/>
+    <TextView
+        android:id="@+id/tvOption4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingVertical="16dp"
+        android:text="Trang trí"
+        android:textColor="@color/black"
+        android:textSize="18sp" />
+
+</LinearLayout>

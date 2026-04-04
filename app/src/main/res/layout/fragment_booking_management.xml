@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/brand_beige">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="80dp"> <!-- Padding để không bị che bởi Nav chính -->
+
+            <!-- Header -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp">
+                <ImageView
+                    android:id="@+id/ivLogo"
+                    android:layout_width="80dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/logo_dang_nhap" />
+                <TextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/ivLogo"
+                    android:layout_marginTop="16dp"
+                    android:text="Quản lý đặt phòng"
+                    android:textColor="@color/brand_text_main"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
+
+            <!-- Statistics Grid -->
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="12dp"
+                android:columnCount="4"
+                android:useDefaultMargins="true">
+                <LinearLayout android:id="@+id/boxTotal" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:background="@drawable/bg_stat_box_selector" android:gravity="center" android:orientation="vertical" android:padding="8dp" android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tổng số" android:textColor="@color/stat_text_color_selector" android:textSize="10sp" />
+                    <TextView android:id="@+id/tvCountTotal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="@color/stat_text_color_selector" android:textSize="20sp" android:textStyle="bold" />
+                </LinearLayout>
+                <LinearLayout android:id="@+id/boxPending" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:background="@drawable/bg_stat_box_selector" android:gravity="center" android:orientation="vertical" android:padding="8dp" android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Chờ CI" android:textColor="@color/stat_text_color_selector" android:textSize="10sp" />
+                    <TextView android:id="@+id/tvCountPending" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="@color/stat_text_color_selector" android:textSize="20sp" android:textStyle="bold" />
+                </LinearLayout>
+                <LinearLayout android:id="@+id/boxCheckedIn" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:background="@drawable/bg_stat_box_selector" android:gravity="center" android:orientation="vertical" android:padding="8dp" android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Đã CI" android:textColor="@color/stat_text_color_selector" android:textSize="10sp" />
+                    <TextView android:id="@+id/tvCountCheckedIn" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="@color/stat_text_color_selector" android:textSize="20sp" android:textStyle="bold" />
+                </LinearLayout>
+                <LinearLayout android:id="@+id/boxCancelled" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:background="@drawable/bg_stat_box_selector" android:gravity="center" android:orientation="vertical" android:padding="8dp" android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Đã hủy" android:textColor="@color/stat_text_color_selector" android:textSize="10sp" />
+                    <TextView android:id="@+id/tvCountCancelled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="@color/stat_text_color_selector" android:textSize="20sp" android:textStyle="bold" />
+                </LinearLayout>
+            </GridLayout>
+
+            <!-- Filter Buttons -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:gravity="center" android:paddingHorizontal="16dp">
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnFilterAll" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Tất cả" app:cornerRadius="20dp" style="@style/Widget.MaterialComponents.Button.UnelevatedButton" android:layout_marginEnd="4dp" android:checkable="true"/>
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnFilterToday" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Hôm nay" app:cornerRadius="20dp" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_marginEnd="4dp" android:checkable="true"/>
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnFilterMonth" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Tháng này" app:cornerRadius="20dp" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:checkable="true"/>
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvBookings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:nestedScrollingEnabled="false" />
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

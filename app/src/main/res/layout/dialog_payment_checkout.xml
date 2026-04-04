@@ -50,7 +50,15 @@
         </LinearLayout>
 
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="8dp">
-            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Tiền phòng:" android:fontFamily="@font/livvic" android:textColor="#333333"/>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/livvic"
+                android:text="Tiền phòng:"
+                android:textColor="#333333" />
+
             <TextView android:id="@+id/tvDialogRoomFee" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/livvic" android:textColor="@color/black"/>
         </LinearLayout>
 
@@ -66,8 +74,16 @@
             <TextView android:id="@+id/tvDialogTotal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/livvic" android:textStyle="bold" android:textSize="16sp" android:textColor="#AA7E5A"/>
         </LinearLayout>
 
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Ngày trả phòng" android:fontFamily="@font/livvic" android:textColor="@color/black" android:textSize="14sp"/>
-        <TextView android:id="@+id/tvDialogCheckoutDate" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="16/02/2026" android:fontFamily="@font/livvic" android:textColor="#888888" android:textSize="14sp" android:layout_marginBottom="12dp"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="16dp">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Ngày trả phòng" android:textColor="@color/black"/>
+                <TextView android:id="@+id/tvDialogCheckoutDate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="16/02/2026" android:textColor="#888888"/>
+            </LinearLayout>
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="end">
+                <TextView android:id="@+id/tvDialogTotalGuests" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:textColor="@color/black"/>
+                <TextView android:id="@+id/tvDialogGuestDetails" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#888888"/>
+            </LinearLayout>
+        </LinearLayout>
 
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Phương thức thanh toán" android:fontFamily="@font/livvic" android:textColor="@color/black" android:textSize="14sp"/>
         <Spinner android:id="@+id/spinnerPayment" android:layout_width="match_parent" android:layout_height="40dp" android:background="@drawable/bg_spinner_border" android:layout_marginTop="4dp" android:layout_marginBottom="12dp"/>

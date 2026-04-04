@@ -4,32 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F6EFE9"
-    android:orientation="vertical"
-    android:fitsSystemWindows="true">
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="62dp"
-        android:background="#D1C19F">
-
-        <ImageView
-            android:id="@+id/ivLogo"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_marginStart="30dp"
-            android:adjustViewBounds="true"
-            android:scaleType="fitCenter"
-            android:src="@drawable/logo" />
-
-        <ImageView
-            android:layout_width="29dp"
-            android:layout_height="29dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:layout_marginEnd="25dp"
-            android:src="@drawable/ic_hamburger"
-            app:tint="#404040" />
-    </RelativeLayout>
+    android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"

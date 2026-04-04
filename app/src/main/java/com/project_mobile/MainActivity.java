@@ -6,7 +6,6 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.project_mobile.check_in.StayFragment;
 import com.project_mobile.datphong_mobile.BookingManagementFragment;
-import com.project_mobile.service.RoomMapFragment;
 import com.project_mobile.service.ServiceFragment;
 import com.project_mobile.Quan_ly_phong.RoomManagementFragment;
 
@@ -19,13 +18,14 @@ public class MainActivity extends AppCompatActivity {
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
 
-        // Thiết lập Listener trước để đảm bảo bắt được sự kiện click
+        // Thiết lập Listener để xử lý chuyển đổi giữa các màn hình
         bottomNav.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
             int itemId = item.getItemId();
 
             if (itemId == R.id.nav_home) {
-                selectedFragment = new RoomMapFragment();
+                // Kết nối vào HomeFragment (Trang chủ mới tạo)
+                selectedFragment = new HomeFragment();
             } else if (itemId == R.id.nav_stay) {
                 selectedFragment = new StayFragment();
             } else if (itemId == R.id.nav_booking) {
@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
-        // Sau đó mới đặt item mặc định
+        // Đặt màn hình Trang chủ làm mặc định khi mở app
         if (savedInstanceState == null) {
             bottomNav.setSelectedItemId(R.id.nav_home);
         }

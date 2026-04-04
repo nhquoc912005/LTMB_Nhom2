@@ -7,15 +7,24 @@
     <!-- Homestay Branding Colors -->
     <color name="brand_orange">#B85A1B</color> <!-- Cam đất -->
     <color name="brand_green">#0E6B57</color>  <!-- Xanh lá đậm -->
-    <color name="brand_beige">#E6D8BF</color>  <!-- Nền be sáng -->
+    <color name="brand_beige">#F5EEE6</color>  <!-- Nền be sáng hơn cho Home -->
     <color name="brand_cream">#FDFBF7</color>  <!-- Trắng kem cho card -->
     <color name="brand_text_main">#2D241E</color>
     <color name="brand_text_secondary">#6D5D51</color>
 
     <color name="primary_accent">#B85A1B</color>
-    <color name="background_main">#E6D8BF</color>
-    <color name="card_background">#FDFBF7</color>
+    <color name="background_main">#F5EEE6</color>
+    <color name="card_background">#FFFFFF</color>
     <color name="secondary_text">#6D5D51</color>
+
+    <!-- Dashboard Icon Colors -->
+    <color name="dash_orange">#D48D5E</color>
+    <color name="dash_pink">#E57373</color>
+    <color name="dash_green">#81C784</color>
+    <color name="dash_blue">#64B5F6</color>
+
+    <color name="action_checkin">#4CAF50</color>
+    <color name="action_checkout">#F44336</color>
 
     <!-- Text Colors -->
     <color name="text_main">#2D241E</color>
@@ -31,15 +40,13 @@
     <color name="status_cancelled_text">#C62828</color>
     <color name="status_empty_bg">#E8F5E9</color>
     <color name="status_empty_text">#2E7D32</color>
-
-    <!-- Missing status colors for RoomAdapter -->
     <color name="status_in_use_bg">#E3F2FD</color>
     <color name="status_in_use_text">#1565C0</color>
     <color name="status_maintenance_bg">#F5F5F5</color>
     <color name="status_maintenance_text">#616161</color>
 
     <!-- UI Colors -->
-    <color name="color_accent_brown">#9C6B42</color> <!-- Updated to requested color -->
+    <color name="color_accent_brown">#9C6B42</color>
     <color name="color_inactive_gray">#BDBDBD</color>
     <color name="nav_inactive">#BDBDBD</color>
     <color name="room_nav_bg">#B85A1B</color>

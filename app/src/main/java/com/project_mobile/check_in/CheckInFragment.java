@@ -51,11 +51,6 @@ public class CheckInFragment extends Fragment {
         rvCheckIn.setLayoutManager(new LinearLayoutManager(getContext()));
 
         checkInList = new ArrayList<>();
-        // Dữ liệu mẫu theo hình ảnh
-        checkInList.add(new CheckInModel("Nguyễn Văn A", "Phòng 101", "0901234567", "nguyenvana@email.com", "14/02/2026 - 16/02/2026"));
-        checkInList.add(new CheckInModel("Nguyễn Văn B", "Phòng 102", "0901234568", "nguyenvanb@email.com", "14/02/2026 - 16/02/2026"));
-        checkInList.add(new CheckInModel("Nguyễn Văn C", "Phòng 103", "0901234569", "nguyenvanc@email.com", "14/02/2026 - 16/02/2026"));
-
         adapter = new CheckInAdapter(checkInList, new CheckInAdapter.OnCheckInClickListener() {
             @Override
             public void onCheckInClick(CheckInModel item) {
@@ -69,7 +64,27 @@ public class CheckInFragment extends Fragment {
         });
         rvCheckIn.setAdapter(adapter);
 
+        fetchPendingCheckIns();
+
         return view;
+    }
+
+    private void fetchPendingCheckIns() {
+        com.project_mobile.external_data.RetrofitClient.getApiService().getPendingCheckIns().enqueue(new retrofit2.Callback<List<CheckInModel>>() {
+            @Override
+            public void onResponse(retrofit2.Call<List<CheckInModel>> call, retrofit2.Response<List<CheckInModel>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    checkInList.clear();
+                    checkInList.addAll(response.body());
+                    adapter.notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<List<CheckInModel>> call, Throwable t) {
+                android.util.Log.e("CheckInFragment", "Error fetching data: " + t.getMessage());
+            }
+        });
     }
 
     private void showDatePicker(TextView targetTextView) {
@@ -120,8 +135,20 @@ public class CheckInFragment extends Fragment {
         
         if (btnConfirm != null) {
             btnConfirm.setOnClickListener(v -> {
-                dialog.dismiss();
-                showSuccessDialog(item, "Nhận phòng thành công");
+                com.project_mobile.external_data.RetrofitClient.getApiService().confirmCheckIn(item.getBookingId()).enqueue(new retrofit2.Callback<okhttp3.ResponseBody>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<okhttp3.ResponseBody> call, retrofit2.Response<okhttp3.ResponseBody> response) {
+                        if (response.isSuccessful()) {
+                            dialog.dismiss();
+                            showSuccessDialog(item, "Nhận phòng thành công");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(retrofit2.Call<okhttp3.ResponseBody> call, Throwable t) {
+                        android.widget.Toast.makeText(getContext(), "Lỗi: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                });
             });
         }
 

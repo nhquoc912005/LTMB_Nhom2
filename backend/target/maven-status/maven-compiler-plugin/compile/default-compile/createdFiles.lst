@@ -1,0 +1,16 @@
+com\backend\api\repository\ExternalDataRepository.class
+com\backend\api\entity\StayRecord.class
+com\backend\api\controller\AuthController.class
+com\backend\api\exception\GlobalExceptionHandler.class
+com\backend\api\dto\CheckInDTO.class
+com\backend\api\controller\AuthController$LoginRequest.class
+com\backend\api\repository\AccountRepository.class
+com\backend\api\entity\ExternalData.class
+com\backend\api\service\ExternalDataService.class
+com\backend\api\repository\StayRecordRepository.class
+com\backend\api\controller\CheckInController.class
+com\backend\api\entity\Account.class
+com\backend\api\entity\Booking.class
+com\backend\api\BackendApplication.class
+com\backend\api\repository\BookingRepository.class
+com\backend\api\controller\ExternalDataController.class

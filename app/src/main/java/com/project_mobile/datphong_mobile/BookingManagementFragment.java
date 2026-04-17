@@ -15,6 +15,14 @@ import com.project_mobile.R;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+import java.util.concurrent.Executors;
+import com.project_mobile.PostgreSQLConnection;
+import android.util.Log;
 
 public class BookingManagementFragment extends Fragment {
 
@@ -72,12 +80,48 @@ public class BookingManagementFragment extends Fragment {
 
     private void setupData() {
         fullList.clear();
-        fullList.add(new Booking("Phòng 101", "Chờ check-in", "Nguyễn Văn A", "a@gmail.com", "090123", "01/02", "03/02", "2.000.000đ"));
-        fullList.add(new Booking("Phòng 102", "Đã Check-in", "Trần B", "b@gmail.com", "091888", "02/02", "04/02", "1.500.000đ"));
-        fullList.add(new Booking("Phòng 103", "Đã hủy", "Lê C", "c@gmail.com", "091222", "05/02", "06/02", "500.000đ"));
-
-        updateStats();
-        filterList("Tất cả");
+        
+        // Show loading state if needed (optional)
+        
+        Executors.newSingleThreadExecutor().execute(() -> {
+            Connection conn = PostgreSQLConnection.getConnection();
+            if (conn != null) {
+                try {
+                    String query = "SELECT so_phong, trang_thai, ten_nguoi_dat, email, sdt_nguoi_dat, ngay_nhan, ngay_tra, tong_thanh_toan FROM dat_phong ORDER BY ma_dat_phong DESC";
+                    Statement stmt = conn.createStatement();
+                    ResultSet rs = stmt.executeQuery(query);
+                    
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM", Locale.getDefault());
+                    
+                    while (rs.next()) {
+                        String roomName = rs.getString("so_phong");
+                        String status = rs.getString("trang_thai");
+                        String customerName = rs.getString("ten_nguoi_dat");
+                        String customerEmail = rs.getString("email");
+                        String customerPhone = rs.getString("sdt_nguoi_dat");
+                        String checkIn = rs.getTimestamp("ngay_nhan") != null ? sdf.format(rs.getTimestamp("ngay_nhan")) : "N/A";
+                        String checkOut = rs.getTimestamp("ngay_tra") != null ? sdf.format(rs.getTimestamp("ngay_tra")) : "N/A";
+                        String price = String.format(Locale.getDefault(), "%,.0fđ", rs.getDouble("tong_thanh_toan"));
+                        
+                        fullList.add(new Booking(roomName, status, customerName, customerEmail, customerPhone, checkIn, checkOut, price));
+                    }
+                    
+                    rs.close();
+                    stmt.close();
+                    conn.close();
+                } catch (Exception e) {
+                    Log.e("BookingFragment", "Error fetching data: " + e.getMessage());
+                }
+            }
+            
+            // Update UI on main thread
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    updateStats();
+                    filterList("Tất cả");
+                });
+            }
+        });
     }
 
     private void updateStats() {

@@ -1,9 +1,15 @@
 package com.project_mobile.check_in;
 
+import com.google.gson.annotations.SerializedName;
+
 public class CheckInModel {
+    private int bookingId;
     private String guestName;
     private String roomNumber;
+    
+    @SerializedName("phone")
     private String phoneNumber;
+    
     private String email;
     private String stayPeriod;
 
@@ -14,6 +20,9 @@ public class CheckInModel {
         this.email = email;
         this.stayPeriod = stayPeriod;
     }
+
+    public int getBookingId() { return bookingId; }
+    public void setBookingId(int bookingId) { this.bookingId = bookingId; }
 
     public String getGuestName() { return guestName; }
     public String getRoomNumber() { return roomNumber; }

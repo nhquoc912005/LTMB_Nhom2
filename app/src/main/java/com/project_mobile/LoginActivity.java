@@ -7,6 +7,11 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.concurrent.Executors;
+import android.util.Log;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -57,17 +62,34 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void performLogin() {
-        // Here you would typically perform network authentication
-        // For now, we will just simulate a successful login
         String username = etUsername.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
 
-        // Basic mock logic: any non-empty username/password is "valid"
-        Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
+        // Show a "Logging in..." message
+        Toast.makeText(this, "Đang xác thực...", Toast.LENGTH_SHORT).show();
 
-        // Redirect to MainActivity
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
-        finish(); // Close LoginActivity
+        com.project_mobile.external_data.LoginRequest loginRequest = new com.project_mobile.external_data.LoginRequest(username, password);
+        
+        com.project_mobile.external_data.RetrofitClient.getApiService().login(loginRequest)
+            .enqueue(new retrofit2.Callback<com.project_mobile.external_data.LoginResponse>() {
+                @Override
+                public void onResponse(retrofit2.Call<com.project_mobile.external_data.LoginResponse> call, retrofit2.Response<com.project_mobile.external_data.LoginResponse> response) {
+                    if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                        Toast.makeText(LoginActivity.this, "Chào mừng " + response.body().getUsername() + "!", Toast.LENGTH_SHORT).show();
+                        // Redirect to MainActivity (Overview)
+                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        Toast.makeText(LoginActivity.this, "Tài khoản hoặc mật khẩu không chính xác", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(retrofit2.Call<com.project_mobile.external_data.LoginResponse> call, Throwable t) {
+                    Log.e("LoginActivity", "Login error: " + t.getMessage());
+                    Toast.makeText(LoginActivity.this, "Lỗi kết nối server: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
     }
 }

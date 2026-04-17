@@ -46,6 +46,10 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.Checko
         holder.tvEmail.setText(bill.getCustomerEmail());
         holder.tvDate.setText(bill.getCheckInDate() + " - " + bill.getCheckOutDate());
 
+        holder.tvTotalGuests.setText("Tổng số người: " + bill.getTotalGuests());
+        holder.tvAdults.setText("Người lớn: " + bill.getAdults());
+        holder.tvChildren.setText("Trẻ em: " + bill.getChildren());
+
         holder.tvRoomFee.setText(bill.getRoomModel().getPrice());
         holder.tvServiceFee.setText(formatter.format(bill.getServiceFee()));
         holder.tvTotalFee.setText(formatter.format(bill.getTotalFee()));
@@ -62,15 +66,21 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.Checko
 
     public static class CheckoutViewHolder extends RecyclerView.ViewHolder {
         TextView tvCustomerName, tvRoomInfo, tvPhone, tvEmail, tvDate, tvRoomFee, tvServiceFee, tvTotalFee;
+        TextView tvTotalGuests, tvAdults, tvChildren;
         Button btnPay;
 
         public CheckoutViewHolder(@NonNull View itemView) {
             super(itemView);
             tvCustomerName = itemView.findViewById(R.id.tvCustomerName);
-            tvRoomInfo = itemView.findViewById(R.id.tvRoomInfo);
+            tvRoomInfo = itemView.findViewById(R.id.tvRoomNumber); // Đã sửa từ tvRoomInfo -> tvRoomNumber cho khớp XML
             tvPhone = itemView.findViewById(R.id.tvPhone);
             tvEmail = itemView.findViewById(R.id.tvEmail);
-            tvDate = itemView.findViewById(R.id.tvDate);
+            tvDate = itemView.findViewById(R.id.tvDateRange); // Đã sửa từ tvDate -> tvDateRange cho khớp XML
+
+            tvTotalGuests = itemView.findViewById(R.id.tvTotalGuests);
+            tvAdults = itemView.findViewById(R.id.tvAdultCount); // Đã sửa từ tvAdults -> tvAdultCount cho khớp XML
+            tvChildren = itemView.findViewById(R.id.tvChildCount); // Đã sửa từ tvChildren -> tvChildCount cho khớp XML
+
             tvRoomFee = itemView.findViewById(R.id.tvRoomFee);
             tvServiceFee = itemView.findViewById(R.id.tvServiceFee);
             tvTotalFee = itemView.findViewById(R.id.tvTotalFee);

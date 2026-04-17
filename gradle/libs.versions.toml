@@ -11,10 +11,6 @@ retrofit = "2.9.0"
 okhttp = "4.11.0"
 gson = "2.10.1"
 postgresql = "42.7.2"
-retrofit = "2.9.0"
-gson = "2.10.1"
-
-
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -28,10 +24,6 @@ postgresql = { group = "org.postgresql", name = "postgresql", version.ref = "pos
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
-
-
-retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
-retrofit-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 

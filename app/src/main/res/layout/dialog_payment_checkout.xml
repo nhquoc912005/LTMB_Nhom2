@@ -127,7 +127,7 @@
                 android:padding="0dp" />
 
             <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btnConfirmPrint"
+                android:id="@+id/btnConfirm"
                 android:layout_width="0dp"
                 android:layout_height="40dp"
                 android:layout_weight="1.9"

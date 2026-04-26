@@ -35,7 +35,7 @@ public class FloorAdapter extends RecyclerView.Adapter<FloorAdapter.FloorViewHol
         holder.tvFloorName.setText(floor.getFloorName());
 
         // ĐÃ SỬA: Truyền sự kiện click xuống cho danh sách các phòng
-        RoomGridAdapter roomAdapter = new RoomGridAdapter(floor.getRoomNumbers(), roomClickListener);
+        RoomGridAdapter roomAdapter = new RoomGridAdapter(floor.getRooms(), roomClickListener);
 
         holder.rcvRooms.setLayoutManager(new GridLayoutManager(holder.itemView.getContext(), 3));
         holder.rcvRooms.setAdapter(roomAdapter);

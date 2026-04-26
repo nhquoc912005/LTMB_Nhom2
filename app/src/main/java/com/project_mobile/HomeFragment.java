@@ -4,8 +4,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
-import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -35,11 +33,15 @@ public class HomeFragment extends Fragment {
 
         // Listeners cho Thao tác nhanh
         view.findViewById(R.id.cardCheckIn).setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Chức năng Nhận phòng", Toast.LENGTH_SHORT).show();
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).openStay(true);
+            }
         });
 
         view.findViewById(R.id.cardCheckOut).setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Chức năng Trả phòng", Toast.LENGTH_SHORT).show();
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).openStay(false);
+            }
         });
     }
 

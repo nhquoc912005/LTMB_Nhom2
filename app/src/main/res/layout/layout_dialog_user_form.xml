@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_rounded"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="22dp"
+        android:paddingVertical="18dp">
+
+        <TextView
+            android:id="@+id/tvUserFormTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:fontFamily="@font/livvic"
+            android:text="Thêm người dùng mới"
+            android:textColor="#101828"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/btnCloseUserForm"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="10dp"
+            android:src="@drawable/ic_close_line" />
+    </RelativeLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EEF0F3" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="22dp">
+
+            <TextView
+                style="@style/UserFormLabel"
+                android:text="Họ và tên *" />
+
+            <EditText
+                android:id="@+id/edtFullName"
+                style="@style/UserFormInput"
+                android:hint="Nhập họ và tên" />
+
+            <TextView
+                style="@style/UserFormLabel"
+                android:layout_marginTop="18dp"
+                android:text="Email *" />
+
+            <EditText
+                android:id="@+id/edtEmail"
+                style="@style/UserFormInput"
+                android:hint="email@example.com"
+                android:inputType="textEmailAddress" />
+
+            <TextView
+                style="@style/UserFormLabel"
+                android:layout_marginTop="18dp"
+                android:text="Số điện thoại *" />
+
+            <EditText
+                android:id="@+id/edtPhone"
+                style="@style/UserFormInput"
+                android:hint="0901234567"
+                android:inputType="phone" />
+
+            <TextView
+                style="@style/UserFormLabel"
+                android:layout_marginTop="18dp"
+                android:text="Vai trò *" />
+
+            <Spinner
+                android:id="@+id/spRole"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="@drawable/bg_edittext_border"
+                android:fontFamily="@font/livvic"
+                android:paddingHorizontal="14dp" />
+
+            <LinearLayout
+                android:id="@+id/llPasswordGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/UserFormLabel"
+                    android:layout_marginTop="18dp"
+                    android:text="Mật khẩu *" />
+
+                <EditText
+                    android:id="@+id/edtPassword"
+                    style="@style/UserFormInput"
+                    android:hint="Nhập mật khẩu"
+                    android:inputType="textPassword" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EEF0F3" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="22dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancelUserForm"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="54dp"
+            android:layout_weight="1"
+            android:fontFamily="@font/livvic"
+            android:text="Hủy"
+            android:textAllCaps="false"
+            android:textColor="#344054"
+            android:textSize="18sp"
+            app:cornerRadius="8dp"
+            app:strokeColor="#D9DDE3" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSubmitUserForm"
+            android:layout_width="0dp"
+            android:layout_height="54dp"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:fontFamily="@font/livvic"
+            android:text="Tạo tài khoản"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            app:backgroundTint="@color/app_shell_beige"
+            app:cornerRadius="8dp" />
+    </LinearLayout>
+</LinearLayout>

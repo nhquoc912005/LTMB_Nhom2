@@ -1,178 +1,249 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/white"
-    android:orientation="vertical"
-    android:padding="20dp">
+    android:background="@drawable/bg_bottom_sheet"
+    android:fillViewport="false">
 
-    <!-- Header -->
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp">
+        android:orientation="vertical"
+        android:padding="20dp">
 
-        <TextView
-            android:id="@+id/tvDetailTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/livvic"
-            android:text="Chi tiết phòng 101"
-            android:textColor="@color/text_main"
-            android:textSize="24sp"
-            android:textStyle="bold" />
-
-        <ImageView
-            android:id="@+id/ivClose"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
-            app:tint="@color/text_secondary" />
-    </RelativeLayout>
-
-    <!-- Room Info Card -->
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardBackgroundColor="#FDF8F3"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="0dp"
-        app:strokeWidth="0dp">
-
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_marginBottom="20dp">
 
             <TextView
+                android:id="@+id/tvDetailTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
                 android:fontFamily="@font/livvic"
-                android:text="Thông tin phòng"
-                android:textColor="@color/text_main"
-                android:textSize="20sp"
+                android:text="Chi tiết phòng 101"
+                android:textColor="#101828"
+                android:textSize="24sp"
                 android:textStyle="bold" />
 
-            <!-- Row: Number -->
-            <RelativeLayout style="@style/InfoRow">
-                <TextView style="@style/InfoLabel" android:text="Số phòng:" />
-                <TextView android:id="@+id/tvDetailRoomNumber" style="@style/InfoValue" android:text="101" />
-            </RelativeLayout>
+            <ImageButton
+                android:id="@+id/ivClose"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="10dp"
+                android:src="@drawable/ic_close_line" />
+        </RelativeLayout>
 
-            <!-- Row: Type -->
-            <RelativeLayout style="@style/InfoRow">
-                <TextView style="@style/InfoLabel" android:text="Loại phòng:" />
-                <TextView android:id="@+id/tvDetailRoomType" style="@style/InfoValue" android:text="Standard" />
-            </RelativeLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="20dp"
+            android:background="#EEF0F3" />
 
-            <!-- Row: Floor -->
-            <RelativeLayout style="@style/InfoRow">
-                <TextView style="@style/InfoLabel" android:text="Tầng:" />
-                <TextView android:id="@+id/tvDetailFloor" style="@style/InfoValue" android:text="Tầng 1" />
-            </RelativeLayout>
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="#F6F1EA"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
 
-            <!-- Row: Capacity -->
-            <RelativeLayout style="@style/InfoRow">
-                <TextView style="@style/InfoLabel" android:text="Sức chứa:" />
-                <TextView android:id="@+id/tvDetailCapacity" style="@style/InfoValue" android:text="2 người" />
-            </RelativeLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
 
-            <!-- Row: Price -->
-            <RelativeLayout style="@style/InfoRow">
-                <TextView style="@style/InfoLabel" android:text="Giá phòng:" />
-                <TextView android:id="@+id/tvDetailPrice" style="@style/InfoValue" android:text="1.200.000đ/đêm" android:textColor="@color/room_nav_bg" />
-            </RelativeLayout>
-
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" android:layout_marginVertical="8dp"/>
-
-            <!-- Row: Status -->
-            <RelativeLayout style="@style/InfoRow">
-                <TextView style="@style/InfoLabel" android:text="Trạng thái:" />
-                <TextView android:id="@+id/tvDetailStatus"
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:background="@drawable/bg_status_badge"
                     android:fontFamily="@font/livvic"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="2dp"
-                    android:text="Trống"
-                    android:textSize="14sp" />
-            </RelativeLayout>
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
+                    android:text="Thông tin phòng"
+                    android:textColor="#101828"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
 
-    <!-- Customer Info Card -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cvCustomerInfo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:visibility="gone"
-        app:cardBackgroundColor="#FDF8F3"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="0dp"
-        app:strokeWidth="0dp">
+                <RelativeLayout style="@style/InfoRow">
+                    <TextView
+                        style="@style/InfoLabel"
+                        android:text="Số phòng:" />
 
-        <LinearLayout
+                    <TextView
+                        android:id="@+id/tvDetailRoomNumber"
+                        style="@style/InfoValue"
+                        android:text="101" />
+                </RelativeLayout>
+
+                <RelativeLayout style="@style/InfoRow">
+                    <TextView
+                        style="@style/InfoLabel"
+                        android:text="Loại phòng:" />
+
+                    <TextView
+                        android:id="@+id/tvDetailRoomType"
+                        style="@style/InfoValue"
+                        android:text="Standard" />
+                </RelativeLayout>
+
+                <RelativeLayout style="@style/InfoRow">
+                    <TextView
+                        style="@style/InfoLabel"
+                        android:text="Tầng:" />
+
+                    <TextView
+                        android:id="@+id/tvDetailFloor"
+                        style="@style/InfoValue"
+                        android:text="Tầng 1" />
+                </RelativeLayout>
+
+                <RelativeLayout style="@style/InfoRow">
+                    <TextView
+                        style="@style/InfoLabel"
+                        android:text="Sức chứa:" />
+
+                    <TextView
+                        android:id="@+id/tvDetailCapacity"
+                        style="@style/InfoValue"
+                        android:text="2 người" />
+                </RelativeLayout>
+
+                <RelativeLayout style="@style/InfoRow">
+                    <TextView
+                        style="@style/InfoLabel"
+                        android:text="Giá phòng:" />
+
+                    <TextView
+                        android:id="@+id/tvDetailPrice"
+                        style="@style/InfoValue"
+                        android:text="1.200.000đ/đêm"
+                        android:textColor="@color/app_shell_beige" />
+                </RelativeLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="8dp"
+                    android:background="#E5E7EB" />
+
+                <RelativeLayout style="@style/InfoRow">
+                    <TextView
+                        style="@style/InfoLabel"
+                        android:text="Trạng thái:" />
+
+                    <TextView
+                        android:id="@+id/tvDetailStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:background="@drawable/bg_status_badge"
+                        android:fontFamily="@font/livvic"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="7dp"
+                        android:text="Trống"
+                        android:textColor="@color/app_primary"
+                        android:textSize="14sp" />
+                </RelativeLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cvCustomerInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="#F6F1EA"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/livvic"
+                    android:text="Thông tin khách hàng"
+                    android:textColor="#101828"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvCustomerName"
+                    style="@style/CustomerInfoItem"
+                    android:drawableStart="@drawable/ic_person_outline"
+                    android:text=" Nguyễn Văn A" />
+
+                <TextView
+                    android:id="@+id/tvCustomerPhone"
+                    style="@style/CustomerInfoItem"
+                    android:drawableStart="@drawable/ic_phone_outline"
+                    android:text=" 0901234567" />
+
+                <TextView
+                    android:id="@+id/tvCustomerDuration"
+                    style="@style/CustomerInfoItem"
+                    android:drawableStart="@drawable/ic_calendar"
+                    android:text=" 14/02/2026 - 16/02/2026" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <LinearLayout
+            android:id="@+id/llActions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:orientation="vertical">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPrimaryAction"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
                 android:fontFamily="@font/livvic"
-                android:text="Thông tin khách hàng"
-                android:textColor="@color/text_main"
+                android:text="Trả phòng"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
                 android:textSize="20sp"
-                android:textStyle="bold" />
+                app:backgroundTint="#9A7E5D"
+                app:cornerRadius="8dp" />
 
-            <TextView android:id="@+id/tvCustomerName" style="@style/CustomerInfoItem" android:drawableStart="@android:drawable/ic_menu_myplaces" android:text=" Nguyễn Văn A" />
-            <TextView android:id="@+id/tvCustomerPhone" style="@style/CustomerInfoItem" android:drawableStart="@android:drawable/ic_menu_call" android:text=" 0901234567" />
-            <TextView android:id="@+id/tvCustomerDuration" style="@style/CustomerInfoItem" android:drawableStart="@android:drawable/ic_menu_today" android:text=" 14/02/2026 - 16/02/2026" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSecondaryAction"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:layout_marginTop="12dp"
+                android:fontFamily="@font/livvic"
+                android:text="Đổi phòng"
+                android:textAllCaps="false"
+                android:textColor="@color/app_shell_beige"
+                android:textSize="20sp"
+                app:cornerRadius="8dp"
+                app:strokeColor="@color/app_shell_beige" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTertiaryAction"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:layout_marginTop="12dp"
+                android:fontFamily="@font/livvic"
+                android:text="Chuyển sang bảo trì"
+                android:textAllCaps="false"
+                android:textColor="#344054"
+                android:textSize="20sp"
+                app:cornerRadius="8dp"
+                app:strokeColor="#D9DDE3" />
         </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Actions -->
-    <LinearLayout
-        android:id="@+id/llActions"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:orientation="vertical">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPrimaryAction"
-            style="@style/Widget.MaterialComponents.Button"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:fontFamily="@font/livvic"
-            android:text="Đặt phòng"
-            android:textAllCaps="false"
-            android:textSize="20sp"
-            app:backgroundTint="#D1C19F"
-            app:cornerRadius="8dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSecondaryAction"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_marginTop="12dp"
-            android:fontFamily="@font/livvic"
-            android:text="Chuyển sang bảo trì"
-            android:textAllCaps="false"
-            android:textColor="@color/text_main"
-            android:textSize="20sp"
-            app:cornerRadius="8dp"
-            app:strokeColor="#D1C19F" />
     </LinearLayout>
-
-</LinearLayout>
+</ScrollView>

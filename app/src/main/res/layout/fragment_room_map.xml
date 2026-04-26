@@ -3,44 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8F3F0"
+    android:background="@color/app_content_background"
     android:orientation="vertical">
 
-    <!-- Custom Toolbar -->
-    <RelativeLayout
-        android:id="@+id/layoutToolbar"
-        android:layout_width="match_parent"
-        android:layout_height="62dp"
-        android:background="#D1C19F">
-
-        <ImageView
-            android:id="@+id/ivLogo"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_marginStart="30dp"
-            android:adjustViewBounds="true"
-            android:scaleType="fitCenter"
-            android:src="@drawable/logo" />
-
-        <ImageView
-            android:id="@+id/ivMenu"
-            android:layout_width="29dp"
-            android:layout_height="29dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:layout_marginEnd="25dp"
-            android:src="@drawable/ic_hamburger"
-            app:tint="#404040"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless" />
-    </RelativeLayout>
-
-    <!-- Nội dung bên dưới Toolbar -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="16dp">
+        android:padding="@dimen/app_screen_padding">
 
         <!-- Thanh Tìm kiếm -->
         <EditText
@@ -53,17 +22,18 @@
             android:drawableStart="@android:drawable/ic_menu_search"
             android:drawablePadding="8dp"
             android:fontFamily="@font/livvic"
-            android:hint="Tìm kiếm phòng..."
+            android:hint="Tìm kiếm dịch vụ, bồi thường"
             android:padding="12dp"
             android:textSize="16sp"
-            android:singleLine="true" />
+            android:singleLine="true"
+            android:imeOptions="actionSearch" />
 
         <Button
             android:id="@+id/btnSearch"
             android:layout_width="wrap_content"
             android:layout_height="50dp"
             android:layout_alignParentEnd="true"
-            android:backgroundTint="#D86030"
+            android:backgroundTint="@color/app_primary"
             android:fontFamily="@font/livvic"
             android:text="Tìm kiếm"
             android:textColor="@color/white"
@@ -91,7 +61,7 @@
                 android:padding="10dp"
                 android:fontFamily="@font/livvic"
                 android:text="Dịch vụ"
-                android:textColor="#C58959"
+                android:textColor="@color/app_primary"
                 android:textSize="16sp" />
 
             <TextView
@@ -112,7 +82,7 @@
             android:layout_below="@id/layoutTabs"
             android:layout_marginTop="16dp"
             app:cardBackgroundColor="@color/white"
-            app:cardCornerRadius="24dp"
+            app:cardCornerRadius="@dimen/app_card_radius"
             app:cardElevation="0dp">
 
             <FrameLayout
@@ -211,6 +181,39 @@
                                 <TextView android:id="@+id/tvDetailRoomFee" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:text="1,600,000" android:textColor="#555555" android:textSize="18sp"/>
                             </RelativeLayout>
 
+                            <LinearLayout
+                                android:id="@+id/layoutDetailTabs"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_horizontal"
+                                android:layout_marginBottom="18dp"
+                                android:background="@drawable/bg_tab_container"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:id="@+id/tvDetailTabService"
+                                    android:layout_width="120dp"
+                                    android:layout_height="wrap_content"
+                                    android:background="@drawable/bg_tab_left_active"
+                                    android:fontFamily="@font/livvic"
+                                    android:gravity="center"
+                                    android:padding="10dp"
+                                    android:text="Dịch vụ"
+                                    android:textColor="@color/app_primary"
+                                    android:textSize="16sp" />
+
+                                <TextView
+                                    android:id="@+id/tvDetailTabAsset"
+                                    android:layout_width="120dp"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="@font/livvic"
+                                    android:gravity="center"
+                                    android:padding="10dp"
+                                    android:text="Tài sản"
+                                    android:textColor="@color/black"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
+
                             <!-- PHẦN DANH SÁCH DỊCH VỤ / BỒI THƯỜNG -->
                             <LinearLayout
                                 android:id="@+id/sectionServices"
@@ -237,7 +240,7 @@
                                         android:background="@drawable/bg_tab_container"
                                         android:padding="4dp"
                                         android:src="@android:drawable/ic_input_add"
-                                        app:tint="#D86030" />
+                                        app:tint="@color/app_primary" />
                                 </RelativeLayout>
                                 <LinearLayout
                                     android:id="@+id/layoutAddedServices"
@@ -272,7 +275,7 @@
                                         android:background="@drawable/bg_tab_container"
                                         android:padding="4dp"
                                         android:src="@android:drawable/ic_input_add"
-                                        app:tint="#D86030" />
+                                        app:tint="@color/app_primary" />
                                 </RelativeLayout>
                                 <LinearLayout
                                     android:id="@+id/layoutAddedAssets"
@@ -290,13 +293,27 @@
                                 android:orientation="horizontal"
                                 android:visibility="gone"
                                 android:weightSum="2">
-                                <Button android:id="@+id/btnCancelChanges" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="8dp" android:backgroundTint="@color/white" android:text="Hủy" android:textColor="#D86030" android:stateListAnimator="@null" />
-                                <Button android:id="@+id/btnSaveChanges" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="8dp" android:backgroundTint="#D86030" android:text="Lưu thay đổi" android:textColor="@color/white" android:stateListAnimator="@null" />
+                                <Button android:id="@+id/btnCancelChanges" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="8dp" android:backgroundTint="@color/white" android:text="Hủy" android:textColor="@color/app_primary" android:stateListAnimator="@null" />
+                                <Button android:id="@+id/btnSaveChanges" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="8dp" android:backgroundTint="@color/app_primary" android:text="Lưu thay đổi" android:textColor="@color/white" android:stateListAnimator="@null" />
                             </LinearLayout>
                         </LinearLayout>
                     </ScrollView>
                 </RelativeLayout>
             </FrameLayout>
         </androidx.cardview.widget.CardView>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabAddRoomLine"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_margin="24dp"
+            android:backgroundTint="@color/white"
+            android:src="@android:drawable/ic_input_add"
+            android:visibility="gone"
+            app:elevation="0dp"
+            app:pressedTranslationZ="0dp"
+            app:tint="@color/black" />
     </RelativeLayout>
 </LinearLayout>

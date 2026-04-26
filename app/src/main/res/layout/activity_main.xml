@@ -5,53 +5,33 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F4EFE9"
+    android:background="@color/app_content_background"
     tools:context=".MainActivity">
 
-    <!-- Header (Title Bar) with nav.png as background -->
-    <RelativeLayout
+    <include
         android:id="@+id/common_header"
+        layout="@layout/layout_common_header"
         android:layout_width="match_parent"
-        android:layout_height="62dp"
-        android:background="@drawable/nav"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_height="@dimen/app_header_height"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Menu Icon - CSS match: left: 358px; top: 17px; width: 29px; height: 29px; -->
-        <ImageView
-            android:id="@+id/ivMenu"
-            android:layout_width="29dp"
-            android:layout_height="29dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:layout_marginEnd="25dp"
-            android:src="@drawable/ic_hamburger"
-            app:tint="#66000000" />
-    </RelativeLayout>
-
-    <!-- Fragment Container -->
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:background="@color/app_content_background"
         app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/common_header" />
 
-    <!-- Bottom Navigation -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
+    <include
         android:id="@+id/bottom_navigation"
+        layout="@layout/layout_common_bottom_nav"
         android:layout_width="match_parent"
-        android:layout_height="58dp"
-        android:background="#D1C19F"
-        app:backgroundTint="#D1C19F"
-        app:itemIconSize="24dp"
-        app:itemIconTint="@color/nav_item_color_selector"
-        app:itemTextColor="@color/nav_item_color_selector"
-        app:labelVisibilityMode="labeled"
+        android:layout_height="@dimen/app_bottom_nav_height"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_nav_menu" />
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -2,7 +2,57 @@
 <resources>
     <style name="BottomNavLabel">
         <item name="android:fontFamily">@font/livvic</item>
-        <item name="android:textSize">12sp</item>
+        <item name="android:textSize">11sp</item>
         <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="BottomNavLabelActive" parent="BottomNavLabel">
+        <item name="android:textColor">@color/app_primary</item>
+    </style>
+
+    <style name="AppBottomNavigationActiveIndicator">
+        <item name="android:color">@color/app_content_background</item>
+        <item name="shapeAppearance">@style/ShapeAppearanceAppBottomNavigationActiveIndicator</item>
+    </style>
+
+    <style name="ShapeAppearanceAppBottomNavigationActiveIndicator" parent="ShapeAppearance.MaterialComponents.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">18dp</item>
+    </style>
+
+    <style name="AppScreenTitle">
+        <item name="android:fontFamily">@font/livvic</item>
+        <item name="android:textColor">@color/app_text_primary</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="AppScreenSubtitle">
+        <item name="android:fontFamily">@font/livvic</item>
+        <item name="android:textColor">@color/app_text_secondary</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="UserFormLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/livvic</item>
+        <item name="android:textColor">#344054</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="UserFormInput">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">52dp</item>
+        <item name="android:layout_marginTop">8dp</item>
+        <item name="android:background">@drawable/bg_edittext_border</item>
+        <item name="android:fontFamily">@font/livvic</item>
+        <item name="android:paddingLeft">14dp</item>
+        <item name="android:paddingRight">14dp</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">#101828</item>
+        <item name="android:textColorHint">#8C8C8C</item>
+        <item name="android:textSize">16sp</item>
     </style>
 </resources>

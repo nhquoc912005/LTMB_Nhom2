@@ -3,10 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/white"
+    android:background="@drawable/bg_dialog_rounded"
     android:gravity="center"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:paddingHorizontal="30dp"
+    android:paddingVertical="26dp">
 
     <ImageView
         android:layout_width="80dp"
@@ -15,29 +16,30 @@
 
     <TextView
         android:id="@+id/tvSuccessMessage"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:fontFamily="@font/livvic"
-        android:text="Đặt phòng thành công"
+        android:gravity="center"
+        android:text="Trả phòng thành công"
         android:textColor="@color/black"
         android:textSize="24sp"
-        android:textStyle="bold"
-        android:textAlignment="center"/>
+        android:textStyle="bold" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnDone"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="52dp"
         android:layout_marginTop="24dp"
         android:fontFamily="@font/livvic"
-        android:minWidth="120dp"
+        android:minWidth="132dp"
         android:paddingHorizontal="32dp"
         android:text="Xong"
         android:textAllCaps="false"
         android:textColor="@color/white"
-        android:textSize="20sp"
-        app:backgroundTint="@color/primary_accent"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:backgroundTint="#DD5A5D"
         app:cornerRadius="8dp" />
 
 </LinearLayout>

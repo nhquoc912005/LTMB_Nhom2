@@ -1,30 +1,43 @@
 package com.project_mobile;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.PopupMenu;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.project_mobile.Quan_ly_phong.RoomManagementFragment;
 import com.project_mobile.check_in.StayFragment;
 import com.project_mobile.datphong_mobile.BookingManagementFragment;
+import com.project_mobile.service.RoomMapFragment;
 import com.project_mobile.service.ServiceFragment;
-import com.project_mobile.Quan_ly_phong.RoomManagementFragment;
+import com.project_mobile.user.UserManagementFragment;
 
 public class MainActivity extends AppCompatActivity {
+
+    private BottomNavigationView bottomNav;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
+        bottomNav = findViewById(R.id.bottom_navigation);
+        ImageView menuButton = findViewById(R.id.ivMenu);
+        menuButton.setOnClickListener(v -> openServiceManagement());
+        menuButton.setOnLongClickListener(v -> {
+            showAppMenu(v);
+            return true;
+        });
 
-        // Thiết lập Listener để xử lý chuyển đổi giữa các màn hình
         bottomNav.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
             int itemId = item.getItemId();
 
             if (itemId == R.id.nav_home) {
-                // Kết nối vào HomeFragment (Trang chủ mới tạo)
                 selectedFragment = new HomeFragment();
             } else if (itemId == R.id.nav_stay) {
                 selectedFragment = new StayFragment();
@@ -33,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_room_manage) {
                 selectedFragment = new RoomManagementFragment();
             } else if (itemId == R.id.nav_service) {
-                selectedFragment = new ServiceFragment();
+                selectedFragment = new RoomMapFragment();
             }
 
             if (selectedFragment != null) {
@@ -43,10 +56,55 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
-        // Đặt màn hình Trang chủ làm mặc định khi mở app
         if (savedInstanceState == null) {
             bottomNav.setSelectedItemId(R.id.nav_home);
         }
+    }
+
+    public void openStay(boolean showCheckIn) {
+        loadFragment(StayFragment.newInstance(showCheckIn));
+        bottomNav.getMenu().findItem(R.id.nav_stay).setChecked(true);
+    }
+
+    public void openUserManagement() {
+        loadFragment(new UserManagementFragment());
+        clearBottomSelection();
+    }
+
+    public void openServiceManagement() {
+        loadFragment(new ServiceFragment());
+        clearBottomSelection();
+    }
+
+    private void showAppMenu(View anchor) {
+        PopupMenu popupMenu = new PopupMenu(this, anchor);
+        popupMenu.inflate(R.menu.app_shell_menu);
+        popupMenu.setOnMenuItemClickListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.menu_check_in) {
+                openStay(true);
+                return true;
+            } else if (itemId == R.id.menu_check_out) {
+                openStay(false);
+                return true;
+            } else if (itemId == R.id.menu_users) {
+                openUserManagement();
+                return true;
+            } else if (itemId == R.id.menu_service_management) {
+                openServiceManagement();
+                return true;
+            }
+            return false;
+        });
+        popupMenu.show();
+    }
+
+    private void clearBottomSelection() {
+        bottomNav.getMenu().setGroupCheckable(0, true, false);
+        for (int i = 0; i < bottomNav.getMenu().size(); i++) {
+            bottomNav.getMenu().getItem(i).setChecked(false);
+        }
+        bottomNav.getMenu().setGroupCheckable(0, true, true);
     }
 
     private void loadFragment(Fragment fragment) {

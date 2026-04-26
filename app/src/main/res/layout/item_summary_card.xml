@@ -7,7 +7,7 @@
     app:cardBackgroundColor="@color/white"
     app:cardCornerRadius="8dp"
     app:cardElevation="2dp"
-    app:strokeColor="#F3F4F6"
+    app:strokeColor="#EEF0F3"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -15,7 +15,7 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="4dp">
+        android:padding="6dp">
 
         <TextView
             android:id="@+id/tvSummaryValue"
@@ -23,19 +23,19 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/livvic"
             android:text="10"
-            android:textColor="#D1C19F"
-            android:textSize="20sp"
+            android:textColor="@color/app_shell_beige"
+            android:textSize="22sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvSummaryLabel"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:fontFamily="@font/livvic"
             android:gravity="center"
             android:text="Tổng\nphòng"
-            android:textAlignment="center"
             android:textColor="#4A5565"
-            android:textSize="10sp" />
+            android:textSize="11sp" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

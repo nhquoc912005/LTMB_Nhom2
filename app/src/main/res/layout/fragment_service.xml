@@ -3,48 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F4EFE9">
+    android:background="@color/app_content_background">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Custom Toolbar -->
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="62dp"
-            android:background="#D1C19F">
-
-            <ImageView
-                android:id="@+id/ivLogo"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_marginStart="30dp"
-                android:adjustViewBounds="true"
-                android:scaleType="fitCenter"
-                android:src="@drawable/logo" />
-
-            <ImageView
-                android:id="@+id/ivMenu"
-                android:layout_width="29dp"
-                android:layout_height="29dp"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:layout_marginEnd="25dp"
-                android:src="@drawable/ic_hamburger"
-                app:tint="#404040"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless" />
-        </RelativeLayout>
-
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#F8F3F0"
-            android:padding="16dp">
+            android:background="@color/app_content_background"
+            android:padding="@dimen/app_screen_padding">
 
             <EditText
                 android:id="@+id/edtSearch"
@@ -59,14 +30,15 @@
                 android:hint="Tìm kiếm dịch vụ, bồi thường"
                 android:padding="12dp"
                 android:textSize="16sp"
-                android:singleLine="true" />
+                android:singleLine="true"
+                android:imeOptions="actionSearch" />
 
             <Button
                 android:id="@+id/btnSearch"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 android:layout_alignParentEnd="true"
-                android:backgroundTint="#D86030"
+                android:backgroundTint="@color/app_primary"
                 android:fontFamily="@font/livvic"
                 android:text="Tìm kiếm"
                 android:textColor="@color/white"
@@ -93,7 +65,7 @@
                     android:padding="10dp"
                     android:fontFamily="@font/livvic"
                     android:text="Dịch vụ"
-                    android:textColor="#C58959"
+                    android:textColor="@color/app_primary"
                     android:textSize="16sp" />
 
                 <TextView

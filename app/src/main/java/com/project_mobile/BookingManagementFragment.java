@@ -18,8 +18,16 @@ import com.project_mobile.model.Booking;
 import com.project_mobile.model.BookingStatus;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
+/**
+ * Legacy mock booking fragment.
+ *
+ * NOTE: This fragment contains hardcoded/mock data and is kept for reference only.
+ * The active booking screen used by the app is
+ * `com.project_mobile.datphong_mobile.BookingManagementFragment` (see MainActivity imports).
+ * Do not use this fragment for real API integration. Marked deprecated to avoid confusion.
+ */
+@Deprecated
 public class BookingManagementFragment extends Fragment {
 
     private RecyclerView rvBookings;
@@ -109,10 +117,14 @@ public class BookingManagementFragment extends Fragment {
     private void updateUI(List<Booking> list) {
         adapter.updateData(list);
         
-        // Update counts
-        long pending = allBookings.stream().filter(b -> b.getStatus() == BookingStatus.PENDING).count();
-        long checkedIn = allBookings.stream().filter(b -> b.getStatus() == BookingStatus.CHECKED_IN).count();
-        long cancelled = allBookings.stream().filter(b -> b.getStatus() == BookingStatus.CANCELLED).count();
+        long pending = 0;
+        long checkedIn = 0;
+        long cancelled = 0;
+        for (Booking b : allBookings) {
+            if (b.getStatus() == BookingStatus.PENDING) pending++;
+            else if (b.getStatus() == BookingStatus.CHECKED_IN) checkedIn++;
+            else if (b.getStatus() == BookingStatus.CANCELLED) cancelled++;
+        }
         
         tvCountTotal.setText(String.format("%02d", allBookings.size()));
         tvCountPending.setText(String.format("%02d", pending));
@@ -121,15 +133,12 @@ public class BookingManagementFragment extends Fragment {
     }
 
     private void highlightBox(LinearLayout selectedBox) {
-        // Reset all
-        resetBoxStyle(boxTotal, tvCountTotal, "Tổng số đặt");
-        resetBoxStyle(boxPending, tvCountPending, "Chờ Check-in");
-        resetBoxStyle(boxCheckedIn, tvCountCheckedIn, "Đã Check-in");
-        resetBoxStyle(boxCancelled, tvCountCancelled, "Đã hủy");
+        resetBoxStyle(boxTotal, tvCountTotal);
+        resetBoxStyle(boxPending, tvCountPending);
+        resetBoxStyle(boxCheckedIn, tvCountCheckedIn);
+        resetBoxStyle(boxCancelled, tvCountCancelled);
 
-        // Set selected
         selectedBox.setBackgroundResource(R.drawable.bg_stat_box_active);
-        // Find text views in box to change color to white
         for (int i = 0; i < selectedBox.getChildCount(); i++) {
             View child = selectedBox.getChildAt(i);
             if (child instanceof TextView) {
@@ -138,10 +147,9 @@ public class BookingManagementFragment extends Fragment {
         }
     }
 
-    private void resetBoxStyle(LinearLayout box, TextView countTv, String label) {
+    private void resetBoxStyle(LinearLayout box, TextView countTv) {
         box.setBackgroundResource(R.drawable.bg_stat_box_inactive);
         countTv.setTextColor(ContextCompat.getColor(getContext(), R.color.brand_text_main));
-        // Reset label color (first child)
         if (box.getChildAt(0) instanceof TextView) {
             ((TextView) box.getChildAt(0)).setTextColor(ContextCompat.getColor(getContext(), R.color.brand_text_main));
         }

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="14dp"
+    app:cardBackgroundColor="@color/white"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="top"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginTop="2dp"
+                android:src="@drawable/ic_person_outline" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvUserDisplayName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:fontFamily="@font/livvic"
+                    android:maxLines="2"
+                    android:text="Nguyễn Hữu Quốc"
+                    android:textColor="#101828"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvUserEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:drawableStart="@drawable/ic_mail_outline"
+                    android:drawablePadding="10dp"
+                    android:ellipsize="end"
+                    android:fontFamily="@font/livvic"
+                    android:gravity="center_vertical"
+                    android:maxLines="1"
+                    android:text="nhq@gmail.com"
+                    android:textColor="#4A5565"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/tvUserPhone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:drawableStart="@drawable/ic_phone_outline"
+                    android:drawablePadding="10dp"
+                    android:fontFamily="@font/livvic"
+                    android:gravity="center_vertical"
+                    android:text="0867658316"
+                    android:textColor="#4A5565"
+                    android:textSize="18sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvUserRole"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_role_badge"
+                    android:fontFamily="@font/livvic"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="7dp"
+                    android:text="Quản trị viên"
+                    android:textColor="@color/app_primary"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/tvUserCode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:fontFamily="@font/livvic"
+                    android:text="U001"
+                    android:textColor="#667085"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="18dp"
+            android:background="#EEF0F3" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/viewStatusDot"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/bg_status_dot" />
+
+            <TextView
+                android:id="@+id/tvUserStatus"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/livvic"
+                android:text="Hoạt động"
+                android:textColor="#4A5565"
+                android:textSize="16sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnToggleLock"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:fontFamily="@font/livvic"
+                android:minWidth="70dp"
+                android:paddingHorizontal="12dp"
+                android:text="Khóa"
+                android:textAllCaps="false"
+                android:textColor="@color/app_primary"
+                android:textSize="15sp"
+                app:backgroundTint="#FFEBD2"
+                app:cornerRadius="8dp" />
+
+            <ImageButton
+                android:id="@+id/btnEditUser"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:layout_marginStart="10dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/edit" />
+
+            <ImageButton
+                android:id="@+id/btnDeleteUser"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:layout_marginStart="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/trash" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

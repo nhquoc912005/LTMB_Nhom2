@@ -12,8 +12,17 @@
     <color name="brand_text_main">#2D241E</color>
     <color name="brand_text_secondary">#6D5D51</color>
 
+    <color name="app_shell_beige">#D1C19F</color>
+    <color name="app_content_background">#F8F3F0</color>
+    <color name="app_surface">#FDFBF7</color>
+    <color name="app_primary">#C0410D</color>
+    <color name="app_primary_soft">#E7C8B4</color>
+    <color name="app_text_primary">#2D241E</color>
+    <color name="app_text_secondary">#6D5D51</color>
+    <color name="app_divider">#E6DDD4</color>
+
     <color name="primary_accent">#B85A1B</color>
-    <color name="background_main">#F5EEE6</color>
+    <color name="background_main">#F8F3F0</color>
     <color name="card_background">#FFFFFF</color>
     <color name="secondary_text">#6D5D51</color>
 
@@ -49,5 +58,5 @@
     <color name="color_accent_brown">#9C6B42</color>
     <color name="color_inactive_gray">#BDBDBD</color>
     <color name="nav_inactive">#BDBDBD</color>
-    <color name="room_nav_bg">#B85A1B</color>
+    <color name="room_nav_bg">#C0410D</color>
 </resources>

@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">Project_Mobile</string>
+    <string name="app_name">CAMSiN</string>
+    <string name="menu">Menu</string>
 </resources>

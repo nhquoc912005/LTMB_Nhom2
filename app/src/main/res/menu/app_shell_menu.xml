@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_service_management"
+        android:icon="@drawable/ic_service"
+        android:title="Quản lý dịch vụ" />
+    <item
+        android:id="@+id/menu_check_in"
+        android:icon="@drawable/ic_stay"
+        android:title="Check-in" />
+    <item
+        android:id="@+id/menu_check_out"
+        android:icon="@drawable/ic_booking"
+        android:title="Check-out" />
+    <item
+        android:id="@+id/menu_users"
+        android:icon="@drawable/ic_users"
+        android:title="Quản lý người dùng" />
+</menu>

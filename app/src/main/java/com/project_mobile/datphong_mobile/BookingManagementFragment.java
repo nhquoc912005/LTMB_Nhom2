@@ -12,6 +12,8 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.project_mobile.R;
+import com.project_mobile.network.BookingRepository;
+import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -71,13 +73,34 @@ public class BookingManagementFragment extends Fragment {
     }
 
     private void setupData() {
-        fullList.clear();
-        fullList.add(new Booking("Phòng 101", "Chờ check-in", "Nguyễn Văn A", "a@gmail.com", "090123", "01/02", "03/02", "2.000.000đ"));
-        fullList.add(new Booking("Phòng 102", "Đã Check-in", "Trần B", "b@gmail.com", "091888", "02/02", "04/02", "1.500.000đ"));
-        fullList.add(new Booking("Phòng 103", "Đã hủy", "Lê C", "c@gmail.com", "091222", "05/02", "06/02", "500.000đ"));
+        // Attempt to fetch real bookings from backend. If fails, fall back to mock data.
+        BookingRepository repo = new BookingRepository();
+        repo.fetchBookings(new BookingRepository.CallbackList() {
+            @Override
+            public void onSuccess(List<Booking> bookings) {
+                fullList.clear();
+                fullList.addAll(bookings);
+                // Must run UI-updates on main thread
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> {
+                    updateStats();
+                    filterList("Tất cả");
+                });
+            }
 
-        updateStats();
-        filterList("Tất cả");
+            @Override
+            public void onError(String error) {
+                // Show an explicit error and display empty state.
+                // Do NOT inject mock data automatically.
+                fullList.clear();
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> {
+                    updateStats();
+                    filterList("Tất cả");
+                    Toast.makeText(getContext(), "Lỗi tải dữ liệu: " + (error == null ? "Unknown" : error), Toast.LENGTH_LONG).show();
+                });
+            }
+        });
     }
 
     private void updateStats() {

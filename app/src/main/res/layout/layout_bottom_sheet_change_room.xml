@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom_sheet">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/tvChangeRoomTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:layout_toStartOf="@+id/btnCloseChangeRoom"
+                android:fontFamily="@font/livvic"
+                android:text="Đổi phòng cho Nguyễn Văn A"
+                android:textColor="#101828"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@id/btnCloseChangeRoom"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_alignParentEnd="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="10dp"
+                android:src="@drawable/ic_close_line" />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="20dp"
+            android:background="#EEF0F3" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="#F6F1EA"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/livvic"
+                    android:text="Thông tin hiện tại"
+                    android:textColor="#101828"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvCurrentCustomer"
+                    style="@style/CustomerInfoItem"
+                    android:drawableStart="@drawable/ic_person_outline"
+                    android:text=" Nguyễn Văn A" />
+
+                <TextView
+                    android:id="@+id/tvCurrentRoom"
+                    style="@style/CustomerInfoItem"
+                    android:drawableStart="@drawable/ic_bed"
+                    android:text=" Phòng hiện tại: 102 (Standard)" />
+
+                <TextView
+                    android:id="@+id/tvCurrentDuration"
+                    style="@style/CustomerInfoItem"
+                    android:drawableStart="@drawable/ic_calendar"
+                    android:text=" 14/02/2026 - 16/02/2026" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            style="@style/UserFormLabel"
+            android:layout_marginTop="22dp"
+            android:text="Chọn phòng trống" />
+
+        <Spinner
+            android:id="@+id/spEmptyRooms"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_edittext_border"
+            android:fontFamily="@font/livvic"
+            android:paddingHorizontal="14dp" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cvNewRoomInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="#F6F1EA"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/livvic"
+                    android:text="Thông tin phòng mới"
+                    android:textColor="#101828"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <RelativeLayout style="@style/InfoRow">
+                    <TextView
+                        style="@style/InfoLabel"
+                        android:text="Số phòng:" />
+
+                    <TextView
+                        android:id="@+id/tvNewRoomNumber"
+                        style="@style/InfoValue"
+                        android:text="101" />
+                </RelativeLayout>
+
+                <RelativeLayout style="@style/InfoRow">
+                    <TextView
+                        style="@style/InfoLabel"
+                        android:text="Loại phòng:" />
+
+                    <TextView
+                        android:id="@+id/tvNewRoomType"
+                        style="@style/InfoValue"
+                        android:text="Standard" />
+                </RelativeLayout>
+
+                <RelativeLayout style="@style/InfoRow">
+                    <TextView
+                        style="@style/InfoLabel"
+                        android:text="Tầng:" />
+
+                    <TextView
+                        android:id="@+id/tvNewRoomFloor"
+                        style="@style/InfoValue"
+                        android:text="Tầng 1" />
+                </RelativeLayout>
+
+                <RelativeLayout style="@style/InfoRow">
+                    <TextView
+                        style="@style/InfoLabel"
+                        android:text="Sức chứa:" />
+
+                    <TextView
+                        android:id="@+id/tvNewRoomCapacity"
+                        style="@style/InfoValue"
+                        android:text="2 người" />
+                </RelativeLayout>
+
+                <RelativeLayout style="@style/InfoRow">
+                    <TextView
+                        style="@style/InfoLabel"
+                        android:text="Giá phòng:" />
+
+                    <TextView
+                        android:id="@+id/tvNewRoomPrice"
+                        style="@style/InfoValue"
+                        android:text="1.200.000đ/đêm"
+                        android:textColor="@color/app_shell_beige" />
+                </RelativeLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            style="@style/UserFormLabel"
+            android:layout_marginTop="18dp"
+            android:text="Lý do đổi phòng (tùy chọn)" />
+
+        <EditText
+            android:id="@+id/edtChangeReason"
+            android:layout_width="match_parent"
+            android:layout_height="92dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_edittext_border"
+            android:fontFamily="@font/livvic"
+            android:gravity="top"
+            android:hint="Nhập lý do đổi phòng..."
+            android:inputType="textMultiLine"
+            android:padding="14dp"
+            android:textColor="#101828"
+            android:textColorHint="#8C8C8C"
+            android:textSize="16sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancelChangeRoom"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="58dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/livvic"
+                android:text="Hủy"
+                android:textAllCaps="false"
+                android:textColor="#344054"
+                android:textSize="18sp"
+                app:cornerRadius="8dp"
+                app:strokeColor="#D9DDE3" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnConfirmChangeRoom"
+                android:layout_width="0dp"
+                android:layout_height="58dp"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/livvic"
+                android:text="Xác nhận đổi phòng"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textSize="17sp"
+                app:backgroundTint="@color/app_shell_beige"
+                app:cornerRadius="8dp" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

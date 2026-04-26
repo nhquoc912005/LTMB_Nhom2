@@ -88,7 +88,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
-            android:backgroundTint="#D86030"
+            android:backgroundTint="@color/app_primary"
             android:text="Xác nhận"
             android:textColor="@color/white" />
     </LinearLayout>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_rounded"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/tvConfirmTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/livvic"
+        android:gravity="center"
+        android:text="Xác nhận thao tác"
+        android:textColor="#101828"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvConfirmMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:fontFamily="@font/livvic"
+        android:gravity="center"
+        android:lineSpacingExtra="3dp"
+        android:text="Bạn có chắc chắn muốn thực hiện thao tác này?"
+        android:textColor="#4A5565"
+        android:textSize="15sp" />
+
+    <LinearLayout
+        android:id="@+id/llConfirmActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancel"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:fontFamily="@font/livvic"
+            android:text="Hủy"
+            android:textAllCaps="false"
+            android:textColor="#344054"
+            android:textSize="17sp"
+            app:cornerRadius="8dp"
+            app:strokeColor="#D9DDE3" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnConfirm"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:fontFamily="@font/livvic"
+            android:text="Xác nhận"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:backgroundTint="#DD5A5D"
+            app:cornerRadius="8dp" />
+    </LinearLayout>
+</LinearLayout>

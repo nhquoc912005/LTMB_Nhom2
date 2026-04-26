@@ -12,7 +12,7 @@ INSERT INTO vai_tro (ten_vaitro) VALUES
 -- 2. tai_khoan (20+ records)
 INSERT INTO tai_khoan (ten_dang_nhap, mat_khau, ho_ten, id_vaitro) VALUES 
 ('admin_hotel', 'pass_123', 'Người Quản Trị Hệ Thống', 1),
-('mgr_nguyen', 'pass_456', 'Nguyễn Thị Hương', 2),
+('mgr_nguyen', '    pass_456', 'Nguyễn Thị Hương', 2),
 ('recept_lan', 'pass_789', 'Lê Thị Lan', 3),
 ('recept_mai', 'pass_101', 'Phạm Hồng Mai', 3),
 ('recept_cuc', 'pass_202', 'Nguyễn Thu Cúc', 3),

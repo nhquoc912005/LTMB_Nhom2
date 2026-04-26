@@ -11,18 +11,18 @@ import java.util.List;
 
 public class RoomGridAdapter extends RecyclerView.Adapter<RoomGridAdapter.RoomViewHolder> {
 
-    private List<String> roomNumbers;
+    private List<StayRoomModel> rooms;
     // ĐÃ THÊM: Khai báo interface
     private OnRoomClickListener listener;
 
     // ĐÃ THÊM: Tạo interface để truyền sự kiện ra ngoài
     public interface OnRoomClickListener {
-        void onRoomClick(String roomNumber);
+        void onRoomClick(StayRoomModel room);
     }
 
     // ĐÃ SỬA: Cập nhật Constructor để nhận interface
-    public RoomGridAdapter(List<String> roomNumbers, OnRoomClickListener listener) {
-        this.roomNumbers = roomNumbers;
+    public RoomGridAdapter(List<StayRoomModel> rooms, OnRoomClickListener listener) {
+        this.rooms = rooms;
         this.listener = listener;
     }
 
@@ -35,8 +35,8 @@ public class RoomGridAdapter extends RecyclerView.Adapter<RoomGridAdapter.RoomVi
 
     @Override
     public void onBindViewHolder(@NonNull RoomViewHolder holder, int position) {
-        String room = roomNumbers.get(position);
-        holder.tvRoomNumber.setText(room);
+        StayRoomModel room = rooms.get(position);
+        holder.tvRoomNumber.setText(room.getRoomNumber());
 
         // ĐÃ THÊM: Bắt sự kiện click vào ô phòng và ném ra ngoài
         holder.itemView.setOnClickListener(v -> {
@@ -48,7 +48,7 @@ public class RoomGridAdapter extends RecyclerView.Adapter<RoomGridAdapter.RoomVi
 
     @Override
     public int getItemCount() {
-        return roomNumbers.size();
+        return rooms.size();
     }
 
     public static class RoomViewHolder extends RecyclerView.ViewHolder {

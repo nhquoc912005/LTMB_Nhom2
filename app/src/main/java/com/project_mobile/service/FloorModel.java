@@ -3,13 +3,13 @@ import java.util.List;
 
 public class FloorModel {
     private String floorName;
-    private List<String> roomNumbers;
+    private List<StayRoomModel> rooms;
 
-    public FloorModel(String floorName, List<String> roomNumbers) {
+    public FloorModel(String floorName, List<StayRoomModel> rooms) {
         this.floorName = floorName;
-        this.roomNumbers = roomNumbers;
+        this.rooms = rooms;
     }
 
     public String getFloorName() { return floorName; }
-    public List<String> getRoomNumbers() { return roomNumbers; }
+    public List<StayRoomModel> getRooms() { return rooms; }
 }

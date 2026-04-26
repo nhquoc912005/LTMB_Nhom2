@@ -3,49 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F4EFE9">
+    android:background="@color/app_content_background">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Custom Toolbar -->
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="62dp"
-            android:background="#D1C19F">
-
-            <ImageView
-                android:id="@+id/ivLogo"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_marginStart="30dp"
-                android:adjustViewBounds="true"
-                android:scaleType="fitCenter"
-                android:src="@drawable/logo" />
-
-            <ImageView
-                android:id="@+id/ivMenu"
-                android:layout_width="29dp"
-                android:layout_height="29dp"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:layout_marginEnd="25dp"
-                android:src="@drawable/ic_hamburger"
-                app:tint="#404040"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackgroundBorderless" />
-        </RelativeLayout>
-
-        <!-- Summary Cards Container -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="horizontal"
-            android:paddingVertical="20dp">
+            android:paddingTop="20dp"
+            android:paddingBottom="18dp">
 
             <include
                 android:id="@+id/cardTotal"
@@ -64,7 +35,6 @@
                 layout="@layout/item_summary_card" />
         </LinearLayout>
 
-        <!-- Search Bar Container -->
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -72,40 +42,40 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="36dp"
+                android:layout_height="56dp"
                 android:background="@drawable/bg_search_input"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingHorizontal="12dp">
+                android:paddingHorizontal="14dp">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
                     android:src="@drawable/ic_search"
                     app:tint="#000000" />
 
                 <EditText
+                    android:id="@+id/edtRoomSearch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
+                    android:layout_marginStart="12dp"
                     android:background="@android:color/transparent"
                     android:fontFamily="@font/livvic"
                     android:hint="Tìm kiếm phòng"
+                    android:singleLine="true"
                     android:textColor="#101828"
-                    android:textColorHint="#757575"
-                    android:textSize="13sp" />
+                    android:textColorHint="#808080"
+                    android:textSize="17sp" />
             </LinearLayout>
         </FrameLayout>
 
-        <!-- RecyclerView for Rooms Grid -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvRooms"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="24dp"
             android:clipToPadding="false"
-            android:paddingHorizontal="14dp" />
-
+            android:paddingHorizontal="14dp"
+            android:paddingBottom="16dp" />
     </LinearLayout>
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="app_header_height">62dp</dimen>
+    <dimen name="app_bottom_nav_height">64dp</dimen>
+    <dimen name="app_screen_padding">16dp</dimen>
+    <dimen name="app_card_radius">8dp</dimen>
+</resources>

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F6EFE9"
+    android:background="@color/app_content_background"
     android:orientation="vertical">
 
     <LinearLayout
@@ -19,7 +19,7 @@
             android:fontFamily="@font/livvic"
             android:gravity="center"
             android:text="Nhận phòng"
-            android:textColor="#888888" />
+            android:textColor="@color/app_text_secondary" />
         <TextView
             android:id="@+id/tabCheckOut"
             android:layout_width="0dp"
@@ -29,7 +29,7 @@
             android:fontFamily="@font/livvic"
             android:gravity="center"
             android:text="Trả phòng"
-            android:textColor="#C68C53" />
+            android:textColor="@color/app_primary" />
     </LinearLayout>
 
     <FrameLayout

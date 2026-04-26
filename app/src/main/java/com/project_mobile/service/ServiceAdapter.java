@@ -9,6 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.project_mobile.R;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceViewHolder> {
@@ -27,6 +28,11 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceV
         this.listener = listener;
     }
 
+    public void submitList(List<ServiceModel> items) {
+        this.serviceList = new ArrayList<>(items);
+        notifyDataSetChanged();
+    }
+
     public void setServiceType(boolean isServiceType) {
         this.isServiceType = isServiceType;
     }
@@ -42,7 +48,7 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceV
     public void onBindViewHolder(@NonNull ServiceViewHolder holder, int position) {
         ServiceModel service = serviceList.get(position);
         holder.tvName.setText(service.getName());
-        holder.tvPrice.setText(service.getPrice());
+        holder.tvPrice.setText(service.getFormattedPrice());
 
         // Thay đổi icon dựa trên loại (Dịch vụ hoặc Bồi thường)
         if (isServiceType) {

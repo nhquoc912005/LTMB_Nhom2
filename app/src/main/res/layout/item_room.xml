@@ -11,25 +11,27 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="168dp"
         android:orientation="vertical"
-        android:padding="15dp">
+        android:padding="16dp">
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
             <LinearLayout
+                android:id="@+id/roomTitleGroup"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
                 <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
                     android:src="@drawable/ic_bed"
-                    app:tint="@color/room_nav_bg" />
+                    app:tint="@color/app_shell_beige" />
 
                 <TextView
                     android:id="@+id/tvRoomNumber"
@@ -38,8 +40,8 @@
                     android:layout_marginStart="10dp"
                     android:fontFamily="@font/livvic"
                     android:text="101"
-                    android:textColor="@color/text_main"
-                    android:textSize="20sp"
+                    android:textColor="#101828"
+                    android:textSize="24sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -48,45 +50,50 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
+                android:layout_marginStart="8dp"
+                android:layout_toEndOf="@id/roomTitleGroup"
                 android:background="@drawable/bg_status_badge"
+                android:ellipsize="end"
                 android:fontFamily="@font/livvic"
+                android:gravity="center"
+                android:maxLines="1"
                 android:paddingHorizontal="8dp"
-                android:paddingVertical="2dp"
+                android:paddingVertical="6dp"
                 android:text="Trống"
-                android:textColor="@color/status_empty_text"
-                android:textSize="10sp" />
+                android:textColor="@color/app_primary"
+                android:textSize="11sp" />
         </RelativeLayout>
 
         <TextView
             android:id="@+id/tvRoomType"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="26dp"
             android:fontFamily="@font/livvic"
             android:text="Standard"
-            android:textColor="@color/text_secondary"
-            android:textSize="14sp" />
+            android:textColor="#4A5565"
+            android:textSize="17sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvFloor"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="6dp"
             android:fontFamily="@font/livvic"
             android:text="Tầng 1"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp" />
+            android:textColor="#667085"
+            android:textSize="15sp" />
 
         <TextView
             android:id="@+id/tvPrice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="14dp"
             android:fontFamily="@font/livvic"
             android:text="1.200.000đ"
-            android:textColor="@color/room_nav_bg"
-            android:textSize="14sp"
+            android:textColor="@color/app_shell_beige"
+            android:textSize="17sp"
             android:textStyle="bold" />
-
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

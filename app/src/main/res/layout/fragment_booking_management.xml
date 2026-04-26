@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/brand_beige">
+    android:background="@color/app_content_background">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -16,29 +16,28 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="80dp"> <!-- Padding để không bị che bởi Nav chính -->
+            android:paddingBottom="24dp">
 
-            <!-- Header -->
-            <RelativeLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="vertical"
                 android:padding="16dp">
-                <ImageView
-                    android:id="@+id/ivLogo"
-                    android:layout_width="80dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/logo_dang_nhap" />
+
                 <TextView
                     android:id="@+id/tvTitle"
+                    style="@style/AppScreenTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_below="@id/ivLogo"
-                    android:layout_marginTop="16dp"
-                    android:text="Quản lý đặt phòng"
-                    android:textColor="@color/brand_text_main"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
-            </RelativeLayout>
+                    android:text="Quản lý đặt phòng" />
+
+                <TextView
+                    style="@style/AppScreenSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Danh sách và trạng thái đặt phòng" />
+            </LinearLayout>
 
             <!-- Statistics Grid -->
             <GridLayout

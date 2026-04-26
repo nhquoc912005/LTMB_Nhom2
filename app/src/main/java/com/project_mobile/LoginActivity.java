@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -57,17 +58,21 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void performLogin() {
-        // Here you would typically perform network authentication
-        // For now, we will just simulate a successful login
+        // NOTE: Authentication API not implemented yet. Do NOT pretend login is real.
+        // Provide a clear developer/demo flow: show dialog explaining this and allow user to continue in demo mode.
         String username = etUsername.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
 
-        // Basic mock logic: any non-empty username/password is "valid"
-        Toast.makeText(this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
-
-        // Redirect to MainActivity
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
-        finish(); // Close LoginActivity
+        new AlertDialog.Builder(this)
+                .setTitle("Demo login")
+                .setMessage("Backend authentication is not implemented. Continue in demo mode?")
+                .setPositiveButton("Continue", (dialog, which) -> {
+                    Toast.makeText(this, "Demo mode: opening app", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(this, MainActivity.class);
+                    startActivity(intent);
+                    finish();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 }

@@ -44,12 +44,12 @@ public class StayFragment extends Fragment {
     private void updateTabUI(boolean isCheckInSelected) {
         if (isCheckInSelected) {
             tabCheckIn.setBackgroundResource(R.drawable.bg_tab_active);
-            tabCheckIn.setTextColor(Color.parseColor("#C68C53"));
+            tabCheckIn.setTextColor(Color.parseColor("#C0410D"));
             tabCheckOut.setBackgroundResource(R.drawable.bg_tab_inactive);
             tabCheckOut.setTextColor(Color.parseColor("#888888"));
         } else {
             tabCheckOut.setBackgroundResource(R.drawable.bg_tab_active);
-            tabCheckOut.setTextColor(Color.parseColor("#C68C53"));
+            tabCheckOut.setTextColor(Color.parseColor("#C0410D"));
             tabCheckIn.setBackgroundResource(R.drawable.bg_tab_inactive);
             tabCheckIn.setTextColor(Color.parseColor("#888888"));
         }

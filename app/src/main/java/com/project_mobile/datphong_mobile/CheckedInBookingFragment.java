@@ -31,7 +31,7 @@ public class CheckedInBookingFragment extends Fragment {
         // Dữ liệu mẫu khớp hoàn toàn với hình ảnh thứ 3
         bookingList.add(new CheckedInBooking(
                 "Phòng 104",
-                "Đã check-in",
+                "Đã nhận phòng",
                 "Nguyễn Đình C",
                 "nguyendinhc@gmail.com",
                 "020 323 9873",

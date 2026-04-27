@@ -78,7 +78,7 @@ module.exports = function (pool) {
         data: { identity: identity } // Trả về để client biết đang verify cho ai
       });
     } catch (error) {
-      res.status(500).json({ success: false, message: "Lỗi server" });
+      res.status(500).json({ success: false, message: "Lỗi hệ thống, vui lòng thử lại sau" });
     }
   });
 

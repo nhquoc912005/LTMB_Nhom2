@@ -46,7 +46,7 @@
             android:fontFamily="@font/livvic"
             android:paddingHorizontal="10dp"
             android:paddingVertical="4dp"
-            android:text="Chờ check-in"
+            android:text="Chờ nhận phòng"
             android:textSize="12sp" />
 
         <TextView

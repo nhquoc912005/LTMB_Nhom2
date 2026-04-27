@@ -1,12 +1,12 @@
 package com.project_mobile;
 
 public class RecentActivityModel {
-    private String roomNumber;
-    private String customerName;
-    private String status;
-    private String time;
-    private int statusColorRes;
-    private int statusBgRes;
+    private final String roomNumber;
+    private final String customerName;
+    private final String status;
+    private final String time;
+    private final int statusColorRes;
+    private final int statusBgRes;
 
     public RecentActivityModel(String roomNumber, String customerName, String status, String time, int statusColorRes, int statusBgRes) {
         this.roomNumber = roomNumber;

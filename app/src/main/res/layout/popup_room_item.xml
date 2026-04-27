@@ -77,7 +77,7 @@
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
             android:backgroundTint="@color/white"
-            android:text="Huỷ"
+            android:text="Hủy"
             android:textColor="#888888" />
 
         <Button

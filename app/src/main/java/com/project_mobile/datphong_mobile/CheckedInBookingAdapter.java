@@ -11,7 +11,7 @@ import java.util.List;
 
 public class CheckedInBookingAdapter extends RecyclerView.Adapter<CheckedInBookingAdapter.ViewHolder> {
 
-    private List<CheckedInBooking> bookings;
+    private final List<CheckedInBooking> bookings;
 
     public CheckedInBookingAdapter(List<CheckedInBooking> bookings) {
         this.bookings = bookings;

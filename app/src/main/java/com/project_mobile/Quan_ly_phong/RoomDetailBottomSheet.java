@@ -138,16 +138,8 @@ public class RoomDetailBottomSheet extends BottomSheetDialogFragment {
             primary.setOnClickListener(v -> AppDialog.showConfirm(
                     requireContext(),
                     "Trả phòng",
-                    "Xác nhận trả phòng " + room.getRoomNumber() + "?",
-                    "Trả phòng",
-                    true,
-                    () -> updateRoomStatusOnServer(RoomModel.STATUS_EMPTY, "Trả phòng thành công")
-            ));
-            primary.setOnClickListener(v -> AppDialog.showConfirm(
-                    requireContext(),
-                    "Checkout",
-                    "Vui long thanh toan truoc khi tra phong " + room.getRoomNumber() + ".",
-                    "Mo checkout",
+                    "Vui lòng thanh toán trước khi trả phòng " + room.getRoomNumber() + ".",
+                    "Mở màn hình trả phòng",
                     false,
                     this::openCheckoutFlow
             ));
@@ -213,7 +205,7 @@ public class RoomDetailBottomSheet extends BottomSheetDialogFragment {
             ((MainActivity) getActivity()).openStay(false);
             dismiss();
         } else {
-            AppDialog.showError(requireContext(), "Vui long vao man hinh Tra phong de thanh toan va checkout.");
+            AppDialog.showError(requireContext(), "Vui lòng vào màn hình Trả phòng để thanh toán.");
         }
     }
 

@@ -12,9 +12,9 @@ import java.util.List;
 
 public class FloorAdapter extends RecyclerView.Adapter<FloorAdapter.FloorViewHolder> {
 
-    private List<FloorModel> floorList;
+    private final List<FloorModel> floorList;
     // ĐÃ THÊM: Gọi Interface từ file RoomGridAdapter
-    private RoomGridAdapter.OnRoomClickListener roomClickListener;
+    private final RoomGridAdapter.OnRoomClickListener roomClickListener;
 
     // ĐÃ SỬA: Constructor nhận sự kiện
     public FloorAdapter(List<FloorModel> floorList, RoomGridAdapter.OnRoomClickListener listener) {

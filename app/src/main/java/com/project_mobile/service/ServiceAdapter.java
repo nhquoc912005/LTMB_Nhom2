@@ -15,7 +15,7 @@ import java.util.List;
 public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceViewHolder> {
 
     private List<ServiceModel> serviceList;
-    private OnServiceClickListener listener;
+    private final OnServiceClickListener listener;
     private boolean isServiceType = true;
 
     public interface OnServiceClickListener {

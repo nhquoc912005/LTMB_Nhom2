@@ -31,7 +31,7 @@ public class BookingRepository {
             @Override
             public void onResponse(Call<ApiResponse<List<BookingDto>>> call, Response<ApiResponse<List<BookingDto>>> response) {
                 if (!response.isSuccessful() || response.body() == null) {
-                    String err = "Network error: " + response.code();
+                    String err = "Lỗi kết nối: " + response.code();
                     try {
                         if (response.errorBody() != null) {
                             String eb = response.errorBody().string();
@@ -46,7 +46,7 @@ public class BookingRepository {
 
                 ApiResponse<List<BookingDto>> apiResp = response.body();
                 if (!apiResp.success) {
-                    cb.onError(apiResp.error != null ? apiResp.error : "Unknown API error");
+                    cb.onError(apiResp.error != null ? apiResp.error : "Không thể xử lý yêu cầu");
                     return;
                 }
 
@@ -62,7 +62,7 @@ public class BookingRepository {
                         String checkIn = d.checkIn != null ? d.checkIn : "";
                         String checkOut = d.checkOut != null ? d.checkOut : "";
                         String totalPrice = d.totalAmount != null ? String.valueOf(d.totalAmount) : "";
-                        Booking b = new Booking(roomName, status, customerName, email, phone, checkIn, checkOut, totalPrice, 
+                        Booking b = new Booking(d.bookingId, roomName, status, customerName, email, phone, checkIn, checkOut, totalPrice,
                                 d.totalGuests != null ? d.totalGuests : 0,
                                 d.adults != null ? d.adults : 0,
                                 d.children != null ? d.children : 0);
@@ -93,12 +93,12 @@ public class BookingRepository {
             @Override
             public void onResponse(Call<ApiResponse<Boolean>> call, Response<ApiResponse<Boolean>> response) {
                 if (!response.isSuccessful() || response.body() == null) {
-                    cb.onError("Network error: " + response.code());
+                    cb.onError("Lỗi kết nối: " + response.code());
                     return;
                 }
                 ApiResponse<Boolean> apiResp = response.body();
                 if (!apiResp.success) {
-                    cb.onError(apiResp.error != null ? apiResp.error : "Unknown API error");
+                    cb.onError(apiResp.error != null ? apiResp.error : "Không thể xử lý yêu cầu");
                     return;
                 }
                 cb.onResult(apiResp.data != null && apiResp.data);
@@ -127,7 +127,7 @@ public class BookingRepository {
         String checkIn = d.checkIn != null ? d.checkIn : "";
         String checkOut = d.checkOut != null ? d.checkOut : "";
         String totalPrice = d.totalAmount != null ? String.valueOf(d.totalAmount) : "";
-        return new Booking(roomName, status, customerName, email, phone, checkIn, checkOut, totalPrice,
+        return new Booking(d.bookingId, roomName, status, customerName, email, phone, checkIn, checkOut, totalPrice,
                 d.totalGuests != null ? d.totalGuests : 0,
                 d.adults != null ? d.adults : 0,
                 d.children != null ? d.children : 0);
@@ -139,12 +139,12 @@ public class BookingRepository {
             @Override
             public void onResponse(Call<ApiResponse<BookingDto>> call, Response<ApiResponse<BookingDto>> response) {
                 if (!response.isSuccessful() || response.body() == null) {
-                    cb.onError("Network error: " + response.code());
+                    cb.onError("Lỗi kết nối: " + response.code());
                     return;
                 }
                 ApiResponse<BookingDto> apiResp = response.body();
                 if (!apiResp.success) {
-                    cb.onError(apiResp.error != null ? apiResp.error : "Unknown API error");
+                    cb.onError(apiResp.error != null ? apiResp.error : "Không thể xử lý yêu cầu");
                     return;
                 }
                 cb.onSuccess(mapDtoToBooking(apiResp.data));
@@ -163,12 +163,12 @@ public class BookingRepository {
             @Override
             public void onResponse(Call<ApiResponse<BookingDto>> call, Response<ApiResponse<BookingDto>> response) {
                 if (!response.isSuccessful() || response.body() == null) {
-                    cb.onError("Network error: " + response.code());
+                    cb.onError("Lỗi kết nối: " + response.code());
                     return;
                 }
                 ApiResponse<BookingDto> apiResp = response.body();
                 if (!apiResp.success) {
-                    cb.onError(apiResp.error != null ? apiResp.error : "Unknown API error");
+                    cb.onError(apiResp.error != null ? apiResp.error : "Không thể xử lý yêu cầu");
                     return;
                 }
                 cb.onSuccess(mapDtoToBooking(apiResp.data));

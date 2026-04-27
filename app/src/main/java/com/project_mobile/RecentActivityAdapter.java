@@ -11,7 +11,7 @@ import java.util.List;
 
 public class RecentActivityAdapter extends RecyclerView.Adapter<RecentActivityAdapter.ViewHolder> {
 
-    private List<RecentActivityModel> activityList;
+    private final List<RecentActivityModel> activityList;
 
     public RecentActivityAdapter(List<RecentActivityModel> activityList) {
         this.activityList = activityList;

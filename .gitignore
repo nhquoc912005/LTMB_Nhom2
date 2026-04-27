@@ -1,22 +1,35 @@
 *.iml
-.gradle
-.gradle-*/
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.vscode/
 .DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
 local.properties
 
-.android-sdk/
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs and caches
+build/
+**/build/
+.gradle/
+.gradle-*/
+.gradle-user/
+.gradle-user-*/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# IDE and local SDK files
+.idea/
+.vscode/
 .android/
-build.zip
-.idea/misc.xml
+.android-sdk/
+
+# Archives and logs
+*.zip
+*.7z
+*.log
+logs/

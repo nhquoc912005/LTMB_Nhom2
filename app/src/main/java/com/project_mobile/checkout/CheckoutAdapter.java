@@ -14,10 +14,10 @@ import java.util.List;
 
 public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.CheckoutViewHolder> {
 
-    private Context context;
-    private List<CheckoutBill> billList;
-    private OnCheckoutClickListener listener;
-    private DecimalFormat formatter = new DecimalFormat("###,###,###");
+    private final Context context;
+    private final List<CheckoutBill> billList;
+    private final OnCheckoutClickListener listener;
+    private final DecimalFormat formatter = new DecimalFormat("###,###,###");
 
     public interface OnCheckoutClickListener {
         void onCheckoutClick(CheckoutBill bill);

@@ -67,10 +67,10 @@ function createServiceRouter(pool) {
     ok(res, "Cập nhật dịch vụ thành công.", data);
   }));
 
-  // Xoá một loại dịch vụ khỏi danh mục
+  // Xóa một loại dịch vụ khỏi danh mục
   router.delete("/services/:id", catalogManagers, asyncRoute(async (req, res) => {
     const data = await service.deleteCatalog("service", req.params.id);
-    ok(res, "Xoá dịch vụ thành công.", data);
+    ok(res, "Xóa dịch vụ thành công.", data);
   }));
 
   // Lấy danh mục tất cả tài sản/bồi thường (Asset Catalog)
@@ -91,7 +91,7 @@ function createServiceRouter(pool) {
 
   router.delete("/assets/:id", catalogManagers, asyncRoute(async (req, res) => {
     const data = await service.deleteCatalog("asset", req.params.id);
-    ok(res, "Xoá tài sản/bồi thường thành công.", data);
+    ok(res, "Xóa tài sản/bồi thường thành công.", data);
   }));
 
   // Lấy danh sách các phòng đang có khách lưu trú (Occupied Rooms)
@@ -132,7 +132,7 @@ function createServiceRouter(pool) {
 
   router.delete("/rooms/:roomId/services/:roomServiceId", roomStaff, asyncRoute(async (req, res) => {
     const data = await service.deleteRoomLine("service", req.params.roomId, req.params.roomServiceId);
-    ok(res, "Xoá dịch vụ khỏi phòng thành công.", data);
+    ok(res, "Xóa dịch vụ khỏi phòng thành công.", data);
   }));
 
   router.get("/rooms/:roomId/assets", asyncRoute(async (req, res) => {
@@ -152,7 +152,7 @@ function createServiceRouter(pool) {
 
   router.delete("/rooms/:roomId/assets/:roomAssetId", roomStaff, asyncRoute(async (req, res) => {
     const data = await service.deleteRoomLine("asset", req.params.roomId, req.params.roomAssetId);
-    ok(res, "Xoá tài sản/bồi thường khỏi phòng thành công.", data);
+    ok(res, "Xóa tài sản/bồi thường khỏi phòng thành công.", data);
   }));
 
   // Legacy aliases from the previous mobile integration.
@@ -172,10 +172,10 @@ function createServiceRouter(pool) {
     ok(res, "Cập nhật số lượng dịch vụ thành công.", data);
   }));
 
-  // Xoá dịch vụ khỏi phòng
+  // Xóa dịch vụ khỏi phòng
   router.delete("/room-services/:id", roomStaff, asyncRoute(async (req, res) => {
     const data = await service.deleteRoomLine("service", null, req.params.id);
-    ok(res, "Xoá dịch vụ khỏi phòng thành công.", data);
+    ok(res, "Xóa dịch vụ khỏi phòng thành công.", data);
   }));
 
   router.get("/rooms/:roomId/room-assets", asyncRoute(async (req, res) => {
@@ -195,7 +195,7 @@ function createServiceRouter(pool) {
 
   router.delete("/room-assets/:id", roomStaff, asyncRoute(async (req, res) => {
     const data = await service.deleteRoomLine("asset", null, req.params.id);
-    ok(res, "Xoá tài sản/bồi thường khỏi phòng thành công.", data);
+    ok(res, "Xóa tài sản/bồi thường khỏi phòng thành công.", data);
   }));
 
   return router;

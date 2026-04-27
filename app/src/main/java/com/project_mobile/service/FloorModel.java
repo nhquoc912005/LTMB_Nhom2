@@ -2,8 +2,8 @@ package com.project_mobile.service;
 import java.util.List;
 
 public class FloorModel {
-    private String floorName;
-    private List<StayRoomModel> rooms;
+    private final String floorName;
+    private final List<StayRoomModel> rooms;
 
     public FloorModel(String floorName, List<StayRoomModel> rooms) {
         this.floorName = floorName;

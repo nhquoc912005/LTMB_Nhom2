@@ -45,7 +45,7 @@
             android:background="@drawable/bg_status_badge"
             android:paddingHorizontal="12dp"
             android:paddingVertical="4dp"
-            android:text="CHỜ CHECK-IN"
+            android:text="CHỜ NHẬN PHÒNG"
             android:textAllCaps="true"
             android:textSize="12sp"
             android:textStyle="bold" />

@@ -59,11 +59,11 @@ public class CheckInFragment extends Fragment {
                             for (com.project_mobile.network.ApiModels.BookingDto b : data) {
                                 checkInList.add(new CheckInModel(
                                     b.bookingId,
-                                    b.customerName,
-                                    "Phòng " + b.roomNumber,
+                                    safeText(b.customerName, "Khách vãng lai"),
+                                    safeText(b.roomNumber, "N/A"),
                                     b.phone,
                                     b.email,
-                                    b.checkIn + " - " + b.checkOut,
+                                    buildStayPeriod(b),
                                     b.totalGuests != null ? b.totalGuests : 0,
                                     b.adults != null ? b.adults : 0,
                                     b.children != null ? b.children : 0,
@@ -115,6 +115,23 @@ public class CheckInFragment extends Fragment {
             }
         } catch (Exception e) {}
         return null;
+    }
+
+    private String buildStayPeriod(com.project_mobile.network.ApiModels.BookingDto booking) {
+        if (booking == null) return "";
+        if (booking.stayPeriod != null && !booking.stayPeriod.trim().isEmpty()) {
+            return booking.stayPeriod;
+        }
+        String checkIn = booking.checkIn != null ? booking.checkIn.trim() : "";
+        String checkOut = booking.checkOut != null ? booking.checkOut.trim() : "";
+        if (!checkIn.isEmpty() && !checkOut.isEmpty()) {
+            return checkIn + " - " + checkOut;
+        }
+        return !checkIn.isEmpty() ? checkIn : checkOut;
+    }
+
+    private String safeText(String value, String fallback) {
+        return value == null || value.trim().isEmpty() ? fallback : value;
     }
 
     @Nullable
@@ -194,7 +211,13 @@ public class CheckInFragment extends Fragment {
         Button btnConfirm = dialog.findViewById(R.id.btnConfirm);
 
         if (tvName != null) tvName.setText(item.getGuestName());
-        if (tvRoom != null) tvRoom.setText(item.getRoomNumber());
+        if (tvRoom != null) {
+            String roomText = item.getRoomNumber();
+            if (!roomText.startsWith("Phòng")) {
+                roomText = "Phòng " + roomText;
+            }
+            tvRoom.setText(roomText);
+        }
         
         String[] dates = item.getStayPeriod().split(" - ");
         if (dates.length == 2) {
@@ -212,7 +235,6 @@ public class CheckInFragment extends Fragment {
                     return;
                 }
                 dialog.dismiss();
-                showSuccessDialog(item, "Nhận phòng thành công");
             });
         }
 
@@ -223,7 +245,7 @@ public class CheckInFragment extends Fragment {
         String cccd = etIdCard == null ? "" : etIdCard.getText().toString().trim();
         String note = etNote == null ? "" : etNote.getText().toString().trim();
         if (!cccd.matches("^(\\d{9}|\\d{12})$")) {
-            android.widget.Toast.makeText(getContext(), "Vui lÃ²ng nháº­p CMND/CCCD 9 hoáº·c 12 chá»¯ sá»‘", android.widget.Toast.LENGTH_SHORT).show();
+            android.widget.Toast.makeText(getContext(), "Vui lòng nhập CMND/CCCD 9 hoặc 12 chữ số", android.widget.Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -241,14 +263,14 @@ public class CheckInFragment extends Fragment {
                     if (isAdded() && getActivity() != null) {
                         getActivity().runOnUiThread(() -> {
                             dialog.dismiss();
-                            showSuccessDialog(item, "Nháº­n phÃ²ng thÃ nh cÃ´ng");
+                            showSuccessDialog(item, "Nhận phòng thành công");
                             loadData(null);
                         });
                     }
                 } else {
                     String msg = response.body() != null && response.body().message != null
                             ? response.body().message
-                            : "KhÃ´ng thá»ƒ nháº­n phÃ²ng";
+                            : "Không thể nhận phòng";
                     if (isAdded()) {
                         android.widget.Toast.makeText(getContext(), msg, android.widget.Toast.LENGTH_SHORT).show();
                     }
@@ -259,7 +281,7 @@ public class CheckInFragment extends Fragment {
             public void onFailure(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<Object>> call, Throwable t) {
                 btnConfirm.setEnabled(true);
                 if (isAdded()) {
-                    android.widget.Toast.makeText(getContext(), "Lá»—i káº¿t ná»‘i: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
+                    android.widget.Toast.makeText(getContext(), "Lỗi kết nối: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
                 }
             }
         });

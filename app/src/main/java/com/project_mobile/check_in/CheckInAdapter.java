@@ -12,8 +12,8 @@ import java.util.List;
 
 public class CheckInAdapter extends RecyclerView.Adapter<CheckInAdapter.CheckInViewHolder> {
 
-    private List<CheckInModel> checkInList;
-    private OnCheckInClickListener listener;
+    private final List<CheckInModel> checkInList;
+    private final OnCheckInClickListener listener;
 
     public interface OnCheckInClickListener {
         void onCheckInClick(CheckInModel item);

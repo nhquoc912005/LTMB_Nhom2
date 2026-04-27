@@ -8,9 +8,9 @@ import com.project_mobile.network.ApiModels.UserDto;
 public class SessionManager {
     private static final String PREF_NAME = "HotelSession";
     private static final String KEY_USER = "current_user";
-    private SharedPreferences pref;
-    private SharedPreferences.Editor editor;
-    private Context context;
+    private final SharedPreferences pref;
+    private final SharedPreferences.Editor editor;
+    private final Context context;
 
     public SessionManager(Context context) {
         this.context = context;

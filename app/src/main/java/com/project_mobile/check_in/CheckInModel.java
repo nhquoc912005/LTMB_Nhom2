@@ -1,16 +1,16 @@
 package com.project_mobile.check_in;
 
 public class CheckInModel {
-    private String bookingId;
-    private String guestName;
-    private String roomNumber;
-    private String phoneNumber;
-    private String email;
-    private String stayPeriod;
-    private int totalGuests;
-    private int adults;
-    private int children;
-    private Integer oldRoomId;
+    private final String bookingId;
+    private final String guestName;
+    private final String roomNumber;
+    private final String phoneNumber;
+    private final String email;
+    private final String stayPeriod;
+    private final int totalGuests;
+    private final int adults;
+    private final int children;
+    private final Integer oldRoomId;
 
     public CheckInModel(String bookingId, String guestName, String roomNumber, String phoneNumber, String email, String stayPeriod, int totalGuests, int adults, int children) {
         this(bookingId, guestName, roomNumber, phoneNumber, email, stayPeriod, totalGuests, adults, children, null);

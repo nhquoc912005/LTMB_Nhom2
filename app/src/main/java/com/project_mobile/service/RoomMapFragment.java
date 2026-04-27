@@ -6,6 +6,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -27,6 +29,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import androidx.cardview.widget.CardView;
+
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.project_mobile.R;
 import com.project_mobile.network.ApiModels.ActiveRoomDto;
 import com.project_mobile.network.ApiModels.CatalogItemDto;
@@ -43,6 +47,8 @@ import java.util.Locale;
 import java.util.TreeMap;
 
 public class RoomMapFragment extends Fragment {
+    private static final String TAG = "RoomMapFragment";
+
     private ServiceRepository repository;
     private EditText edtSearch;
     private LinearLayout layoutRoomMap;
@@ -68,6 +74,8 @@ public class RoomMapFragment extends Fragment {
 
     private boolean isServiceTab = true;
     private StayRoomModel selectedRoom;
+    private final List<RoomLineDto> currentServiceLines = new ArrayList<>();
+    private final List<RoomLineDto> currentAssetLines = new ArrayList<>();
 
     @Nullable
     @Override
@@ -128,7 +136,18 @@ public class RoomMapFragment extends Fragment {
 
     private void setupActions(View view) {
         view.findViewById(R.id.btnDetailClose).setOnClickListener(v -> closeDetail());
-        fabAddRoomLine.setOnClickListener(v -> showAddLineDialog());
+        fabAddRoomLine.setOnClickListener(v -> handleAddRoomLineClick());
+
+        View btnAddServiceInline = view.findViewById(R.id.btnAddServiceInline);
+        View btnAddAssetInline = view.findViewById(R.id.btnAddAssetInline);
+        btnAddServiceInline.setOnClickListener(v -> {
+            setCurrentTab(true);
+            showServicePickerBottomSheet();
+        });
+        btnAddAssetInline.setOnClickListener(v -> {
+            setCurrentTab(false);
+            showAssetPickerBottomSheet();
+        });
     }
 
     private void setCurrentTab(boolean serviceTab) {
@@ -160,6 +179,18 @@ public class RoomMapFragment extends Fragment {
         sectionServices.setVisibility(isServiceTab ? View.VISIBLE : View.GONE);
         sectionAssets.setVisibility(isServiceTab ? View.GONE : View.VISIBLE);
         fabAddRoomLine.setVisibility(View.VISIBLE);
+    }
+
+    private void handleAddRoomLineClick() {
+        if (selectedRoom == null) {
+            Toast.makeText(getContext(), "Vui lòng chọn phòng trước", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (isServiceTab) {
+            showServicePickerBottomSheet();
+        } else {
+            showAssetPickerBottomSheet();
+        }
     }
 
     private void loadActiveRooms() {
@@ -227,6 +258,8 @@ public class RoomMapFragment extends Fragment {
         tvDetailCheckOut.setText(formatDate(room.getExpectedCheckOut()));
         tvDetailRoomFee.setText(formatMoney(room.getRoomFee()));
 
+        currentServiceLines.clear();
+        currentAssetLines.clear();
         layoutAddedServices.removeAllViews();
         layoutAddedAssets.removeAllViews();
         layoutRoomMap.setVisibility(View.GONE);
@@ -252,7 +285,9 @@ public class RoomMapFragment extends Fragment {
                     public void onSuccess(List<RoomLineDto> data) {
                         if (!isAdded() || selectedRoom == null)
                             return;
-                        renderLines(serviceTab, data == null ? new ArrayList<>() : data);
+                        List<RoomLineDto> safeData = data == null ? new ArrayList<>() : data;
+                        cacheRoomLines(serviceTab, safeData);
+                        renderLines(serviceTab, safeData);
                     }
 
                     @Override
@@ -267,6 +302,16 @@ public class RoomMapFragment extends Fragment {
     private void renderLines(boolean serviceTab, List<RoomLineDto> lines) {
         LinearLayout container = serviceTab ? layoutAddedServices : layoutAddedAssets;
         container.removeAllViews();
+
+        if (lines.isEmpty()) {
+            TextView emptyView = new TextView(requireContext());
+            emptyView.setText(serviceTab ? "Chưa có dịch vụ đã chọn" : "Chưa có tài sản đã chọn");
+            emptyView.setTextColor(Color.parseColor("#888888"));
+            emptyView.setTextSize(15);
+            emptyView.setPadding(0, 12, 0, 12);
+            container.addView(emptyView);
+            return;
+        }
 
         for (int i = 0; i < lines.size(); i++) {
             RoomLineDto line = lines.get(i);
@@ -327,9 +372,9 @@ public class RoomMapFragment extends Fragment {
 
     private void confirmDeleteLine(boolean serviceTab, RoomLineDto line) {
         new AlertDialog.Builder(requireContext())
-                .setTitle("Xoá khỏi phòng")
+                .setTitle("Xóa khỏi phòng")
                 .setMessage("Bạn có chắc muốn xoá \"" + safeText(line.name) + "\"?")
-                .setNegativeButton("Huỷ", null)
+                .setNegativeButton("Hủy", null)
                 .setPositiveButton("Xác nhận", (dialog, which) -> repository.deleteRoomLine(serviceTab, line.id,
                         new ServiceRepository.DataCallback<RoomLineDto>() {
                             @Override
@@ -347,6 +392,290 @@ public class RoomMapFragment extends Fragment {
                             }
                         }))
                 .show();
+    }
+
+    private void showServicePickerBottomSheet() {
+        showCatalogPickerBottomSheet(true);
+    }
+
+    private void showAssetPickerBottomSheet() {
+        showCatalogPickerBottomSheet(false);
+    }
+
+    private void showCatalogPickerBottomSheet(boolean serviceTab) {
+        if (selectedRoom == null) {
+            Toast.makeText(getContext(), "Vui lòng chọn phòng trước", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        BottomSheetDialog dialog = new BottomSheetDialog(requireContext());
+        View view = LayoutInflater.from(requireContext()).inflate(R.layout.bottom_sheet_service_picker, null);
+        dialog.setContentView(view);
+
+        TextView tvTitle = view.findViewById(R.id.tvPickerTitle);
+        EditText edtPickerSearch = view.findViewById(R.id.edtServiceSearch);
+        ProgressBar progress = view.findViewById(R.id.progressPicker);
+        TextView tvEmpty = view.findViewById(R.id.tvPickerEmpty);
+        RecyclerView rvPicker = view.findViewById(R.id.rvServicePicker);
+
+        String itemType = serviceTab ? "dịch vụ" : "tài sản";
+        tvTitle.setText(serviceTab ? "Chọn dịch vụ" : "Chọn tài sản");
+        edtPickerSearch.setHint(serviceTab ? "Tìm kiếm dịch vụ" : "Tìm kiếm tài sản");
+        rvPicker.setLayoutManager(new LinearLayoutManager(requireContext()));
+
+        List<CatalogItemDto> allItems = new ArrayList<>();
+        ServicePickerAdapter adapter = new ServicePickerAdapter(item -> addCatalogItemToCurrentRoom(serviceTab, item, dialog));
+        rvPicker.setAdapter(adapter);
+
+        view.findViewById(R.id.btnClosePicker).setOnClickListener(v -> dialog.dismiss());
+        edtPickerSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterCatalogItems(s == null ? "" : s.toString(), allItems, adapter, tvEmpty, rvPicker, serviceTab);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
+        progress.setVisibility(View.VISIBLE);
+        tvEmpty.setVisibility(View.GONE);
+        rvPicker.setVisibility(View.GONE);
+        repository.fetchCatalog(serviceTab, "", new ServiceRepository.DataCallback<List<CatalogItemDto>>() {
+            @Override
+            public void onSuccess(List<CatalogItemDto> data) {
+                if (!isAdded())
+                    return;
+                progress.setVisibility(View.GONE);
+                allItems.clear();
+                if (data != null) {
+                    allItems.addAll(data);
+                }
+                filterCatalogItems(
+                        edtPickerSearch.getText() == null ? "" : edtPickerSearch.getText().toString(),
+                        allItems,
+                        adapter,
+                        tvEmpty,
+                        rvPicker,
+                        serviceTab);
+            }
+
+            @Override
+            public void onError(String error) {
+                if (!isAdded())
+                    return;
+                progress.setVisibility(View.GONE);
+                rvPicker.setVisibility(View.GONE);
+                tvEmpty.setText(serviceTab ? "Không thể tải danh sách dịch vụ" : "Không thể tải danh sách tài sản");
+                tvEmpty.setVisibility(View.VISIBLE);
+                Log.e(TAG, "Cannot load " + itemType + ": " + readableError(error));
+            }
+        });
+
+        dialog.show();
+    }
+
+    private void filterCatalogItems(String keyword, List<CatalogItemDto> allItems, ServicePickerAdapter adapter,
+            TextView tvEmpty, RecyclerView rvPicker, boolean serviceTab) {
+        String normalized = keyword == null ? "" : keyword.trim().toLowerCase(Locale.ROOT);
+        List<CatalogItemDto> filtered = new ArrayList<>();
+        for (CatalogItemDto item : allItems) {
+            String name = item.name == null ? "" : item.name.toLowerCase(Locale.ROOT);
+            if (normalized.isEmpty() || name.contains(normalized)) {
+                filtered.add(item);
+            }
+        }
+
+        adapter.submitList(filtered);
+        boolean hasItems = !filtered.isEmpty();
+        rvPicker.setVisibility(hasItems ? View.VISIBLE : View.GONE);
+        tvEmpty.setVisibility(hasItems ? View.GONE : View.VISIBLE);
+        if (!hasItems) {
+            if (allItems.isEmpty()) {
+                tvEmpty.setText(serviceTab ? "Chưa có dịch vụ khả dụng" : "Chưa có tài sản khả dụng");
+            } else {
+                tvEmpty.setText(serviceTab ? "Không tìm thấy dịch vụ phù hợp" : "Không tìm thấy tài sản phù hợp");
+            }
+        }
+    }
+
+    private void addCatalogItemToCurrentRoom(boolean serviceTab, CatalogItemDto item, BottomSheetDialog dialog) {
+        if (selectedRoom == null) {
+            Toast.makeText(getContext(), "Không tìm thấy phòng hiện tại", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (selectedRoom.getRoomId() <= 0) {
+            Toast.makeText(getContext(), "Không tìm thấy mã phòng hiện tại", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String catalogId = item.id;
+        if (catalogId == null || catalogId.trim().isEmpty()) {
+            Toast.makeText(getContext(), serviceTab ? "Không tìm thấy mã dịch vụ" : "Không tìm thấy mã tài sản", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (selectedRoom != null) {
+            refreshRoomLinesBeforeAdd(serviceTab, catalogId, dialog);
+            return;
+        }
+
+        RoomLineDto existingLine = findExistingLine(serviceTab, catalogId);
+        if (existingLine != null) {
+            if (serviceTab) {
+                increaseServiceQuantity(existingLine, dialog);
+            } else {
+                Toast.makeText(getContext(), "Tài sản này đã được chọn", Toast.LENGTH_SHORT).show();
+            }
+            return;
+        }
+
+        repository.addRoomLine(serviceTab, selectedRoom.getRoomId(), catalogId, 1,
+                new ServiceRepository.DataCallback<RoomLineDto>() {
+                    @Override
+                    public void onSuccess(RoomLineDto data) {
+                        if (!isAdded())
+                            return;
+                        Toast.makeText(getContext(), serviceTab ? "Đã thêm dịch vụ" : "Đã thêm tài sản", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                        setCurrentTab(serviceTab);
+                        loadRoomLines(serviceTab);
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        if (!isAdded())
+                            return;
+                        Log.e(TAG, "Cannot add room line: " + readableError(error));
+                        Toast.makeText(getContext(),
+                                serviceTab ? "Không thể thêm dịch vụ, vui lòng thử lại" : "Không thể thêm tài sản, vui lòng thử lại",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void refreshRoomLinesBeforeAdd(boolean serviceTab, String catalogId, BottomSheetDialog dialog) {
+        int roomId = selectedRoom.getRoomId();
+        repository.fetchRoomLines(serviceTab, roomId, new ServiceRepository.DataCallback<List<RoomLineDto>>() {
+            @Override
+            public void onSuccess(List<RoomLineDto> data) {
+                if (!isAdded() || selectedRoom == null)
+                    return;
+                List<RoomLineDto> safeData = data == null ? new ArrayList<>() : data;
+                cacheRoomLines(serviceTab, safeData);
+                addCatalogItemAfterDuplicateCheck(serviceTab, catalogId, dialog);
+            }
+
+            @Override
+            public void onError(String error) {
+                if (!isAdded())
+                    return;
+                Log.e(TAG, "Cannot refresh room lines before add: " + readableError(error));
+                Toast.makeText(getContext(),
+                        serviceTab ? "Không thể thêm dịch vụ, vui lòng thử lại" : "Không thể thêm tài sản, vui lòng thử lại",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void cacheRoomLines(boolean serviceTab, List<RoomLineDto> lines) {
+        if (serviceTab) {
+            currentServiceLines.clear();
+            currentServiceLines.addAll(lines);
+        } else {
+            currentAssetLines.clear();
+            currentAssetLines.addAll(lines);
+        }
+    }
+
+    private void addCatalogItemAfterDuplicateCheck(boolean serviceTab, String catalogId, BottomSheetDialog dialog) {
+        RoomLineDto existingLine = findExistingLine(serviceTab, catalogId);
+        if (existingLine != null) {
+            if (serviceTab) {
+                increaseServiceQuantity(existingLine, dialog);
+            } else {
+                Toast.makeText(getContext(), "Tài sản này đã được chọn", Toast.LENGTH_SHORT).show();
+            }
+            return;
+        }
+
+        repository.addRoomLine(serviceTab, selectedRoom.getRoomId(), catalogId, 1,
+                new ServiceRepository.DataCallback<RoomLineDto>() {
+                    @Override
+                    public void onSuccess(RoomLineDto data) {
+                        if (!isAdded())
+                            return;
+                        Toast.makeText(getContext(), serviceTab ? "Đã thêm dịch vụ" : "Đã thêm tài sản", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                        setCurrentTab(serviceTab);
+                        loadRoomLines(serviceTab);
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        if (!isAdded())
+                            return;
+                        Log.e(TAG, "Cannot add room line: " + readableError(error));
+                        Toast.makeText(getContext(),
+                                serviceTab ? "Không thể thêm dịch vụ, vui lòng thử lại" : "Không thể thêm tài sản, vui lòng thử lại",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void increaseServiceQuantity(RoomLineDto line, BottomSheetDialog dialog) {
+        if (line.id == null || line.id.trim().isEmpty()) {
+            Toast.makeText(getContext(), "Dịch vụ này đã được chọn", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        int quantity = line.quantity != null ? line.quantity : 1;
+        repository.updateRoomLine(true, line.id, quantity + 1, new ServiceRepository.DataCallback<RoomLineDto>() {
+            @Override
+            public void onSuccess(RoomLineDto data) {
+                if (!isAdded())
+                    return;
+                Toast.makeText(getContext(), "Đã thêm dịch vụ", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+                setCurrentTab(true);
+                loadRoomLines(true);
+            }
+
+            @Override
+            public void onError(String error) {
+                if (!isAdded())
+                    return;
+                Log.e(TAG, "Cannot increase service quantity: " + readableError(error));
+                Toast.makeText(getContext(), "Không thể thêm dịch vụ, vui lòng thử lại", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    @Nullable
+    private RoomLineDto findExistingLine(boolean serviceTab, String catalogId) {
+        List<RoomLineDto> lines = serviceTab ? currentServiceLines : currentAssetLines;
+        for (RoomLineDto line : lines) {
+            String lineCatalogId = getLineCatalogId(serviceTab, line);
+            if (catalogId.equals(lineCatalogId)) {
+                return line;
+            }
+        }
+        return null;
+    }
+
+    private String getLineCatalogId(boolean serviceTab, RoomLineDto line) {
+        if (line == null) {
+            return null;
+        }
+        if (line.catalogId != null) {
+            return line.catalogId;
+        }
+        return serviceTab ? line.serviceId : line.assetId;
     }
 
     private void showAddLineDialog() {

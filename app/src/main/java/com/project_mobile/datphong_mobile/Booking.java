@@ -1,19 +1,21 @@
 package com.project_mobile.datphong_mobile;
 
 public class Booking {
-    private String roomName;
+    private final String bookingId;
+    private final String roomName;
     private String status;
-    private String customerName;
-    private String customerEmail;
-    private String customerPhone;
-    private String checkInDate;
-    private String checkOutDate;
-    private String totalPrice;
-    private Integer totalGuests;
-    private Integer adults;
-    private Integer children;
+    private final String customerName;
+    private final String customerEmail;
+    private final String customerPhone;
+    private final String checkInDate;
+    private final String checkOutDate;
+    private final String totalPrice;
+    private final Integer totalGuests;
+    private final Integer adults;
+    private final Integer children;
 
-    public Booking(String roomName, String status, String customerName, String customerEmail, String customerPhone, String checkInDate, String checkOutDate, String totalPrice, Integer totalGuests, Integer adults, Integer children) {
+    public Booking(String bookingId, String roomName, String status, String customerName, String customerEmail, String customerPhone, String checkInDate, String checkOutDate, String totalPrice, Integer totalGuests, Integer adults, Integer children) {
+        this.bookingId = bookingId;
         this.roomName = roomName;
         this.status = status;
         this.customerName = customerName;
@@ -27,6 +29,7 @@ public class Booking {
         this.children = children;
     }
 
+    public String getBookingId() { return bookingId; }
     public String getRoomName() { return roomName; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }

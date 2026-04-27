@@ -24,7 +24,7 @@ public class ChangeRoomBottomSheet extends BottomSheetDialogFragment {
 
     private RoomModel currentRoom;
     private List<RoomModel> rooms = new ArrayList<>();
-    private List<RoomModel> emptyRooms = new ArrayList<>();
+    private final List<RoomModel> emptyRooms = new ArrayList<>();
     private RoomModel selectedRoom;
     private OnRoomChangedListener listener;
 

@@ -114,15 +114,15 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
             public void onResponse(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.UserDto>> call, retrofit2.Response<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.UserDto>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().success) {
                     fetchUsers();
-                    AppDialog.showSuccess(requireContext(), req.locked ? "Khoa tai khoan thanh cong" : "Mo khoa thanh cong");
+                    AppDialog.showSuccess(requireContext(), req.locked ? "Khóa tài khoản thành công" : "Mở khóa tài khoản thành công");
                 } else {
-                    AppDialog.showError(requireContext(), "Loi cap nhat trang thai tai khoan");
+                    AppDialog.showError(requireContext(), "Lỗi cập nhật trạng thái tài khoản");
                 }
             }
 
             @Override
             public void onFailure(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.UserDto>> call, Throwable t) {
-                AppDialog.showError(requireContext(), "Loi ket noi");
+                AppDialog.showError(requireContext(), "Lỗi kết nối, vui lòng thử lại");
             }
         });
     }

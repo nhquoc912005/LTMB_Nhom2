@@ -96,7 +96,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Chờ Check-in"
+                        android:text="Chờ nhận phòng"
                         android:textColor="#333333"
                         android:textSize="10sp"
                         android:textStyle="bold" />
@@ -128,7 +128,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Đã Check-in"
+                        android:text="Đã nhận phòng"
                         android:textColor="#333333"
                         android:textSize="10sp"
                         android:textStyle="bold" />

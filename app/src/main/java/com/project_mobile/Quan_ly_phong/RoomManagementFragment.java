@@ -57,7 +57,7 @@ public class RoomManagementFragment extends Fragment implements RoomAdapter.OnRo
                             dto.id,
                             dto.roomNumber,
                             dto.roomType,
-                            "Tầng " + dto.roomNumber.substring(0, 1),
+                            "Tầng " + dto.roomNumber.charAt(0),
                             dto.capacity + " người",
                             String.format(Locale.US, "%,.0fđ", dto.price),
                             dto.status

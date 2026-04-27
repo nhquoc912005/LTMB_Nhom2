@@ -1,15 +1,15 @@
 package com.project_mobile.model;
 
 public class Booking {
-    private String id;
-    private String roomName;
-    private String customerName;
-    private String email;
-    private String phone;
-    private String checkInDate;
-    private String checkOutDate;
-    private String totalPrice;
-    private BookingStatus status;
+    private final String id;
+    private final String roomName;
+    private final String customerName;
+    private final String email;
+    private final String phone;
+    private final String checkInDate;
+    private final String checkOutDate;
+    private final String totalPrice;
+    private final BookingStatus status;
 
     public Booking(String id, String roomName, String customerName, String email, String phone, String checkInDate, String checkOutDate, String totalPrice, BookingStatus status) {
         this.id = id;

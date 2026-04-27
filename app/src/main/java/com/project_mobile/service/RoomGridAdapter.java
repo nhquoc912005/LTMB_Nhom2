@@ -11,9 +11,9 @@ import java.util.List;
 
 public class RoomGridAdapter extends RecyclerView.Adapter<RoomGridAdapter.RoomViewHolder> {
 
-    private List<StayRoomModel> rooms;
+    private final List<StayRoomModel> rooms;
     // ĐÃ THÊM: Khai báo interface
-    private OnRoomClickListener listener;
+    private final OnRoomClickListener listener;
 
     // ĐÃ THÊM: Tạo interface để truyền sự kiện ra ngoài
     public interface OnRoomClickListener {

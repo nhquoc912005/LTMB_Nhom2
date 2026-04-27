@@ -18,8 +18,8 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         void onCancel(Booking booking);
     }
 
-    private List<Booking> bookingList;
-    private OnBookingActionListener listener;
+    private final List<Booking> bookingList;
+    private final OnBookingActionListener listener;
 
     public BookingAdapter(List<Booking> bookingList, OnBookingActionListener listener) {
         this.bookingList = bookingList;
@@ -38,6 +38,8 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         Booking booking = bookingList.get(position);
         holder.tvRoomName.setText(booking.getRoomName());
         holder.tvCustomerName.setText(booking.getCustomerName());
+        holder.tvCustomerEmail.setText(booking.getCustomerEmail());
+        holder.tvCustomerPhone.setText(booking.getCustomerPhone());
         holder.tvCheckInDate.setText(booking.getCheckInDate());
         holder.tvCheckOutDate.setText(booking.getCheckOutDate());
         holder.tvTotalPrice.setText(booking.getTotalPrice());
@@ -47,18 +49,22 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
 
         // Thiết lập trạng thái hiển thị
         String status = booking.getStatus();
-        holder.tvBookingStatus.setText(status);
+        String displayStatus = status;
         
-        if (status.contains("Đã đặt cọc") || status.contains("Chờ check-in")) {
+        if (status.contains("Đã đặt cọc") || status.contains("Chờ check-in") || status.contains("Chờ nhận phòng")) {
+            displayStatus = "Chờ nhận phòng";
             holder.tvBookingStatus.setBackgroundResource(R.drawable.bg_status_pending);
             holder.tvBookingStatus.setTextColor(0xFF8B6D5A);
-        } else if (status.contains("Đang ở") || status.contains("Đã check-in") || status.contains("nhận phòng")) {
+        } else if (status.contains("Đang ở") || status.contains("Đã check-in") || status.contains("Đã nhận phòng") || status.contains("nhận phòng")) {
+            displayStatus = "Đã nhận phòng";
             holder.tvBookingStatus.setBackgroundResource(R.drawable.bg_status_checked_in);
             holder.tvBookingStatus.setTextColor(0xFF2E7D32);
         } else if (status.contains("Đã hủy") || status.contains("Hủy")) {
+            displayStatus = "Đã hủy";
             holder.tvBookingStatus.setBackgroundResource(R.drawable.bg_status_cancelled);
             holder.tvBookingStatus.setTextColor(0xFFC62828);
         }
+        holder.tvBookingStatus.setText(displayStatus);
 
         // Hiện/Ẩn nút hủy dựa trên trạng thái
         holder.btnCancelBooking.setVisibility(status.contains("Đã hủy") || status.contains("Hủy") ? View.GONE : View.VISIBLE);
@@ -79,7 +85,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
     public int getItemCount() { return bookingList.size(); }
 
     static class BookingViewHolder extends RecyclerView.ViewHolder {
-        TextView tvRoomName, tvBookingStatus, tvCustomerName, tvCheckInDate, tvCheckOutDate, tvTotalPrice;
+        TextView tvRoomName, tvBookingStatus, tvCustomerName, tvCustomerEmail, tvCustomerPhone, tvCheckInDate, tvCheckOutDate, tvTotalPrice;
         TextView tvTotalGuests, tvAdults, tvChildren;
         Button btnCancelBooking;
         ImageView ivMenu;
@@ -89,6 +95,8 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
             tvRoomName = itemView.findViewById(R.id.tvRoomName);
             tvBookingStatus = itemView.findViewById(R.id.tvBookingStatus);
             tvCustomerName = itemView.findViewById(R.id.tvCustomerName);
+            tvCustomerEmail = itemView.findViewById(R.id.tvCustomerEmail);
+            tvCustomerPhone = itemView.findViewById(R.id.tvCustomerPhone);
             tvCheckInDate = itemView.findViewById(R.id.tvCheckInDate);
             tvCheckOutDate = itemView.findViewById(R.id.tvCheckOutDate);
             tvTotalPrice = itemView.findViewById(R.id.tvTotalPrice);

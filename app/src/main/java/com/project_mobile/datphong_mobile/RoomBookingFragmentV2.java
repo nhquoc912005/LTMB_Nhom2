@@ -62,8 +62,8 @@ public class RoomBookingFragmentV2 extends Fragment {
         int cancelled = 0;
         for (BookingDto b : data) {
             String s = b.status != null ? b.status : "";
-            if (s.contains("Đã đặt cọc") || s.contains("Chờ check-in")) waiting++;
-            else if (s.contains("Đang ở") || s.contains("Đã check-in") || s.contains("nhận phòng")) checkedIn++;
+            if (s.contains("Đã đặt cọc") || s.contains("Chờ check-in") || s.contains("Chờ nhận phòng")) waiting++;
+            else if (s.contains("Đang ở") || s.contains("Đã check-in") || s.contains("Đã nhận phòng") || s.contains("nhận phòng")) checkedIn++;
             else if (s.contains("Đã hủy") || s.contains("Hủy")) cancelled++;
         }
         if (tvTotalBookings != null) tvTotalBookings.setText(String.format(Locale.US, "%02d", total));
@@ -99,7 +99,7 @@ public class RoomBookingFragmentV2 extends Fragment {
 
                         bookingList.add(new RoomBooking(
                                 roomNum,
-                                b.status != null ? b.status : "Chờ check-in",
+                                b.status != null ? normalizeDisplayStatus(b.status) : "Chờ nhận phòng",
                                 b.customerName != null ? b.customerName : "Khách vãng lai",
                                 b.email != null ? b.email : "-",
                                 b.phone != null ? b.phone : "-",
@@ -120,6 +120,19 @@ public class RoomBookingFragmentV2 extends Fragment {
                 // Handle error
             }
         });
+    }
+
+    private String normalizeDisplayStatus(String status) {
+        if (status.contains("Đã đặt cọc") || status.contains("Chờ check-in") || status.contains("Chờ nhận phòng")) {
+            return "Chờ nhận phòng";
+        }
+        if (status.contains("Đang ở") || status.contains("Đã check-in") || status.contains("Đã nhận phòng") || status.contains("nhận phòng")) {
+            return "Đã nhận phòng";
+        }
+        if (status.contains("Đã hủy") || status.contains("Hủy")) {
+            return "Đã hủy";
+        }
+        return status;
     }
 
     private String formatDate(String dateStr) {

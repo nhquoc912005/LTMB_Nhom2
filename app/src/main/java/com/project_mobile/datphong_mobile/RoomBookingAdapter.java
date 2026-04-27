@@ -11,7 +11,7 @@ import java.util.List;
 
 public class RoomBookingAdapter extends RecyclerView.Adapter<RoomBookingAdapter.ViewHolder> {
 
-    private List<RoomBooking> bookings;
+    private final List<RoomBooking> bookings;
 
     public RoomBookingAdapter(List<RoomBooking> bookings) {
         this.bookings = bookings;

@@ -20,20 +20,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Legacy mock booking fragment.
- *
- * NOTE: This fragment contains hardcoded/mock data and is kept for reference only.
- * The active booking screen used by the app is
- * `com.project_mobile.datphong_mobile.BookingManagementFragment` (see MainActivity imports).
- * Do not use this fragment for real API integration. Marked deprecated to avoid confusion.
+ * This file is deprecated and moved to BookingManagementFragmentLegacy.java
+ * The active version is in com.project_mobile.datphong_mobile.BookingManagementFragment
  */
 @Deprecated
 public class BookingManagementFragment extends Fragment {
 
     private RecyclerView rvBookings;
     private BookingAdapter adapter;
-    private List<Booking> allBookings = new ArrayList<>();
-    
+    private final List<Booking> allBookings = new ArrayList<>();
+
     private LinearLayout boxTotal, boxPending, boxCheckedIn, boxCancelled;
     private TextView tvCountTotal, tvCountPending, tvCountCheckedIn, tvCountCancelled;
     private MaterialButton btnFilterAll, btnFilterToday, btnFilterMonth;
@@ -42,12 +38,12 @@ public class BookingManagementFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_booking_management, container, false);
-        
+
         initViews(view);
         setupRecyclerView();
         loadMockData();
         setupListeners();
-        
+
         return view;
     }
 
@@ -57,12 +53,12 @@ public class BookingManagementFragment extends Fragment {
         boxPending = v.findViewById(R.id.boxPending);
         boxCheckedIn = v.findViewById(R.id.boxCheckedIn);
         boxCancelled = v.findViewById(R.id.boxCancelled);
-        
+
         tvCountTotal = v.findViewById(R.id.tvCountTotal);
         tvCountPending = v.findViewById(R.id.tvCountPending);
         tvCountCheckedIn = v.findViewById(R.id.tvCountCheckedIn);
         tvCountCancelled = v.findViewById(R.id.tvCountCancelled);
-        
+
         btnFilterAll = v.findViewById(R.id.btnFilterAll);
         btnFilterToday = v.findViewById(R.id.btnFilterToday);
         btnFilterMonth = v.findViewById(R.id.btnFilterMonth);
@@ -116,7 +112,7 @@ public class BookingManagementFragment extends Fragment {
 
     private void updateUI(List<Booking> list) {
         adapter.updateData(list);
-        
+
         long pending = 0;
         long checkedIn = 0;
         long cancelled = 0;
@@ -125,7 +121,7 @@ public class BookingManagementFragment extends Fragment {
             else if (b.getStatus() == BookingStatus.CHECKED_IN) checkedIn++;
             else if (b.getStatus() == BookingStatus.CANCELLED) cancelled++;
         }
-        
+
         tvCountTotal.setText(String.format("%02d", allBookings.size()));
         tvCountPending.setText(String.format("%02d", pending));
         tvCountCheckedIn.setText(String.format("%02d", checkedIn));

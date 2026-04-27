@@ -8,16 +8,16 @@ public class RoomModel implements Serializable {
     public static final String STATUS_IN_USE = "Đang sử dụng";
     public static final String STATUS_MAINTENANCE = "Bảo trì";
 
-    private String roomNumber;
-    private String roomType;
-    private String floor;
-    private String capacity;
-    private String price;
+    private final String roomNumber;
+    private final String roomType;
+    private final String floor;
+    private final String capacity;
+    private final String price;
     private String status;
     private String customerName;
     private String customerPhone;
     private String duration;
-    private int id;
+    private final int id;
 
     public RoomModel(int id, String roomNumber, String roomType, String floor, String capacity, String price, String status) {
         this.id = id;

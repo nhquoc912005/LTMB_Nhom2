@@ -1,17 +1,17 @@
 package com.project_mobile.datphong_mobile;
 
 public class RoomBooking {
-    private String roomNumber;
-    private String status;
-    private String customerName;
-    private String email;
-    private String phone;
-    private String checkInDate;
-    private String checkOutDate;
-    private String price;
-    private String totalGuests;
-    private String adults;
-    private String children;
+    private final String roomNumber;
+    private final String status;
+    private final String customerName;
+    private final String email;
+    private final String phone;
+    private final String checkInDate;
+    private final String checkOutDate;
+    private final String price;
+    private final String totalGuests;
+    private final String adults;
+    private final String children;
 
     public RoomBooking(String roomNumber, String status, String customerName, String email, String phone, String checkInDate, String checkOutDate, String price, String totalGuests, String adults, String children) {
         this.roomNumber = roomNumber;

@@ -103,12 +103,13 @@ public class HomeFragment extends Fragment {
                         
                         int colorRes = R.color.status_pending_text;
                         int bgRes = R.drawable.bg_status_yellow;
-                        String statusStr = b.status != null ? b.status : "Chờ check-in";
+                        String rawStatus = b.status != null ? b.status : "Chờ nhận phòng";
+                        String statusStr = normalizeDisplayStatus(rawStatus);
 
-                        if (statusStr.contains("nhận phòng") || statusStr.contains("trả phòng") || statusStr.contains("Thành công")) {
+                        if (rawStatus.contains("nhận phòng") || rawStatus.contains("Đã check-in") || rawStatus.contains("Đã nhận phòng") || rawStatus.contains("trả phòng") || rawStatus.contains("Thành công")) {
                             colorRes = R.color.status_checked_in_text;
                             bgRes = R.drawable.bg_status_green;
-                        } else if (statusStr.contains("Đang ở") || statusStr.contains("Bận")) {
+                        } else if (rawStatus.contains("Đang ở") || rawStatus.contains("Bận")) {
                             colorRes = R.color.status_in_use_text;
                             bgRes = R.drawable.bg_status_blue;
                         }
@@ -154,5 +155,18 @@ public class HomeFragment extends Fragment {
             @Override
             public void onFailure(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.BookingDto>>> call, Throwable t) {}
         });
+    }
+
+    private String normalizeDisplayStatus(String status) {
+        if (status.contains("Đã đặt cọc") || status.contains("Chờ check-in") || status.contains("Chờ nhận phòng")) {
+            return "Chờ nhận phòng";
+        }
+        if (status.contains("Đang ở") || status.contains("Đã check-in") || status.contains("Đã nhận phòng") || status.contains("nhận phòng")) {
+            return "Đã nhận phòng";
+        }
+        if (status.contains("Đã trả phòng") || status.contains("trả phòng")) {
+            return "Đã trả phòng";
+        }
+        return status;
     }
 }

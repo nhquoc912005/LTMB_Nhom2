@@ -45,13 +45,13 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         // Status Badge Logic
         switch (booking.getStatus()) {
             case PENDING:
-                holder.tvStatusBadge.setText("CHỜ CHECK-IN");
+                holder.tvStatusBadge.setText("CHỜ NHẬN PHÒNG");
                 holder.tvStatusBadge.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(context, R.color.status_pending_bg)));
                 holder.tvStatusBadge.setTextColor(ContextCompat.getColor(context, R.color.status_pending_text));
                 holder.btnCancel.setVisibility(View.VISIBLE);
                 break;
             case CHECKED_IN:
-                holder.tvStatusBadge.setText("ĐÃ CHECK-IN");
+                holder.tvStatusBadge.setText("ĐÃ NHẬN PHÒNG");
                 holder.tvStatusBadge.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(context, R.color.status_checked_in_bg)));
                 holder.tvStatusBadge.setTextColor(ContextCompat.getColor(context, R.color.status_checked_in_text));
                 holder.btnCancel.setVisibility(View.GONE);

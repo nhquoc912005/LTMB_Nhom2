@@ -194,9 +194,9 @@ public class ServiceFragment extends Fragment {
     private void confirmDelete(ServiceModel item) {
         String typeName = isServiceTab ? "dịch vụ" : "bồi thường";
         new AlertDialog.Builder(requireContext())
-                .setTitle("Xoá " + typeName)
+                .setTitle("Xóa " + typeName)
                 .setMessage("Bạn có chắc muốn xoá \"" + item.getName() + "\"?")
-                .setNegativeButton("Huỷ", null)
+                .setNegativeButton("Hủy", null)
                 .setPositiveButton("Xác nhận", (dialog, which) -> repository.deleteCatalog(isServiceTab, item.getId(), new ServiceRepository.DataCallback<CatalogItemDto>() {
                     @Override
                     public void onSuccess(CatalogItemDto data) {

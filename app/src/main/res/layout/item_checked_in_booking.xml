@@ -43,7 +43,7 @@
                 android:background="#C8E6C9"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="6dp"
-                android:text="Đã check-in"
+                android:text="Đã nhận phòng"
                 android:textColor="#2E7D32"
                 android:textSize="12sp"
                 android:textStyle="bold" />

@@ -21,7 +21,7 @@ import java.util.List;
 public class CheckoutFragment extends Fragment {
     private RecyclerView recyclerView;
     private CheckoutAdapter adapter;
-    private List<CheckoutBill> checkoutList = new ArrayList<>();
+    private final List<CheckoutBill> checkoutList = new ArrayList<>();
     private TextView tvSelectedDate;
     private android.widget.EditText etSearch;
 
@@ -180,7 +180,7 @@ public class CheckoutFragment extends Fragment {
         double damageFee = money(d.damageFee);
         double amountDue = money(d.amountDue);
         return new CheckoutBill(
-                new RoomModel(safe(d.roomNames), "Standard", "Táº§ng 1", totalGuests(d) + " ngÆ°á»i", formatMoney(roomFee), "Äang sá»­ dá»¥ng", safe(d.customerName), safe(d.customerPhone), "2 ngÃ y"),
+                new RoomModel(safe(d.roomNames), "Standard", "Tầng 1", totalGuests(d) + " người", formatMoney(roomFee), "Đang sử dụng", safe(d.customerName), safe(d.customerPhone), "2 ngày"),
                 d.email,
                 safe(d.checkinAt),
                 safe(d.expectedCheckoutAt),
@@ -200,7 +200,7 @@ public class CheckoutFragment extends Fragment {
 
     private void payCheckout(CheckoutBill bill, Spinner spinnerPayment, android.widget.EditText etNote, boolean requestVat, Dialog dialog, View btnConfirmPrint, View btnRedInvoice) {
         if (bill.getMaDatPhong() == null || bill.getMaDatPhong().trim().isEmpty()) {
-            android.widget.Toast.makeText(getContext(), "Thiáº¿u mÃ£ Ä‘áº·t phÃ²ng Ä‘á»ƒ thanh toÃ¡n", android.widget.Toast.LENGTH_SHORT).show();
+            android.widget.Toast.makeText(getContext(), "Thiếu mã đặt phòng để thanh toán", android.widget.Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -211,7 +211,7 @@ public class CheckoutFragment extends Fragment {
             public void onResponse(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.CheckoutDto>> call, retrofit2.Response<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.CheckoutDto>> response) {
                 if (!response.isSuccessful() || response.body() == null || !response.body().success || response.body().data == null || response.body().data.idHoaDon == null) {
                     setPaymentButtonsEnabled(btnConfirmPrint, btnRedInvoice, true);
-                    String msg = response.body() != null && response.body().message != null ? response.body().message : "KhÃ´ng thá»ƒ táº¡o hÃ³a Ä‘Æ¡n nhÃ¡p";
+                    String msg = response.body() != null && response.body().message != null ? response.body().message : "Không thể tạo hóa đơn nháp";
                     android.widget.Toast.makeText(getContext(), msg, android.widget.Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -232,10 +232,10 @@ public class CheckoutFragment extends Fragment {
                         setPaymentButtonsEnabled(btnConfirmPrint, btnRedInvoice, true);
                         if (response.isSuccessful() && response.body() != null && response.body().success) {
                             dialog.dismiss();
-                            android.widget.Toast.makeText(getContext(), "Thanh toÃ¡n vÃ  tráº£ phÃ²ng thÃ nh cÃ´ng", android.widget.Toast.LENGTH_SHORT).show();
+                            android.widget.Toast.makeText(getContext(), "Thanh toán và trả phòng thành công", android.widget.Toast.LENGTH_SHORT).show();
                             fetchData();
                         } else {
-                            String msg = response.body() != null && response.body().message != null ? response.body().message : "Thanh toÃ¡n tháº¥t báº¡i";
+                            String msg = response.body() != null && response.body().message != null ? response.body().message : "Thanh toán thất bại";
                             android.widget.Toast.makeText(getContext(), msg, android.widget.Toast.LENGTH_SHORT).show();
                         }
                     }
@@ -243,7 +243,7 @@ public class CheckoutFragment extends Fragment {
                     @Override
                     public void onFailure(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<Object>> call, Throwable t) {
                         setPaymentButtonsEnabled(btnConfirmPrint, btnRedInvoice, true);
-                        android.widget.Toast.makeText(getContext(), "Lá»—i káº¿t ná»‘i: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
+                        android.widget.Toast.makeText(getContext(), "Lỗi kết nối, vui lòng thử lại: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -251,7 +251,7 @@ public class CheckoutFragment extends Fragment {
             @Override
             public void onFailure(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.CheckoutDto>> call, Throwable t) {
                 setPaymentButtonsEnabled(btnConfirmPrint, btnRedInvoice, true);
-                android.widget.Toast.makeText(getContext(), "Lá»—i táº¡o hÃ³a Ä‘Æ¡n: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
+                android.widget.Toast.makeText(getContext(), "Lỗi tạo hóa đơn: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -266,9 +266,9 @@ public class CheckoutFragment extends Fragment {
             return label != null && label.toLowerCase(java.util.Locale.ROOT).contains("chuy") ? "TRANSFER" : "CASH";
         }
         if (label != null && label.toLowerCase(java.util.Locale.ROOT).contains("chuy")) {
-            return "Chuyá»ƒn khoáº£n";
+            return "Chuyển khoản";
         }
-        return "Tiá»n máº·t";
+        return "Tiền mặt";
     }
 
     private int totalGuests(com.project_mobile.network.ApiModels.CheckoutDto dto) {

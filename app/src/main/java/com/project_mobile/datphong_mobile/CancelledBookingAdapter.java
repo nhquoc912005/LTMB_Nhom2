@@ -11,7 +11,7 @@ import java.util.List;
 
 public class CancelledBookingAdapter extends RecyclerView.Adapter<CancelledBookingAdapter.ViewHolder> {
 
-    private List<CancelledBooking> bookings;
+    private final List<CancelledBooking> bookings;
 
     public CancelledBookingAdapter(List<CancelledBooking> bookings) {
         this.bookings = bookings;

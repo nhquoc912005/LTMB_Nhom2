@@ -3,14 +3,14 @@ package com.project_mobile.checkout;
 import com.project_mobile.Quan_ly_phong.RoomModel;
 
 public class CheckoutBill {
-    private RoomModel roomModel;
-    private String customerEmail;
-    private String checkInDate;
-    private String checkOutDate;
-    private double serviceFee;
-    private double totalFee;
-    private int adults;
-    private int children;
+    private final RoomModel roomModel;
+    private final String customerEmail;
+    private final String checkInDate;
+    private final String checkOutDate;
+    private final double serviceFee;
+    private final double totalFee;
+    private final int adults;
+    private final int children;
     private Integer idLuutru;
     private Integer idHoaDon;
     private String maDatPhong;

@@ -13,33 +13,36 @@ public class ApiModels {
     }
 
     public static class BookingDto {
-        @SerializedName(value = "ma_dat_phong", alternate = {"booking_id"})
+        @SerializedName(value = "ma_dat_phong", alternate = {"booking_id", "bookingId"})
         public String bookingId;
 
-        @SerializedName(value = "room_number", alternate = {"room_names", "so_phong"})
+        @SerializedName(value = "room_number", alternate = {"room_names", "so_phong", "roomNumber"})
         public String roomNumber;
 
-        @SerializedName(value = "customer_name", alternate = {"ten_nguoi_dat"})
+        @SerializedName(value = "customer_name", alternate = {"ten_nguoi_dat", "customerName"})
         public String customerName;
 
         public String email;
-        @SerializedName(value = "customer_phone", alternate = {"sdt_nguoi_dat"})
+        @SerializedName(value = "customer_phone", alternate = {"sdt_nguoi_dat", "customerPhone", "phone"})
         public String phone;
 
-        @SerializedName("tong_so_nguoi")
+        @SerializedName(value = "tong_so_nguoi", alternate = {"total_guests", "totalGuests"})
         public Integer totalGuests;
 
-        @SerializedName("so_nguoi_lon")
+        @SerializedName(value = "so_nguoi_lon", alternate = {"adults"})
         public Integer adults;
 
-        @SerializedName("so_tre_em")
+        @SerializedName(value = "so_tre_em", alternate = {"children"})
         public Integer children;
 
-        @SerializedName(value = "ngay_nhan", alternate = {"check_in", "activity_time"})
+        @SerializedName(value = "ngay_nhan", alternate = {"check_in", "activity_time", "checkIn"})
         public String checkIn;
 
-        @SerializedName(value = "ngay_tra", alternate = {"check_out"})
+        @SerializedName(value = "ngay_tra", alternate = {"check_out", "checkOut"})
         public String checkOut;
+
+        @SerializedName("stayPeriod")
+        public String stayPeriod;
 
         @SerializedName("payment_method")
         public String paymentMethod;
@@ -140,7 +143,7 @@ public class ApiModels {
         @SerializedName("room_id")
         public Integer roomId;
 
-        @SerializedName("catalog_id")
+        @SerializedName(value = "catalog_id", alternate = {"id_dichvu", "id_taisan"})
         public String catalogId;
 
         @SerializedName("service_id")

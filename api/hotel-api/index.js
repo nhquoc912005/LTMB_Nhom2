@@ -143,7 +143,7 @@ async function assertRoomsAvailableForBooking(client, roomIds, checkIn, checkOut
   if (conflict.rows.length > 0) {
     const roomName = conflict.rows[0].ten_phong;
     const bookingId = conflict.rows[0].ma_dat_phong;
-    const err = new Error(`Phòng ${roomName} đã có booking ${bookingId} trong khoảng ngày này`);
+    const err = new Error(`Phòng ${roomName} đã có đặt phòng ${bookingId} trong khoảng ngày này`);
     err.statusCode = 409;
     throw err;
   }
@@ -235,12 +235,12 @@ app.get("/api/bookings", async (req, res) => {
   }
 });
 
-// API: Lấy các hoạt động gần đây nhất (Chờ check-in và Đã trả phòng)
+// API: Lấy các hoạt động gần đây nhất (Chờ nhận phòng và Đã trả phòng)
 app.get("/api/dashboard/activities", async (req, res) => {
   try {
     const result = await pool.query(`
       (
-        -- Hoạt động đặt cọc (Hiển thị là Chờ check-in)
+        -- Hoạt động đặt cọc (Hiển thị là Chờ nhận phòng)
         SELECT 
           ma_dat_phong as booking_id,
           COALESCE(so_phong, (
@@ -251,7 +251,7 @@ app.get("/api/dashboard/activities", async (req, res) => {
           ), 'Chưa gán') as room_number,
           ten_nguoi_dat as customer_name,
           ngay_nhan as activity_time,
-          'Chờ check-in' as status
+          'Chờ nhận phòng' as status
         FROM public.dat_phong
         WHERE trang_thai = 'Đã đặt cọc'
       )
@@ -335,7 +335,7 @@ app.get("/api/bookings/:id", async (req, res) => {
   try {
     const booking = await getBookingDetails(client, req.params.id);
     if (!booking) {
-      return res.status(404).json({ success: false, message: "Không tìm thấy booking" });
+      return res.status(404).json({ success: false, message: "Không tìm thấy đặt phòng" });
     }
     res.json({ success: true, data: booking });
   } catch (err) {
@@ -446,7 +446,7 @@ app.post("/api/bookings", async (req, res) => {
 /* =====================================
    3. UPDATE STATUS (Cập nhật trạng thái)
 ===================================== */
-// API: Cập nhật trạng thái của một bản ghi đặt phòng (ví dụ: Chờ check-in -> Đã check-in)
+// API: Cập nhật trạng thái của một bản ghi đặt phòng (ví dụ: Chờ nhận phòng -> Đã nhận phòng)
 app.put("/api/bookings/:id/cancel", async (req, res) => {
   const client = await pool.connect();
   try {
@@ -457,7 +457,7 @@ app.put("/api/bookings/:id/cancel", async (req, res) => {
     );
     if (result.rows.length === 0) {
       await client.query("ROLLBACK");
-      return res.status(404).json({ success: false, message: "Không tìm thấy booking" });
+      return res.status(404).json({ success: false, message: "Không tìm thấy đặt phòng" });
     }
     await releaseBookingRooms(client, req.params.id);
     const booking = await getBookingDetails(client, req.params.id);
@@ -482,7 +482,7 @@ app.put("/api/bookings/:id/confirm", async (req, res) => {
     );
     if (result.rows.length === 0) {
       await client.query("ROLLBACK");
-      return res.status(404).json({ success: false, message: "Không tìm thấy booking" });
+      return res.status(404).json({ success: false, message: "Không tìm thấy đặt phòng" });
     }
     await client.query(
       `UPDATE public.phong p
@@ -511,7 +511,7 @@ app.put("/api/bookings/:id/status", async (req, res) => {
       "UPDATE public.dat_phong SET trang_thai = $1 WHERE ma_dat_phong = $2 RETURNING *",
       [status, req.params.id]
     );
-    if (result.rows.length === 0) return res.status(404).json({ success: false, error: "Booking not found" });
+    if (result.rows.length === 0) return res.status(404).json({ success: false, error: "Không tìm thấy đặt phòng" });
     res.json({ success: true, data: result.rows[0] });
   } catch (err) {
     console.error(err);

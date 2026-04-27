@@ -99,7 +99,7 @@ function normalizePaymentMethod(value) {
   const upper = raw.toUpperCase();
   if (upper === "CASH" || raw === "Tiền mặt" || raw === "Tien mat") return PAYMENT_METHODS.CASH;
   if (upper === "TRANSFER" || raw === "Chuyển khoản" || raw === "Chuyen khoan") return PAYMENT_METHODS.TRANSFER;
-  throw new BusinessError(400, "INVALID_PAYMENT_METHOD", "Phương thức thanh toán chỉ hỗ trợ CASH hoặc TRANSFER");
+  throw new BusinessError(400, "INVALID_PAYMENT_METHOD", "Phương thức thanh toán chỉ hỗ trợ tiền mặt hoặc chuyển khoản");
 }
 
 function normalizeRows(rows) {
@@ -551,10 +551,10 @@ function assertStayCanCheckout(stay) {
     throw new BusinessError(409, "NOT_CHECKED_IN", "Lưu trú chưa có thời gian nhận phòng thực tế");
   }
   if (stay.thoi_gian_checkout_thuc_te) {
-    throw new BusinessError(409, "ALREADY_CHECKED_OUT", "Booking này đã trả phòng trước đó");
+    throw new BusinessError(409, "ALREADY_CHECKED_OUT", "Đặt phòng này đã trả phòng trước đó");
   }
   if (!BOOKING_STATUS.CHECKED_IN.includes(stay.booking_status)) {
-    throw new BusinessError(409, "BOOKING_NOT_CHECKED_IN", "Booking không ở trạng thái đang lưu trú", {
+    throw new BusinessError(409, "BOOKING_NOT_CHECKED_IN", "Đặt phòng không ở trạng thái đang lưu trú", {
       current_status: stay.booking_status,
       allowed_statuses: BOOKING_STATUS.CHECKED_IN,
     });
@@ -563,7 +563,7 @@ function assertStayCanCheckout(stay) {
 
 function assertRoomsCanCheckout(rooms) {
   if (rooms.length === 0) {
-    throw new BusinessError(409, "BOOKING_HAS_NO_ROOM", "Booking chưa có phòng trong chi_tiet_dat_phong");
+    throw new BusinessError(409, "BOOKING_HAS_NO_ROOM", "Đặt phòng chưa có thông tin phòng");
   }
   const invalidRooms = rooms.filter((room) => !ROOM_STATUS.OCCUPIED.includes(room.trang_thai));
   if (invalidRooms.length > 0) {

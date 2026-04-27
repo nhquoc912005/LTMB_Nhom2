@@ -131,7 +131,7 @@ public class ServiceRepository {
     }
 
     private String readHttpError(Response<?> response) {
-        String fallback = "Network error: " + response.code();
+        String fallback = "Lỗi kết nối: " + response.code();
         try {
             if (response.errorBody() != null) {
                 String error = response.errorBody().string();

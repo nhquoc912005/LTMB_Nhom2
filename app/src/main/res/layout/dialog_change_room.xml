@@ -42,7 +42,7 @@
         <View
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:background="@drawable/ic_booking" />
+            android:background="@drawable/ic_person_outline" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -93,7 +93,9 @@
         android:layout_height="44dp"
         android:background="@drawable/bg_edittext_border"
         android:paddingHorizontal="12dp"
-        android:layout_marginBottom="20dp" />
+        android:layout_marginBottom="20dp"
+        android:clickable="true"
+        android:focusable="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -124,10 +126,10 @@
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnCancel"
             android:layout_width="0dp"
-            android:layout_height="50dp"
+            android:layout_height="48dp"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_edittext_border"
+            android:background="@drawable/bg_button_outline"
             android:fontFamily="@font/livvic"
             android:text="Huỷ"
             android:textAllCaps="false"
@@ -136,10 +138,10 @@
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnConfirm"
             android:layout_width="0dp"
-            android:layout_height="50dp"
+            android:layout_height="48dp"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
-            android:backgroundTint="#C94A1D"
+            android:background="@drawable/bg_button_primary_8dp"
             android:fontFamily="@font/livvic"
             android:text="Xác nhận"
             android:textAllCaps="false"

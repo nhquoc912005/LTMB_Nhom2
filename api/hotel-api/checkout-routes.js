@@ -1,13 +1,13 @@
 const express = require("express");
 
 const BOOKING_STATUS = {
-  CHECKED_IN: parseStatusList(process.env.CHECKOUT_ACTIVE_BOOKING_STATUSES, ["CHECKED_IN", "Đã check-in"]),
-  COMPLETED: process.env.BOOKING_STATUS_COMPLETED || "COMPLETED",
+  CHECKED_IN: parseStatusList(process.env.CHECKOUT_ACTIVE_BOOKING_STATUSES, ["Đang ở", "Đã check-in"]),
+  COMPLETED: process.env.BOOKING_STATUS_COMPLETED || "Đã thanh toán",
 };
 
 const ROOM_STATUS = {
-  OCCUPIED: parseStatusList(process.env.CHECKOUT_OCCUPIED_ROOM_STATUSES, ["OCCUPIED", "Đang lưu trú", "Đang sử dụng"]),
-  AFTER_CHECKOUT: process.env.ROOM_STATUS_AFTER_CHECKOUT || process.env.ROOM_STATUS_AVAILABLE || "AVAILABLE",
+  OCCUPIED: parseStatusList(process.env.CHECKOUT_OCCUPIED_ROOM_STATUSES, ["Bận"]),
+  AFTER_CHECKOUT: "Trống",
 };
 
 const INVOICE_STATUS = {
@@ -117,12 +117,23 @@ function normalizeRows(rows) {
 }
 
 function calculateStayNights(checkinAt, checkoutAt) {
-  const checkin = new Date(checkinAt);
-  const checkout = new Date(checkoutAt);
-  if (Number.isNaN(checkin.getTime()) || Number.isNaN(checkout.getTime()) || checkout <= checkin) {
+  const checkin = checkinAt instanceof Date ? checkinAt : new Date(checkinAt);
+  const checkout = checkoutAt instanceof Date ? checkoutAt : new Date(checkoutAt);
+  
+  // If checkinAt was DD/MM/YYYY string, we need to parse it manually because JS Date is inconsistent with it
+  if (typeof checkinAt === 'string' && checkinAt.includes('/')) {
+    const [d, m, y] = checkinAt.split('/').map(Number);
+    checkin.setFullYear(y, m - 1, d);
+  }
+
+  if (Number.isNaN(checkin.getTime()) || Number.isNaN(checkout.getTime())) {
     return 1;
   }
-  return Math.max(1, Math.ceil((checkout.getTime() - checkin.getTime()) / ONE_DAY_MS));
+  
+  if (checkout <= checkin) return 1;
+
+  const diffMs = checkout.getTime() - checkin.getTime();
+  return Math.max(1, Math.ceil(diffMs / ONE_DAY_MS));
 }
 
 function calculateActualRoomFee(rooms, nights) {
@@ -140,6 +151,20 @@ function calculateRoomFee(stay, rooms, nights) {
   return bookingTotal > 0 ? bookingTotal : actualTotal;
 }
 
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  } catch (_) {
+    return dateStr;
+  }
+}
+
 function mapStayRow(row) {
   const rooms = normalizeRows(row.rooms);
   return {
@@ -148,9 +173,9 @@ function mapStayRow(row) {
     customer_name: row.customer_name,
     customer_phone: row.customer_phone,
     email: row.email,
-    checkin_at: row.thoi_gian_checkin_thuc_te,
-    checkout_at: row.thoi_gian_checkout_thuc_te,
-    expected_checkout_at: row.ngay_tra,
+    checkin_at: formatDate(row.thoi_gian_checkin_thuc_te),
+    checkout_at: formatDate(row.thoi_gian_checkout_thuc_te),
+    expected_checkout_at: formatDate(row.ngay_tra),
     adults: Number(row.so_nguoi_lon || 0),
     children: Number(row.so_tre_em || 0),
     total_guests: Number(row.so_nguoi_thuc_te || row.tong_so_nguoi || 0),
@@ -158,7 +183,10 @@ function mapStayRow(row) {
     tien_coc: money(row.tien_coc),
     tong_thanh_toan: money(row.tong_thanh_toan),
     rooms,
-    room_names: rooms.map((room) => room.ten_phong).filter(Boolean).join(", "),
+    room_names: rooms.map((room) => room && room.ten_phong).filter(Boolean).join(", "),
+    raw_checkin: row.thoi_gian_checkin_thuc_te,
+    raw_checkout: row.thoi_gian_checkout_thuc_te,
+    raw_expected_checkout: row.ngay_tra,
   };
 }
 
@@ -319,7 +347,7 @@ async function getDamageLines(client, idLuutru) {
 async function buildDraftBill(client, stayRow, rooms, invoice) {
   const stay = mapStayRow({ ...stayRow, rooms });
   const checkoutPreviewAt = new Date();
-  const nights = calculateStayNights(stay.checkin_at, checkoutPreviewAt);
+  const nights = calculateStayNights(stay.raw_checkin, checkoutPreviewAt);
   const serviceLines = await getServiceLines(client, stay.id_luutru);
   const damageLines = await getDamageLines(client, stay.id_luutru);
 
@@ -575,10 +603,16 @@ function createCheckoutRouter(pool) {
   router.get("/v2/checkouts", asyncRoute(async (req, res) => {
     const values = [BOOKING_STATUS.CHECKED_IN];
     const where = [
+      "dp.trang_thai = ANY($1::text[])",
       "lt.thoi_gian_checkin_thuc_te IS NOT NULL",
       "lt.thoi_gian_checkout_thuc_te IS NULL",
-      "dp.trang_thai = ANY($1::text[])",
+      "p.trang_thai = 'Bận'",
     ];
+
+    if (req.query.date) {
+      values.push(req.query.date);
+      where.push(`dp.ngay_tra::date = $${values.length}::date`);
+    }
 
     if (req.query.q) {
       values.push(`%${String(req.query.q).trim()}%`);
@@ -598,7 +632,7 @@ function createCheckoutRouter(pool) {
 
     const result = await pool.query(
       `
-      SELECT
+      SELECT DISTINCT ON (p.id_phong)
         lt.id_luutru,
         lt.ma_dat_phong,
         lt.thoi_gian_checkin_thuc_te,
@@ -637,6 +671,7 @@ function createCheckoutRouter(pool) {
       LEFT JOIN public.phong p ON p.id_phong = ctdp.id_phong
       WHERE ${where.join(" AND ")}
       GROUP BY
+        p.id_phong,
         lt.id_luutru,
         lt.ma_dat_phong,
         lt.thoi_gian_checkin_thuc_te,
@@ -651,9 +686,11 @@ function createCheckoutRouter(pool) {
         dp.email,
         dp.tien_coc,
         dp.tong_thanh_toan,
+        dp.ten_nguoi_dat,
+        dp.sdt_nguoi_dat,
         kh.ho_ten,
         kh.sdt
-      ORDER BY lt.thoi_gian_checkin_thuc_te ASC, lt.id_luutru ASC
+      ORDER BY p.id_phong, lt.id_luutru DESC, lt.thoi_gian_checkin_thuc_te DESC
       `,
       values
     );
@@ -662,12 +699,17 @@ function createCheckoutRouter(pool) {
     try {
       const data = [];
       for (const row of result.rows) {
-        const stay = mapStayRow(row);
-        const draft = await buildDraftBill(client, row, stay.rooms, null);
-        data.push({
-          ...draft,
-          status_label: "Đang lưu trú",
-        });
+        try {
+          const stay = mapStayRow(row);
+          const draft = await buildDraftBill(client, row, stay.rooms, null);
+          data.push({
+            ...draft,
+            status_label: "Đang lưu trú",
+          });
+        } catch (rowErr) {
+          console.error(`Error processing stay ${row.id_luutru}:`, rowErr);
+          // Tiếp tục xử lý các hàng khác nếu một hàng bị lỗi
+        }
       }
 
       res.json({
@@ -684,7 +726,7 @@ function createCheckoutRouter(pool) {
   }));
 
   const createDraftByBooking = asyncRoute(async (req, res) => {
-    const maDatPhong = parseRequiredId(req.params.maDatPhong, "Mã đặt phòng");
+    const maDatPhong = String(req.params.maDatPhong || "").trim();
     const client = await pool.connect();
     try {
       await client.query("BEGIN");

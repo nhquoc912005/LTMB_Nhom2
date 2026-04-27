@@ -18,7 +18,26 @@ import com.project_mobile.R;
 
 public final class AppDialog {
 
+    private static AlertDialog loadingDialog;
+
     private AppDialog() {
+    }
+
+    public static void showLoading(Context context) {
+        if (loadingDialog != null && loadingDialog.isShowing()) {
+            return;
+        }
+        loadingDialog = createDialog(context, R.layout.layout_dialog_loading);
+        loadingDialog.setCancelable(false);
+        loadingDialog.setOnShowListener(d -> styleWindow(loadingDialog, 0.7f));
+        loadingDialog.show();
+    }
+
+    public static void hideLoading() {
+        if (loadingDialog != null && loadingDialog.isShowing()) {
+            loadingDialog.dismiss();
+            loadingDialog = null;
+        }
     }
 
     public static void showSuccess(Context context, String message) {

@@ -34,6 +34,88 @@ public class CheckInFragment extends Fragment {
     private TextView tvCheckInDate, tvCheckOutDate;
     private LinearLayout llCheckInDate, llCheckOutDate;
 
+    private void loadData(View rootView) {
+        if (tvCheckInDate == null || tvCheckOutDate == null) return;
+        
+        String fromDate = formatToApiDate(tvCheckInDate.getText().toString());
+        String toDate = formatToApiDate(tvCheckOutDate.getText().toString());
+        String query = "";
+        
+        View parentView = rootView != null ? rootView : getView();
+        if (parentView != null) {
+            android.widget.EditText etSearch = parentView.findViewById(R.id.etSearch);
+            if (etSearch != null) query = etSearch.getText().toString();
+        }
+
+        com.project_mobile.network.ApiService api = com.project_mobile.network.ApiClient.getClient().create(com.project_mobile.network.ApiService.class);
+        api.getCheckInBookings(fromDate, toDate, query).enqueue(new retrofit2.Callback<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.BookingDto>>>() {
+            @Override
+            public void onResponse(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.BookingDto>>> call, retrofit2.Response<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.BookingDto>>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    if (response.body().success) {
+                        checkInList.clear();
+                        List<com.project_mobile.network.ApiModels.BookingDto> data = response.body().data;
+                        if (data != null) {
+                            for (com.project_mobile.network.ApiModels.BookingDto b : data) {
+                                checkInList.add(new CheckInModel(
+                                    b.bookingId,
+                                    b.customerName,
+                                    "Phòng " + b.roomNumber,
+                                    b.phone,
+                                    b.email,
+                                    b.checkIn + " - " + b.checkOut,
+                                    b.totalGuests != null ? b.totalGuests : 0,
+                                    b.adults != null ? b.adults : 0,
+                                    b.children != null ? b.children : 0
+                                ));
+                            }
+                        }
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                adapter.notifyDataSetChanged();
+                                if (checkInList.isEmpty()) {
+                                    android.widget.Toast.makeText(getContext(), "Không tìm thấy đơn đặt phòng nào", android.widget.Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    } else {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> 
+                                android.widget.Toast.makeText(getContext(), "Lỗi: " + response.body().message, android.widget.Toast.LENGTH_SHORT).show());
+                        }
+                    }
+                } else {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> 
+                            android.widget.Toast.makeText(getContext(), "Lỗi kết nối server: " + response.code(), android.widget.Toast.LENGTH_SHORT).show());
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.BookingDto>>> call, Throwable t) {
+                if (isAdded()) {
+                    getActivity().runOnUiThread(() -> 
+                        android.widget.Toast.makeText(getContext(), "Lỗi: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show());
+                }
+            }
+        });
+    }
+
+    private String formatToApiDate(String uiDate) {
+        if (uiDate == null || uiDate.trim().isEmpty()) return null;
+        try {
+            String[] parts = uiDate.split("/");
+            if (parts.length == 3) {
+                int day = Integer.parseInt(parts[0]);
+                int month = Integer.parseInt(parts[1]);
+                int year = Integer.parseInt(parts[2]);
+                return String.format("%04d-%02d-%02d", year, month, day);
+            }
+        } catch (Exception e) {}
+        return null;
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -45,17 +127,17 @@ public class CheckInFragment extends Fragment {
         llCheckInDate = view.findViewById(R.id.llCheckInDate);
         llCheckOutDate = view.findViewById(R.id.llCheckOutDate);
 
+        // Ban đầu không hiện ngày
+        tvCheckInDate.setText("");
+        tvCheckOutDate.setText("");
+
         llCheckInDate.setOnClickListener(v -> showDatePicker(tvCheckInDate));
         llCheckOutDate.setOnClickListener(v -> showDatePicker(tvCheckOutDate));
 
+        view.findViewById(R.id.btnSearch).setOnClickListener(v -> loadData(view));
+
         rvCheckIn.setLayoutManager(new LinearLayoutManager(getContext()));
-
         checkInList = new ArrayList<>();
-        // Dữ liệu mẫu theo hình ảnh
-        checkInList.add(new CheckInModel("Nguyễn Văn A", "Phòng 101", "0901234567", "nguyenvana@email.com", "14/02/2026 - 16/02/2026"));
-        checkInList.add(new CheckInModel("Nguyễn Văn B", "Phòng 102", "0901234568", "nguyenvanb@email.com", "14/02/2026 - 16/02/2026"));
-        checkInList.add(new CheckInModel("Nguyễn Văn C", "Phòng 103", "0901234569", "nguyenvanc@email.com", "14/02/2026 - 16/02/2026"));
-
         adapter = new CheckInAdapter(checkInList, new CheckInAdapter.OnCheckInClickListener() {
             @Override
             public void onCheckInClick(CheckInModel item) {
@@ -64,11 +146,12 @@ public class CheckInFragment extends Fragment {
 
             @Override
             public void onChangeRoomClick(CheckInModel item) {
-                showChangeRoomDialog(item);
+                showChangeRoomDialog(item, item.getBookingId());
             }
         });
         rvCheckIn.setAdapter(adapter);
 
+        loadData(view);
         return view;
     }
 
@@ -82,10 +165,11 @@ public class CheckInFragment extends Fragment {
 
         CalendarView calendarView = calendarDialog.findViewById(R.id.calendarView);
 
-        calendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
+        calendarView.setOnDateChangeListener((v, year, month, dayOfMonth) -> {
             String date = dayOfMonth + "/" + (month + 1) + "/" + year;
             targetTextView.setText(date);
             calendarDialog.dismiss();
+            loadData(null); // Tự động load lại sau khi chọn ngày
         });
 
         calendarDialog.show();
@@ -128,7 +212,7 @@ public class CheckInFragment extends Fragment {
         dialog.show();
     }
 
-    private void showChangeRoomDialog(CheckInModel item) {
+    private void showChangeRoomDialog(CheckInModel item, String bookingId) {
         Dialog dialog = new Dialog(requireContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog_change_room);
@@ -147,18 +231,123 @@ public class CheckInFragment extends Fragment {
         if (tvCurrentRoom != null) tvCurrentRoom.setText("Phòng hiện tại: " + item.getRoomNumber());
         if (tvStayPeriod != null) tvStayPeriod.setText(item.getStayPeriod());
 
-        // Fake data cho spinner
-        String[] emptyRooms = {"-- Chọn phòng --", "Phòng 104", "Phòng 105", "Phòng 206"};
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, emptyRooms);
-        if (spinnerRooms != null) spinnerRooms.setAdapter(spinnerAdapter);
+        // Set loading state for spinner
+        List<String> loadingList = new ArrayList<>();
+        loadingList.add("Đang tải danh sách phòng...");
+        if (getContext() != null) {
+            ArrayAdapter<String> loadingAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, loadingList);
+            loadingAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            if (spinnerRooms != null) spinnerRooms.setAdapter(loadingAdapter);
+        }
+
+        // Fetch real available rooms
+        com.project_mobile.network.ApiService api = com.project_mobile.network.ApiClient.getClient().create(com.project_mobile.network.ApiService.class);
+        final List<com.project_mobile.network.ApiModels.RoomDto> availableRooms = new ArrayList<>();
+        
+        api.getAvailableRooms(bookingId).enqueue(new retrofit2.Callback<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.RoomDto>>>() {
+            @Override
+            public void onResponse(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.RoomDto>>> call, retrofit2.Response<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.RoomDto>>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().success) {
+                    List<String> roomNames = new ArrayList<>();
+                    roomNames.add("-- Chọn phòng trống --");
+                    if (response.body().data != null) {
+                        availableRooms.addAll(response.body().data);
+                        for (com.project_mobile.network.ApiModels.RoomDto r : response.body().data) {
+                            roomNames.add(r.roomNumber + " (" + r.roomType + ")");
+                        }
+                    }
+                    
+                    if (isAdded() && getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            if (getContext() != null) {
+                                ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, roomNames);
+                                spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                                if (spinnerRooms != null) spinnerRooms.setAdapter(spinnerAdapter);
+                            }
+                        });
+                    }
+                } else {
+                    if (isAdded() && getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            List<String> errorList = new ArrayList<>();
+                            String msg = "Không tìm thấy phòng trống";
+                            if (response.body() != null && response.body().message != null) {
+                                msg = response.body().message;
+                            } else if (response.errorBody() != null) {
+                                try {
+                                    msg = "Lỗi " + response.code() + ": " + response.errorBody().string();
+                                } catch (Exception e) {}
+                            }
+                            errorList.add(msg);
+                            if (getContext() != null) {
+                                ArrayAdapter<String> errorAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, errorList);
+                                if (spinnerRooms != null) spinnerRooms.setAdapter(errorAdapter);
+                            }
+                        });
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.RoomDto>>> call, Throwable t) {
+                if (isAdded() && getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        List<String> errorList = new ArrayList<>();
+                        errorList.add("Lỗi kết nối: " + t.getMessage());
+                        if (getContext() != null) {
+                            ArrayAdapter<String> errorAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, errorList);
+                            if (spinnerRooms != null) spinnerRooms.setAdapter(errorAdapter);
+                        }
+                    });
+                }
+            }
+        });
 
         if (tvClose != null) tvClose.setOnClickListener(v -> dialog.dismiss());
         if (btnCancel != null) btnCancel.setOnClickListener(v -> dialog.dismiss());
         
         if (btnConfirm != null) {
             btnConfirm.setOnClickListener(v -> {
-                dialog.dismiss();
-                showSuccessDialog(item, "Đổi phòng thành công");
+                if (spinnerRooms == null) return;
+                int selectedPos = spinnerRooms.getSelectedItemPosition();
+                if (selectedPos <= 0) {
+                    android.widget.Toast.makeText(getContext(), "Vui lòng chọn phòng trống", android.widget.Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                com.project_mobile.network.ApiModels.RoomDto selectedRoom = availableRooms.get(selectedPos - 1);
+                com.project_mobile.network.ApiModels.ChangeRoomRequest req = new com.project_mobile.network.ApiModels.ChangeRoomRequest();
+                req.newRoomId = selectedRoom.id;
+                req.reason = "Khách yêu cầu đổi phòng";
+
+                api.changeRoom(bookingId, req).enqueue(new retrofit2.Callback<com.project_mobile.network.ApiModels.ApiResponse<Void>>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<Void>> call, retrofit2.Response<com.project_mobile.network.ApiModels.ApiResponse<Void>> response) {
+                        if (response.isSuccessful() && response.body() != null && response.body().success) {
+                            if (isAdded() && getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    dialog.dismiss();
+                                    showSuccessDialog(item, "Đổi sang phòng " + selectedRoom.roomNumber + " thành công");
+                                    loadData(null); // Refresh list
+                                });
+                            }
+                        } else {
+                            String msg = response.body() != null ? response.body().message : "Lỗi đổi phòng";
+                            if (isAdded() && getActivity() != null) {
+                                getActivity().runOnUiThread(() -> 
+                                    android.widget.Toast.makeText(getContext(), msg, android.widget.Toast.LENGTH_SHORT).show());
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<Void>> call, Throwable t) {
+                        if (isAdded() && getActivity() != null) {
+                            getActivity().runOnUiThread(() -> 
+                                android.widget.Toast.makeText(getContext(), "Lỗi kết nối: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show());
+                        }
+                    }
+                });
             });
         }
 

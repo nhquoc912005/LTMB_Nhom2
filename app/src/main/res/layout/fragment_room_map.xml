@@ -22,7 +22,7 @@
             android:drawableStart="@android:drawable/ic_menu_search"
             android:drawablePadding="8dp"
             android:fontFamily="@font/livvic"
-            android:hint="Tìm kiếm dịch vụ, bồi thường"
+            android:hint="Tìm kiếm phòng (số phòng)..."
             android:padding="12dp"
             android:textSize="16sp"
             android:singleLine="true"
@@ -240,6 +240,7 @@
                                         android:background="@drawable/bg_tab_container"
                                         android:padding="4dp"
                                         android:src="@android:drawable/ic_input_add"
+                                        android:visibility="gone"
                                         app:tint="@color/app_primary" />
                                 </RelativeLayout>
                                 <LinearLayout
@@ -275,6 +276,7 @@
                                         android:background="@drawable/bg_tab_container"
                                         android:padding="4dp"
                                         android:src="@android:drawable/ic_input_add"
+                                        android:visibility="gone"
                                         app:tint="@color/app_primary" />
                                 </RelativeLayout>
                                 <LinearLayout
@@ -302,18 +304,28 @@
             </FrameLayout>
         </androidx.cardview.widget.CardView>
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
+        <!-- Nút Thêm Dịch vụ (Kiểu hình thiết kế 2) -->
+        <androidx.cardview.widget.CardView
             android:id="@+id/fabAddRoomLine"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
             android:layout_margin="24dp"
-            android:backgroundTint="@color/white"
-            android:src="@android:drawable/ic_input_add"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
             android:visibility="gone"
-            app:elevation="0dp"
-            app:pressedTranslationZ="0dp"
-            app:tint="@color/black" />
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="center"
+                android:src="@android:drawable/ic_input_add"
+                app:tint="@color/black" />
+        </androidx.cardview.widget.CardView>
     </RelativeLayout>
 </LinearLayout>

@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -27,11 +28,7 @@ public class MainActivity extends AppCompatActivity {
 
         bottomNav = findViewById(R.id.bottom_navigation);
         ImageView menuButton = findViewById(R.id.ivMenu);
-        menuButton.setOnClickListener(v -> openServiceManagement());
-        menuButton.setOnLongClickListener(v -> {
-            showAppMenu(v);
-            return true;
-        });
+        menuButton.setOnClickListener(v -> showAppMenu(v));
 
         bottomNav.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
@@ -81,17 +78,20 @@ public class MainActivity extends AppCompatActivity {
         popupMenu.inflate(R.menu.app_shell_menu);
         popupMenu.setOnMenuItemClickListener(item -> {
             int itemId = item.getItemId();
-            if (itemId == R.id.menu_check_in) {
-                openStay(true);
-                return true;
-            } else if (itemId == R.id.menu_check_out) {
-                openStay(false);
-                return true;
-            } else if (itemId == R.id.menu_users) {
+            if (itemId == R.id.menu_users) {
                 openUserManagement();
                 return true;
             } else if (itemId == R.id.menu_service_management) {
                 openServiceManagement();
+                return true;
+            } else if (itemId == R.id.menu_account_info) {
+                loadFragment(new ProfileFragment());
+                clearBottomSelection();
+                return true;
+            } else if (itemId == R.id.menu_logout) {
+                new com.project_mobile.common.SessionManager(this).logout();
+                Toast.makeText(this, "Đã đăng xuất", Toast.LENGTH_SHORT).show();
+                finish();
                 return true;
             }
             return false;

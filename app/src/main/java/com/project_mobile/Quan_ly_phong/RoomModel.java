@@ -17,8 +17,10 @@ public class RoomModel implements Serializable {
     private String customerName;
     private String customerPhone;
     private String duration;
+    private int id;
 
-    public RoomModel(String roomNumber, String roomType, String floor, String capacity, String price, String status) {
+    public RoomModel(int id, String roomNumber, String roomType, String floor, String capacity, String price, String status) {
+        this.id = id;
         this.roomNumber = roomNumber;
         this.roomType = roomType;
         this.floor = floor;
@@ -27,11 +29,23 @@ public class RoomModel implements Serializable {
         this.status = status;
     }
 
-    public RoomModel(String roomNumber, String roomType, String floor, String capacity, String price, String status, String customerName, String customerPhone, String duration) {
-        this(roomNumber, roomType, floor, capacity, price, status);
+    public RoomModel(int id, String roomNumber, String roomType, String floor, String capacity, String price, String status, String customerName, String customerPhone, String duration) {
+        this(id, roomNumber, roomType, floor, capacity, price, status);
         this.customerName = customerName;
         this.customerPhone = customerPhone;
         this.duration = duration;
+    }
+
+    public RoomModel(String roomNumber, String roomType, String floor, String capacity, String price, String status) {
+        this(0, roomNumber, roomType, floor, capacity, price, status);
+    }
+
+    public RoomModel(String roomNumber, String roomType, String floor, String capacity, String price, String status, String customerName, String customerPhone, String duration) {
+        this(0, roomNumber, roomType, floor, capacity, price, status, customerName, customerPhone, duration);
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getRoomNumber() {
@@ -75,15 +89,19 @@ public class RoomModel implements Serializable {
     }
 
     public boolean isEmpty() {
-        return STATUS_EMPTY.equals(status);
+        if (status == null) return false;
+        return STATUS_EMPTY.equalsIgnoreCase(status) || "AVAILABLE".equalsIgnoreCase(status) || "EMPTY".equalsIgnoreCase(status);
     }
 
     public boolean isOccupied() {
-        return STATUS_STAYING.equals(status) || STATUS_IN_USE.equals(status);
+        if (status == null) return false;
+        return STATUS_STAYING.equalsIgnoreCase(status) || STATUS_IN_USE.equalsIgnoreCase(status) 
+                || "Bận".equalsIgnoreCase(status) || "OCCUPIED".equalsIgnoreCase(status) || "CHECKED_IN".equalsIgnoreCase(status);
     }
 
     public boolean isMaintenance() {
-        return STATUS_MAINTENANCE.equals(status);
+        if (status == null) return false;
+        return STATUS_MAINTENANCE.equalsIgnoreCase(status) || "MAINTENANCE".equalsIgnoreCase(status);
     }
 
     public void clearCustomer() {

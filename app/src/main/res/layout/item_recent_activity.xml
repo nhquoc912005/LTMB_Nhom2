@@ -4,30 +4,48 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
         android:padding="12dp">
 
-        <TextView
-            android:id="@+id/tvRecentRoomNumber"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/livvic"
-            android:text="Phòng 101"
-            android:textColor="@color/text_main"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvRecentRoomNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/livvic"
+                android:text="Phòng 101"
+                android:textColor="@color/text_main"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvRecentCustomerName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/livvic"
+                android:text="Nguyễn Văn A"
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/tvRecentStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_toEndOf="@id/tvRecentRoomNumber"
+            android:layout_marginHorizontal="8dp"
             android:fontFamily="@font/livvic"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="2dp"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
             android:text="Chờ check-in"
             android:textSize="12sp" />
 
@@ -35,24 +53,12 @@
             android:id="@+id/tvRecentTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
             android:fontFamily="@font/livvic"
             android:text="14:30"
             android:textColor="@color/text_secondary"
-            android:textSize="14sp" />
+            android:textSize="13sp" />
 
-        <TextView
-            android:id="@+id/tvRecentCustomerName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/tvRecentRoomNumber"
-            android:layout_marginTop="4dp"
-            android:fontFamily="@font/livvic"
-            android:text="Nguyễn Văn A"
-            android:textColor="@color/text_secondary"
-            android:textSize="14sp" />
-
-    </RelativeLayout>
+    </LinearLayout>
 
     <View
         android:layout_width="match_parent"

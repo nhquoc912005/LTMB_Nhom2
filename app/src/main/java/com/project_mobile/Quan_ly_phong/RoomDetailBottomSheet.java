@@ -17,15 +17,23 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.project_mobile.R;
 import com.project_mobile.common.AppDialog;
+import com.project_mobile.network.ApiClient;
+import com.project_mobile.network.ApiModels;
+import com.project_mobile.network.ApiService;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class RoomDetailBottomSheet extends BottomSheetDialogFragment {
 
     private RoomModel room;
     private List<RoomModel> rooms = new ArrayList<>();
     private OnRoomsChangedListener onRoomsChangedListener;
+    private ApiService api;
 
     public interface OnRoomsChangedListener {
         void onRoomsChanged();
@@ -53,6 +61,7 @@ public class RoomDetailBottomSheet extends BottomSheetDialogFragment {
         if (getArguments() != null) {
             room = (RoomModel) getArguments().getSerializable("room");
         }
+        api = ApiClient.getClient().create(ApiService.class);
     }
 
     @Nullable
@@ -131,13 +140,7 @@ public class RoomDetailBottomSheet extends BottomSheetDialogFragment {
                     "Xác nhận trả phòng " + room.getRoomNumber() + "?",
                     "Trả phòng",
                     true,
-                    () -> {
-                        room.setStatus(RoomModel.STATUS_EMPTY);
-                        room.clearCustomer();
-                        notifyRoomsChanged();
-                        dismiss();
-                        AppDialog.showSuccess(requireContext(), "Trả phòng thành công");
-                    }
+                    () -> updateRoomStatusOnServer(RoomModel.STATUS_EMPTY, "Trả phòng thành công")
             ));
 
             secondary.setVisibility(View.VISIBLE);
@@ -152,35 +155,48 @@ public class RoomDetailBottomSheet extends BottomSheetDialogFragment {
                     "Phòng đang có khách. Bạn có chắc chắn muốn chuyển phòng này sang bảo trì?",
                     "Xác nhận",
                     true,
-                    () -> {
-                        room.setStatus(RoomModel.STATUS_MAINTENANCE);
-                        room.clearCustomer();
-                        notifyRoomsChanged();
-                        dismiss();
-                        AppDialog.showSuccess(requireContext(), "Chuyển bảo trì thành công");
-                    }
+                    () -> updateRoomStatusOnServer(RoomModel.STATUS_MAINTENANCE, "Chuyển bảo trì thành công")
             ));
         } else if (room.isMaintenance()) {
             primary.setVisibility(View.VISIBLE);
             primary.setText("Hoàn tất bảo trì");
             primary.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#D1C19F")));
-            primary.setOnClickListener(v -> {
-                room.setStatus(RoomModel.STATUS_EMPTY);
-                notifyRoomsChanged();
-                dismiss();
-                AppDialog.showSuccess(requireContext(), "Bảo trì thành công");
-            });
+            primary.setOnClickListener(v -> updateRoomStatusOnServer(RoomModel.STATUS_EMPTY, "Bảo trì thành công"));
         } else {
             primary.setVisibility(View.VISIBLE);
             primary.setText("Chuyển sang bảo trì");
             primary.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#D1C19F")));
-            primary.setOnClickListener(v -> {
-                room.setStatus(RoomModel.STATUS_MAINTENANCE);
-                notifyRoomsChanged();
-                dismiss();
-                AppDialog.showSuccess(requireContext(), "Chuyển bảo trì thành công");
-            });
+            primary.setOnClickListener(v -> updateRoomStatusOnServer(RoomModel.STATUS_MAINTENANCE, "Chuyển bảo trì thành công"));
         }
+    }
+
+    private void updateRoomStatusOnServer(String status, String successMessage) {
+        AppDialog.showLoading(requireContext());
+        ApiModels.StatusRequest req = new ApiModels.StatusRequest();
+        req.status = status;
+        api.updateRoomStatus(room.getId(), req).enqueue(new Callback<ApiModels.ApiResponse<ApiModels.RoomDto>>() {
+            @Override
+            public void onResponse(Call<ApiModels.ApiResponse<ApiModels.RoomDto>> call, Response<ApiModels.ApiResponse<ApiModels.RoomDto>> response) {
+                AppDialog.hideLoading();
+                if (response.isSuccessful() && response.body() != null && response.body().success) {
+                    room.setStatus(status);
+                    if (status.equals(RoomModel.STATUS_MAINTENANCE)) {
+                        room.clearCustomer();
+                    }
+                    notifyRoomsChanged();
+                    dismiss();
+                    AppDialog.showSuccess(requireContext(), successMessage);
+                } else {
+                    AppDialog.showError(requireContext(), "Lỗi khi cập nhật trạng thái phòng");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiModels.ApiResponse<ApiModels.RoomDto>> call, Throwable t) {
+                AppDialog.hideLoading();
+                AppDialog.showError(requireContext(), "Lỗi kết nối: " + t.getMessage());
+            }
+        });
     }
 
     private void openChangeRoomSheet() {

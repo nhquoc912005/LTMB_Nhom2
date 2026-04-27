@@ -40,6 +40,9 @@ public class CheckInAdapter extends RecyclerView.Adapter<CheckInAdapter.CheckInV
         holder.tvPhoneNumber.setText(item.getPhoneNumber());
         holder.tvEmail.setText(item.getEmail());
         holder.tvStayPeriod.setText(item.getStayPeriod());
+        holder.tvTotalGuests.setText("Tổng số người: " + item.getTotalGuests());
+        holder.tvAdults.setText("Người lớn: " + item.getAdults());
+        holder.tvChildren.setText("Trẻ em: " + item.getChildren());
 
         holder.btnCheckIn.setOnClickListener(v -> {
             if (listener != null) {
@@ -60,7 +63,7 @@ public class CheckInAdapter extends RecyclerView.Adapter<CheckInAdapter.CheckInV
     }
 
     static class CheckInViewHolder extends RecyclerView.ViewHolder {
-        TextView tvGuestName, tvRoomNumber, tvPhoneNumber, tvEmail, tvStayPeriod;
+        TextView tvGuestName, tvRoomNumber, tvPhoneNumber, tvEmail, tvStayPeriod, tvTotalGuests, tvAdults, tvChildren;
         Button btnCheckIn, btnChangeRoom;
 
         public CheckInViewHolder(@NonNull View itemView) {
@@ -70,6 +73,9 @@ public class CheckInAdapter extends RecyclerView.Adapter<CheckInAdapter.CheckInV
             tvPhoneNumber = itemView.findViewById(R.id.tvPhoneNumber);
             tvEmail = itemView.findViewById(R.id.tvEmail);
             tvStayPeriod = itemView.findViewById(R.id.tvStayPeriod);
+            tvTotalGuests = itemView.findViewById(R.id.tvTotalGuests);
+            tvAdults = itemView.findViewById(R.id.tvAdults);
+            tvChildren = itemView.findViewById(R.id.tvChildren);
             btnCheckIn = itemView.findViewById(R.id.btnCheckIn);
             btnChangeRoom = itemView.findViewById(R.id.btnChangeRoom);
         }

@@ -3,23 +3,24 @@ const express = require("express");
 const router = express.Router();
 
 const BOOKING_STATUS = {
-  WAITING_CHECKIN: parseStatusList(process.env.CHECKIN_READY_STATUSES, ["CONFIRMED", "CHO_CHECKIN", "Chờ check-in"]),
-  CHECKED_IN: process.env.BOOKING_STATUS_CHECKED_IN || "CHECKED_IN",
+  WAITING_CHECKIN: parseStatusList(process.env.CHECKIN_READY_STATUSES, ["Đã đặt cọc"]),
+  CHECKED_IN: process.env.BOOKING_STATUS_CHECKED_IN || "Đang ở",
 };
 
 const ROOM_STATUS = {
-  AVAILABLE: process.env.ROOM_STATUS_AVAILABLE || "AVAILABLE",
-  RESERVED: process.env.ROOM_STATUS_RESERVED || "RESERVED",
-  OCCUPIED: process.env.ROOM_STATUS_OCCUPIED || "OCCUPIED",
+  AVAILABLE: "Trống",
+  RESERVED: "Đã đặt",
+  OCCUPIED: "Bận",
+  MAINTENANCE: "Bảo trì",
 };
 
 const ROOM_READY_FOR_CHECKIN = parseStatusList(
   process.env.ROOM_READY_FOR_CHECKIN_STATUSES,
-  [ROOM_STATUS.AVAILABLE, ROOM_STATUS.RESERVED, "Trống", "Đã đặt"]
+  [ROOM_STATUS.AVAILABLE, ROOM_STATUS.RESERVED]
 );
 const AVAILABLE_ROOM_STATUSES = parseStatusList(
   process.env.AVAILABLE_ROOM_STATUSES,
-  [ROOM_STATUS.AVAILABLE, "Trống"]
+  [ROOM_STATUS.AVAILABLE]
 );
 const ROOM_STATUS_AFTER_CHANGE = process.env.ROOM_STATUS_AFTER_CHANGE || ROOM_STATUS.RESERVED;
 
@@ -123,21 +124,39 @@ function normalizeRooms(rooms) {
   return [];
 }
 
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  } catch (_) {
+    return dateStr;
+  }
+}
+
 function mapBookingRow(row) {
-  const rooms = normalizeRooms(row.rooms);
+  const adults = Number(row.so_nguoi_lon || 0);
+  const children = Number(row.so_tre_em || 0);
+  let total = Number(row.tong_so_nguoi || 0);
+  if (total === 0) total = adults + children;
+
   return {
     ma_dat_phong: row.ma_dat_phong,
     customer_name: row.customer_name,
     customer_phone: row.customer_phone,
     email: row.email,
-    ngay_nhan: row.ngay_nhan,
-    ngay_tra: row.ngay_tra,
-    so_nguoi_lon: Number(row.so_nguoi_lon || 0),
-    so_tre_em: Number(row.so_tre_em || 0),
-    tong_so_nguoi: Number(row.tong_so_nguoi || 0),
+    ngay_nhan: formatDate(row.ngay_nhan),
+    ngay_tra: formatDate(row.ngay_tra),
+    so_nguoi_lon: adults,
+    so_tre_em: children,
+    tong_so_nguoi: total,
     trang_thai: row.trang_thai,
-    rooms,
-    room_names: rooms.map((room) => room.ten_phong).filter(Boolean).join(", "),
+    rooms: [], // Detailed room info not needed for main list
+    room_names: row.room_names || "",
   };
 }
 
@@ -383,8 +402,7 @@ function createCheckInRouter(pool) {
       )`);
     }
 
-    const result = await pool.query(
-      `
+    const sql = `
       SELECT
         dp.ma_dat_phong,
         COALESCE(kh.ho_ten, dp.ten_nguoi_dat) AS customer_name,
@@ -396,32 +414,22 @@ function createCheckInRouter(pool) {
         dp.so_tre_em,
         dp.tong_so_nguoi,
         dp.trang_thai,
-        COALESCE(
-          json_agg(
-            json_build_object(
-              'id_ct_dat_phong', ctdp.id_ct_dat_phong,
-              'id_phong', p.id_phong,
-              'ten_phong', p.ten_phong,
-              'loai_phong', p.loai_phong,
-              'suc_chua', p.suc_chua,
-              'gia_phong', p.gia_phong,
-              'trang_thai', p.trang_thai,
-              'so_luong_phong', ctdp.so_luong_phong
-            )
-            ORDER BY p.ten_phong
-          ) FILTER (WHERE p.id_phong IS NOT NULL),
-          '[]'::json
-        ) AS rooms
+        (
+          SELECT string_agg(p_sub.ten_phong, ', ' ORDER BY p_sub.ten_phong)
+          FROM public.chi_tiet_dat_phong ctdp_sub
+          JOIN public.phong p_sub ON p_sub.id_phong = ctdp_sub.id_phong
+          WHERE ctdp_sub.ma_dat_phong = dp.ma_dat_phong
+        ) AS room_names
       FROM public.dat_phong dp
       LEFT JOIN public.khach_hang kh ON kh.id_kh = dp.id_kh
-      LEFT JOIN public.chi_tiet_dat_phong ctdp ON ctdp.ma_dat_phong = dp.ma_dat_phong
-      LEFT JOIN public.phong p ON p.id_phong = ctdp.id_phong
       WHERE ${where.join(" AND ")}
-      GROUP BY dp.ma_dat_phong, kh.ho_ten, kh.sdt
       ORDER BY dp.ngay_nhan ASC, dp.ma_dat_phong ASC
-      `,
-      values
-    );
+    `;
+
+    console.log("Check-in Query SQL:", sql);
+    console.log("Check-in Query Params:", values);
+
+    const result = await pool.query(sql, values);
 
     res.json({
       success: true,
@@ -434,7 +442,7 @@ function createCheckInRouter(pool) {
   }));
 
   const confirmCheckIn = asyncRoute(async (req, res) => {
-    const maDatPhong = parseRequiredId(req.params.maDatPhong, "Mã đặt phòng");
+    const maDatPhong = String(req.params.maDatPhong || "").trim();
     const body = req.body || {};
     const cccd = validateCccd(body.cccd || body.cmnd_cccd);
     const note = body.note ? String(body.note).trim() : null;
@@ -471,6 +479,27 @@ function createCheckInRouter(pool) {
           })),
           allowed_statuses: ROOM_READY_FOR_CHECKIN,
         });
+      }
+
+      // KIỂM TRA BỔ SUNG: Đảm bảo không có bản ghi lưu trú nào chưa kết thúc cho các phòng này
+      const conflictCheck = await client.query(
+        `
+        SELECT p.ten_phong
+        FROM public.luu_tru lt
+        JOIN public.chi_tiet_dat_phong ctdp ON ctdp.ma_dat_phong = lt.ma_dat_phong
+        JOIN public.phong p ON p.id_phong = ctdp.id_phong
+        WHERE ctdp.id_phong = ANY($1::int[])
+          AND lt.thoi_gian_checkout_thuc_te IS NULL
+        LIMIT 1
+        `,
+        [rooms.map((r) => r.id_phong)]
+      );
+      if (conflictCheck.rows.length > 0) {
+        throw new BusinessError(
+          409,
+          "ROOM_STILL_OCCUPIED",
+          `Phòng ${conflictCheck.rows[0].ten_phong} đang có khách lưu trú khác chưa làm thủ tục trả phòng.`
+        );
       }
 
       const guestCount = totalGuests(booking);
@@ -529,7 +558,7 @@ function createCheckInRouter(pool) {
   router.put("/bookings/:maDatPhong/check-in", confirmCheckIn);
 
   router.get("/check-in/bookings/:maDatPhong/available-rooms", asyncRoute(async (req, res) => {
-    const maDatPhong = parseRequiredId(req.params.maDatPhong, "Mã đặt phòng");
+    const maDatPhong = String(req.params.maDatPhong || "").trim();
     const idCtDatPhong = req.query.id_ct_dat_phong ? parseRequiredId(req.query.id_ct_dat_phong, "ID chi tiết đặt phòng") : null;
     const currentRoomId = req.query.current_room_id ? parseRequiredId(req.query.current_room_id, "ID phòng hiện tại") : null;
     const sameType = String(req.query.same_type || "").toLowerCase() === "true";
@@ -576,12 +605,12 @@ function createCheckInRouter(pool) {
     const result = await pool.query(
       `
       SELECT
-        p.id_phong,
-        p.ten_phong,
-        p.loai_phong,
-        p.suc_chua,
-        p.gia_phong,
-        p.trang_thai
+        p.id_phong AS id,
+        p.ten_phong AS room_number,
+        p.loai_phong AS room_type,
+        p.suc_chua AS capacity,
+        p.gia_phong AS price,
+        p.trang_thai AS status
       FROM public.phong p
       WHERE ${where.join(" AND ")}
       ORDER BY p.ten_phong ASC
@@ -597,12 +626,15 @@ function createCheckInRouter(pool) {
         excluded_booking_id: maDatPhong,
         same_type_filter_applied: Boolean(sameType && currentRoom?.loai_phong),
         capacity_filter_applied: Boolean(sameOrLargerCapacity && currentRoom?.suc_chua),
+        sql: `SELECT p.id_phong, p.ten_phong, p.loai_phong, p.suc_chua, p.gia_phong, p.trang_thai FROM public.phong p WHERE ...`, // Simplified for meta
+        params: values,
+        count: result.rows.length
       },
     });
   }));
 
   const changeRoom = asyncRoute(async (req, res) => {
-    const maDatPhong = parseRequiredId(req.params.maDatPhong, "Mã đặt phòng");
+    const maDatPhong = String(req.params.maDatPhong || "").trim();
     const body = req.body || {};
     const idCtDatPhong = body.id_ct_dat_phong ? parseRequiredId(body.id_ct_dat_phong, "ID chi tiết đặt phòng") : null;
     const oldRoomId = body.old_room_id ? parseRequiredId(body.old_room_id, "ID phòng cũ") : null;
@@ -645,6 +677,24 @@ function createCheckInRouter(pool) {
           trang_thai: newRoom.trang_thai,
           available_statuses: AVAILABLE_ROOM_STATUSES,
         });
+      }
+
+      // KIỂM TRA BỔ SUNG: Đảm bảo phòng mới không có khách lưu trú "ma" chưa trả phòng
+      const newRoomConflict = await client.query(
+        `
+        SELECT 1 FROM public.luu_tru lt
+        JOIN public.chi_tiet_dat_phong ctdp ON ctdp.ma_dat_phong = lt.ma_dat_phong
+        WHERE ctdp.id_phong = $1 AND lt.thoi_gian_checkout_thuc_te IS NULL
+        LIMIT 1
+        `,
+        [newRoomId]
+      );
+      if (newRoomConflict.rows.length > 0) {
+        throw new BusinessError(
+          409,
+          "NEW_ROOM_STILL_OCCUPIED",
+          `Phòng ${newRoom.ten_phong} hiện đang có khách lưu trú chưa trả phòng, không thể đổi sang.`
+        );
       }
 
       await client.query(

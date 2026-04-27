@@ -38,13 +38,38 @@ public class RoomManagementFragment extends Fragment implements RoomAdapter.OnRo
         rvRooms = view.findViewById(R.id.rvRooms);
         edtRoomSearch = view.findViewById(R.id.edtRoomSearch);
 
-        seedRooms();
-        filteredRooms.addAll(allRooms);
         setupRecyclerView();
         setupSearch();
-        updateSummaryCards(view);
+        fetchRooms(view);
 
         return view;
+    }
+
+    private void fetchRooms(View view) {
+        com.project_mobile.network.ApiService api = com.project_mobile.network.ApiClient.getClient().create(com.project_mobile.network.ApiService.class);
+        api.getRooms().enqueue(new retrofit2.Callback<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.RoomDto>>>() {
+            @Override
+            public void onResponse(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.RoomDto>>> call, retrofit2.Response<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.RoomDto>>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().success) {
+                    allRooms.clear();
+                    for (com.project_mobile.network.ApiModels.RoomDto dto : response.body().data) {
+                            allRooms.add(new RoomModel(
+                            dto.id,
+                            dto.roomNumber,
+                            dto.roomType,
+                            "Tầng " + dto.roomNumber.substring(0, 1),
+                            dto.capacity + " người",
+                            String.format(Locale.US, "%,.0fđ", dto.price),
+                            dto.status
+                        ));
+                    }
+                    reloadCurrentList();
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.RoomDto>>> call, Throwable t) {}
+        });
     }
 
     private void setupRecyclerView() {
@@ -71,19 +96,7 @@ public class RoomManagementFragment extends Fragment implements RoomAdapter.OnRo
     }
 
     private void seedRooms() {
-        if (!allRooms.isEmpty()) {
-            return;
-        }
-        allRooms.add(new RoomModel("101", "Standard", "Tầng 1", "2 người", "1.200.000đ", RoomModel.STATUS_EMPTY));
-        allRooms.add(new RoomModel("102", "Standard", "Tầng 1", "2 người", "1.200.000đ", RoomModel.STATUS_STAYING, "Nguyễn Văn A", "0901234567", "14/02/2026 - 16/02/2026"));
-        allRooms.add(new RoomModel("103", "Standard", "Tầng 1", "2 người", "1.200.000đ", RoomModel.STATUS_MAINTENANCE));
-        allRooms.add(new RoomModel("201", "Deluxe", "Tầng 2", "2 người", "1.800.000đ", RoomModel.STATUS_EMPTY));
-        allRooms.add(new RoomModel("202", "Deluxe", "Tầng 2", "2 người", "1.800.000đ", RoomModel.STATUS_STAYING, "Trần Thị B", "0988777666", "15/02/2026 - 17/02/2026"));
-        allRooms.add(new RoomModel("203", "Deluxe", "Tầng 2", "2 người", "1.800.000đ", RoomModel.STATUS_EMPTY));
-        allRooms.add(new RoomModel("301", "Suite", "Tầng 3", "4 người", "2.500.000đ", RoomModel.STATUS_IN_USE, "Lê Văn C", "0912345678", "16/02/2026 - 20/02/2026"));
-        allRooms.add(new RoomModel("302", "Suite", "Tầng 3", "4 người", "2.500.000đ", RoomModel.STATUS_EMPTY));
-        allRooms.add(new RoomModel("401", "Suite", "Tầng 4", "4 người", "2.500.000đ", RoomModel.STATUS_IN_USE, "Phạm Minh D", "0909090909", "18/02/2026 - 21/02/2026"));
-        allRooms.add(new RoomModel("402", "Deluxe", "Tầng 4", "2 người", "1.800.000đ", RoomModel.STATUS_MAINTENANCE));
+        // Obsolete
     }
 
     private void applySearch(String rawQuery) {

@@ -37,14 +37,31 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
     public void onBindViewHolder(@NonNull BookingViewHolder holder, int position) {
         Booking booking = bookingList.get(position);
         holder.tvRoomName.setText(booking.getRoomName());
-        holder.tvBookingStatus.setText(booking.getStatus());
         holder.tvCustomerName.setText(booking.getCustomerName());
         holder.tvCheckInDate.setText(booking.getCheckInDate());
         holder.tvCheckOutDate.setText(booking.getCheckOutDate());
         holder.tvTotalPrice.setText(booking.getTotalPrice());
+        holder.tvTotalGuests.setText(String.valueOf(booking.getTotalGuests()));
+        holder.tvAdults.setText(String.valueOf(booking.getAdults()));
+        holder.tvChildren.setText(String.valueOf(booking.getChildren()));
+
+        // Thiết lập trạng thái hiển thị
+        String status = booking.getStatus();
+        holder.tvBookingStatus.setText(status);
+        
+        if (status.contains("Đã đặt cọc") || status.contains("Chờ check-in")) {
+            holder.tvBookingStatus.setBackgroundResource(R.drawable.bg_status_pending);
+            holder.tvBookingStatus.setTextColor(0xFF8B6D5A);
+        } else if (status.contains("Đang ở") || status.contains("Đã check-in") || status.contains("nhận phòng")) {
+            holder.tvBookingStatus.setBackgroundResource(R.drawable.bg_status_checked_in);
+            holder.tvBookingStatus.setTextColor(0xFF2E7D32);
+        } else if (status.contains("Đã hủy") || status.contains("Hủy")) {
+            holder.tvBookingStatus.setBackgroundResource(R.drawable.bg_status_cancelled);
+            holder.tvBookingStatus.setTextColor(0xFFC62828);
+        }
 
         // Hiện/Ẩn nút hủy dựa trên trạng thái
-        holder.btnCancelBooking.setVisibility(booking.getStatus().equals("Đã hủy") ? View.GONE : View.VISIBLE);
+        holder.btnCancelBooking.setVisibility(status.contains("Đã hủy") || status.contains("Hủy") ? View.GONE : View.VISIBLE);
         holder.btnCancelBooking.setOnClickListener(v -> listener.onCancel(booking));
 
         holder.ivMenu.setOnClickListener(v -> {
@@ -63,6 +80,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
 
     static class BookingViewHolder extends RecyclerView.ViewHolder {
         TextView tvRoomName, tvBookingStatus, tvCustomerName, tvCheckInDate, tvCheckOutDate, tvTotalPrice;
+        TextView tvTotalGuests, tvAdults, tvChildren;
         Button btnCancelBooking;
         ImageView ivMenu;
 
@@ -74,8 +92,11 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
             tvCheckInDate = itemView.findViewById(R.id.tvCheckInDate);
             tvCheckOutDate = itemView.findViewById(R.id.tvCheckOutDate);
             tvTotalPrice = itemView.findViewById(R.id.tvTotalPrice);
+            tvTotalGuests = itemView.findViewById(R.id.tvTotalGuests);
+            tvAdults = itemView.findViewById(R.id.tvAdults);
+            tvChildren = itemView.findViewById(R.id.tvChildren);
             btnCancelBooking = itemView.findViewById(R.id.btnCancelBooking);
-            ivMenu = itemView.findViewById(R.id.ivMenu); // Cần thêm ID này vào item_booking_card.xml cho icon 3 chấm
+            ivMenu = itemView.findViewById(R.id.ivMenu);
         }
     }
 }

@@ -21,39 +21,109 @@ import java.util.List;
 public class CheckoutFragment extends Fragment {
     private RecyclerView recyclerView;
     private CheckoutAdapter adapter;
+    private List<CheckoutBill> checkoutList = new ArrayList<>();
+    private TextView tvSelectedDate;
+    private android.widget.EditText etSearch;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_checkout, container, false);
         recyclerView = view.findViewById(R.id.recyclerViewCheckout);
-        setupData();
+        tvSelectedDate = view.findViewById(R.id.tvSelectedDate);
+        etSearch = view.findViewById(R.id.etSearch);
+        
+        adapter = new CheckoutAdapter(requireContext(), checkoutList, this::showPaymentDialog);
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        recyclerView.setAdapter(adapter);
+
+        view.findViewById(R.id.ivCalendarIcon).setOnClickListener(v -> showDatePicker());
+        view.findViewById(R.id.btnSearch).setOnClickListener(v -> fetchData());
+
+        fetchData();
         return view;
     }
 
-    private void setupData() {
-        List<CheckoutBill> list = new ArrayList<>();
-        // RoomModel constructor: String roomNumber, String roomType, String floor, String capacity, String price, String status, String customerName, String customerPhone, String duration
+    private void showDatePicker() {
+        android.app.Dialog calendarDialog = new android.app.Dialog(requireContext());
+        calendarDialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE);
+        calendarDialog.setContentView(R.layout.dialog_custom_calendar);
+        if (calendarDialog.getWindow() != null) {
+            calendarDialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+        }
 
-        list.add(new CheckoutBill(
-                new RoomModel("402", "Deluxe", "Tầng 4", "2 người", "650,000đ", "Đang sử dụng", "Phạm Thị D", "0901234789", "3 ngày"),
-                "phamthid@email.com", "13/02/2026", "16/02/2026", 150000, 1950000, 2, 0));
+        android.widget.CalendarView calendarView = calendarDialog.findViewById(R.id.calendarView);
+        calendarView.setOnDateChangeListener((v, year, month, dayOfMonth) -> {
+            String date = dayOfMonth + "/" + (month + 1) + "/" + year;
+            tvSelectedDate.setText(date);
+            calendarDialog.dismiss();
+            fetchData(); // Tự động load lại sau khi chọn ngày
+        });
 
-        list.add(new CheckoutBill(
-                new RoomModel("503", "Standard", "Tầng 5", "2 người", "450,000đ", "Đang sử dụng", "Hoàng Văn E", "0901874567", "4 ngày"),
-                "hoangvane@email.com", "12/02/2026", "16/02/2026", 0, 1800000, 2, 1));
+        calendarDialog.show();
+    }
 
-        list.add(new CheckoutBill(
-                new RoomModel("204", "Deluxe", "Tầng 2", "2 người", "650,000đ", "Đang sử dụng", "Vũ Hoàng F", "0901234567", "3 ngày"),
-                "vuhoangf@email.com", "14/02/2026", "16/02/2026", 150000, 1950000, 2, 0));
+    private void fetchData() {
+        String dateStr = tvSelectedDate.getText().toString();
+        String apiDate = formatToApiDate(dateStr);
+        String query = etSearch.getText().toString().trim();
 
-        list.add(new CheckoutBill(
-                new RoomModel("302", "Standard", "Tầng 3", "2 người", "450,000đ", "Đang sử dụng", "Hoàng Thị B", "0901234987", "2 ngày"),
-                "hoangthib@email.com", "14/02/2026", "16/02/2026", 0, 1200000, 2, 1));
+        com.project_mobile.network.ApiService api = com.project_mobile.network.ApiClient.getClient().create(com.project_mobile.network.ApiService.class);
+        api.getCheckouts(apiDate, query).enqueue(new retrofit2.Callback<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.CheckoutDto>>>() {
+            @Override
+            public void onResponse(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.CheckoutDto>>> call, retrofit2.Response<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.CheckoutDto>>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    if (response.body().success) {
+                        checkoutList.clear();
+                        if (response.body().data != null) {
+                            for (com.project_mobile.network.ApiModels.CheckoutDto d : response.body().data) {
+                                checkoutList.add(new CheckoutBill(
+                                    new RoomModel(d.roomNames, "Standard", "Tầng 1", d.totalGuests + " người", String.valueOf(d.roomFee), "Đang sử dụng", d.customerName, d.customerPhone, "2 ngày"),
+                                    d.email, d.checkinAt, d.expectedCheckoutAt, d.serviceFee + d.damageFee, d.amountDue, d.adults, d.children
+                                ));
+                            }
+                        }
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                adapter.notifyDataSetChanged();
+                                if (checkoutList.isEmpty()) {
+                                    android.widget.Toast.makeText(getContext(), "Không có phòng nào đang lưu trú", android.widget.Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    } else {
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> 
+                                android.widget.Toast.makeText(getContext(), "Lỗi: " + response.body().message, android.widget.Toast.LENGTH_SHORT).show());
+                        }
+                    }
+                } else {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> 
+                            android.widget.Toast.makeText(getContext(), "Lỗi kết nối server: " + response.code(), android.widget.Toast.LENGTH_SHORT).show());
+                    }
+                }
+            }
 
-        adapter = new CheckoutAdapter(requireContext(), list, this::showPaymentDialog);
-        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        recyclerView.setAdapter(adapter);
+            @Override
+            public void onFailure(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.CheckoutDto>>> call, Throwable t) {
+                if (isAdded()) {
+                    getActivity().runOnUiThread(() -> 
+                        android.widget.Toast.makeText(getContext(), "Lỗi tải dữ liệu: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show());
+                }
+            }
+        });
+    }
+
+    private String formatToApiDate(String uiDate) {
+        if (uiDate == null || uiDate.trim().isEmpty()) return null;
+        try {
+            String[] parts = uiDate.split("/");
+            if (parts.length == 3) {
+                return parts[2] + "-" + String.format("%02d", Integer.parseInt(parts[1])) + "-" + String.format("%02d", Integer.parseInt(parts[0]));
+            }
+        } catch (Exception e) {}
+        return null;
     }
 
     private void showPaymentDialog(CheckoutBill bill) {

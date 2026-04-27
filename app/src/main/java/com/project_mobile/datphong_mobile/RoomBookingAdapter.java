@@ -35,6 +35,9 @@ public class RoomBookingAdapter extends RecyclerView.Adapter<RoomBookingAdapter.
         holder.tvCheckIn.setText(booking.getCheckInDate());
         holder.tvCheckOut.setText(booking.getCheckOutDate());
         holder.tvPrice.setText(booking.getPrice());
+        holder.tvTotalGuests.setText(booking.getTotalGuests());
+        holder.tvAdults.setText(booking.getAdults());
+        holder.tvChildren.setText(booking.getChildren());
     }
 
     @Override
@@ -44,6 +47,7 @@ public class RoomBookingAdapter extends RecyclerView.Adapter<RoomBookingAdapter.
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvRoomNumber, tvStatus, tvName, tvEmail, tvPhone, tvCheckIn, tvCheckOut, tvPrice;
+        TextView tvTotalGuests, tvAdults, tvChildren;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -55,6 +59,9 @@ public class RoomBookingAdapter extends RecyclerView.Adapter<RoomBookingAdapter.
             tvCheckIn = itemView.findViewById(R.id.tvCheckInV2);
             tvCheckOut = itemView.findViewById(R.id.tvCheckOutV2);
             tvPrice = itemView.findViewById(R.id.tvPriceV2);
+            tvTotalGuests = itemView.findViewById(R.id.tvTotalGuestsV2);
+            tvAdults = itemView.findViewById(R.id.tvAdultsV2);
+            tvChildren = itemView.findViewById(R.id.tvChildrenV2);
         }
     }
 }

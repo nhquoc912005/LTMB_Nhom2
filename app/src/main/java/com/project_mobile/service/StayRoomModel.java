@@ -24,8 +24,8 @@ public class StayRoomModel {
                 dto.roomId != null ? dto.roomId : 0,
                 dto.roomNumber != null ? dto.roomNumber : "",
                 dto.status != null ? dto.status : "Đang sử dụng",
-                dto.expectedCheckIn,
-                dto.expectedCheckOut,
+                dto.checkIn,
+                dto.checkOut,
                 dto.roomFee != null ? dto.roomFee : 0
         );
     }

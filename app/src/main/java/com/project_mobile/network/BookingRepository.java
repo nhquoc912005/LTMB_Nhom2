@@ -61,9 +61,11 @@ public class BookingRepository {
                         String phone = d.phone != null ? d.phone : "";
                         String checkIn = d.checkIn != null ? d.checkIn : "";
                         String checkOut = d.checkOut != null ? d.checkOut : "";
-                        String totalPrice = d.totalAmount != null ? d.totalAmount : "";
-
-                        Booking b = new Booking(roomName, status, customerName, email, phone, checkIn, checkOut, totalPrice);
+                        String totalPrice = d.totalAmount != null ? String.valueOf(d.totalAmount) : "";
+                        Booking b = new Booking(roomName, status, customerName, email, phone, checkIn, checkOut, totalPrice, 
+                                d.totalGuests != null ? d.totalGuests : 0,
+                                d.adults != null ? d.adults : 0,
+                                d.children != null ? d.children : 0);
                         mapped.add(b);
                     }
                 }
@@ -124,8 +126,11 @@ public class BookingRepository {
         String phone = d.phone != null ? d.phone : "";
         String checkIn = d.checkIn != null ? d.checkIn : "";
         String checkOut = d.checkOut != null ? d.checkOut : "";
-        String totalPrice = d.totalAmount != null ? d.totalAmount : "";
-        return new Booking(roomName, status, customerName, email, phone, checkIn, checkOut, totalPrice);
+        String totalPrice = d.totalAmount != null ? String.valueOf(d.totalAmount) : "";
+        return new Booking(roomName, status, customerName, email, phone, checkIn, checkOut, totalPrice,
+                d.totalGuests != null ? d.totalGuests : 0,
+                d.adults != null ? d.adults : 0,
+                d.children != null ? d.children : 0);
     }
 
     public void createBooking(ApiModels.CreateBookingRequest req, CallbackBooking cb) {

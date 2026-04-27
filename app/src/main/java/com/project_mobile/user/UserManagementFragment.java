@@ -42,11 +42,12 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
     private TextView tvActiveUsers;
     private TextView tvLockedUsers;
 
-    private static final String[] ROLES = {"Quản trị viên", "Quản lý", "Lễ tân"};
+    private static final String[] ROLES = { "Quản trị viên", "Quản lý", "Lễ tân" };
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_user_management, container, false);
 
         tvTotalUsers = view.findViewById(R.id.tvTotalUsers);
@@ -54,13 +55,12 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
         tvLockedUsers = view.findViewById(R.id.tvLockedUsers);
         edtSearch = view.findViewById(R.id.edtUserSearch);
 
-        seedUsers();
-        filteredUsers.addAll(allUsers);
-
         RecyclerView recyclerView = view.findViewById(R.id.rvUsers);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new UserAdapter(filteredUsers, this);
         recyclerView.setAdapter(adapter);
+
+        fetchUsers();
 
         view.findViewById(R.id.btnAddUser).setOnClickListener(v -> showUserForm(null));
         edtSearch.addTextChangedListener(new TextWatcher() {
@@ -94,9 +94,9 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
                 () -> {
                     user.setLocked(!user.isLocked());
                     reloadCurrentList();
-                    AppDialog.showSuccess(requireContext(), user.isLocked() ? "Khóa tài khoản thành công" : "Mở khóa thành công");
-                }
-        );
+                    AppDialog.showSuccess(requireContext(),
+                            user.isLocked() ? "Khóa tài khoản thành công" : "Mở khóa thành công");
+                });
     }
 
     @Override
@@ -113,22 +113,56 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
                 "Xóa",
                 true,
                 () -> {
-                    allUsers.remove(user);
+                    com.project_mobile.network.ApiService api = com.project_mobile.network.ApiClient.getClient().create(com.project_mobile.network.ApiService.class);
+                    api.deleteUser(user.getUserCode()).enqueue(new retrofit2.Callback<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.UserDto>>() {
+                        @Override
+                        public void onResponse(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.UserDto>> call, retrofit2.Response<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.UserDto>> response) {
+                            if (response.isSuccessful() && response.body() != null && response.body().success) {
+                                fetchUsers();
+                                AppDialog.showSuccess(requireContext(), "Xóa người dùng thành công");
+                            } else {
+                                AppDialog.showError(requireContext(), "Lỗi khi xóa người dùng");
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.UserDto>> call, Throwable t) {
+                            AppDialog.showError(requireContext(), "Lỗi kết nối");
+                        }
+                    });
+                });
+    }
+
+    private void fetchUsers() {
+        com.project_mobile.network.ApiService api = com.project_mobile.network.ApiClient.getClient().create(com.project_mobile.network.ApiService.class);
+        api.getUsers().enqueue(new retrofit2.Callback<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.UserDto>>>() {
+            @Override
+            public void onResponse(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.UserDto>>> call, retrofit2.Response<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.UserDto>>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().success) {
+                    allUsers.clear();
+                    for (com.project_mobile.network.ApiModels.UserDto dto : response.body().data) {
+                        allUsers.add(new UserModel(
+                            String.valueOf(dto.id),
+                            dto.fullName,
+                            dto.email,
+                            dto.phone,
+                            dto.role,
+                            false // Add lock status to DTO if needed
+                        ));
+                    }
                     reloadCurrentList();
-                    AppDialog.showSuccess(requireContext(), "Xóa người dùng thành công");
                 }
-        );
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.UserDto>>> call, Throwable t) {
+                if (isAdded()) AppDialog.showError(requireContext(), "Lỗi tải dữ liệu nhân viên");
+            }
+        });
     }
 
     private void seedUsers() {
-        if (!allUsers.isEmpty()) {
-            return;
-        }
-        allUsers.add(new UserModel("U001", "Nguyễn Hữu Quốc", "nhq@gmail.com", "0867658316", "Quản trị viên", true));
-        allUsers.add(new UserModel("U002", "Vy Minh Quân", "vmq@gmail.com", "0902221872", "Quản lý", false));
-        allUsers.add(new UserModel("U003", "Trần Tiến Phát", "tpp@gmail.com", "0903231323", "Lễ tân", false));
-        allUsers.add(new UserModel("U004", "Lê Thu Hà", "lth@gmail.com", "0904888777", "Lễ tân", false));
-        allUsers.add(new UserModel("U005", "Phạm An Nhiên", "pan@gmail.com", "0912345678", "Quản lý", false));
+        // Obsolete
     }
 
     private void applySearch(String rawQuery) {
@@ -176,7 +210,8 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
         LinearLayout passwordGroup = formView.findViewById(R.id.llPasswordGroup);
         MaterialButton btnSubmit = formView.findViewById(R.id.btnSubmitUserForm);
 
-        ArrayAdapter<String> roleAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, ROLES);
+        ArrayAdapter<String> roleAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item,
+                ROLES);
         roleAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spRole.setAdapter(roleAdapter);
 
@@ -206,17 +241,52 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
                 return;
             }
 
+            com.project_mobile.network.ApiModels.UserDto dto = new com.project_mobile.network.ApiModels.UserDto();
+            dto.fullName = fullName;
+            dto.email = email;
+            dto.phone = phone;
+            dto.role = role;
+            dto.username = fullName.toLowerCase().replaceAll("\\s+", "_"); 
+            dto.password = password; 
+
+            com.project_mobile.network.ApiService api = com.project_mobile.network.ApiClient.getClient().create(com.project_mobile.network.ApiService.class);
             if (isEdit) {
-                editingUser.setFullName(fullName);
-                editingUser.setEmail(email);
-                editingUser.setPhone(phone);
-                editingUser.setRole(role);
+                api.updateUser(editingUser.getUserCode(), dto).enqueue(new retrofit2.Callback<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.UserDto>>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.UserDto>> call, retrofit2.Response<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.UserDto>> response) {
+                        if (response.isSuccessful() && response.body() != null && response.body().success) {
+                            fetchUsers();
+                            AppDialog.showSuccess(requireContext(), "Cập nhật thành công");
+                            dialog.dismiss();
+                        } else {
+                            AppDialog.showError(requireContext(), "Lỗi cập nhật");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.UserDto>> call, Throwable t) {
+                        AppDialog.showError(requireContext(), "Lỗi kết nối");
+                    }
+                });
             } else {
-                allUsers.add(new UserModel(nextUserCode(), fullName, email, phone, role, false));
+                api.createUser(dto).enqueue(new retrofit2.Callback<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.UserDto>>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.UserDto>> call, retrofit2.Response<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.UserDto>> response) {
+                        if (response.isSuccessful() && response.body() != null && response.body().success) {
+                            fetchUsers();
+                            AppDialog.showSuccess(requireContext(), "Tạo tài khoản thành công");
+                            dialog.dismiss();
+                        } else {
+                            AppDialog.showError(requireContext(), "Lỗi tạo tài khoản");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.UserDto>> call, Throwable t) {
+                        AppDialog.showError(requireContext(), "Lỗi kết nối");
+                    }
+                });
             }
-            dialog.dismiss();
-            reloadCurrentList();
-            AppDialog.showSuccess(requireContext(), isEdit ? "Cập nhật thành công" : "Tạo tài khoản thành công");
         });
 
         dialog.setOnShowListener(d -> {
@@ -231,7 +301,8 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
     }
 
     @Nullable
-    private String validateUserForm(String fullName, String email, String phone, String role, String password, boolean isEdit) {
+    private String validateUserForm(String fullName, String email, String phone, String role, String password,
+            boolean isEdit) {
         if (fullName.isEmpty()) {
             return "Không được để trống họ tên.";
         }

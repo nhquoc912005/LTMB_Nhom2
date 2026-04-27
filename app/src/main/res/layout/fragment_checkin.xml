@@ -96,7 +96,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:fontFamily="@font/livvic"
-                        android:text="17/02/2026"
+                        android:text=""
                         android:textColor="@color/black" />
 
                     <ImageView
@@ -144,7 +144,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:fontFamily="@font/livvic"
-                        android:text="19/02/2026"
+                        android:text=""
                         android:textColor="@color/black" />
 
                     <ImageView

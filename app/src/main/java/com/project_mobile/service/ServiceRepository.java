@@ -24,6 +24,7 @@ public class ServiceRepository {
 
     public interface DataCallback<T> {
         void onSuccess(T data);
+
         void onError(String error);
     }
 
@@ -38,7 +39,8 @@ public class ServiceRepository {
         enqueue(call, callback);
     }
 
-    public void saveCatalog(boolean serviceTab, Integer id, String name, double price, String unit, DataCallback<CatalogItemDto> callback) {
+    public void saveCatalog(boolean serviceTab, String id, String name, double price, String unit,
+            DataCallback<CatalogItemDto> callback) {
         CatalogItemRequest req = new CatalogItemRequest();
         req.name = name;
         req.price = price;
@@ -46,7 +48,7 @@ public class ServiceRepository {
         req.icon = null;
 
         Call<ApiResponse<CatalogItemDto>> call;
-        if (id == null) {
+        if (id == null || id.isEmpty()) {
             call = serviceTab ? api.createService(req) : api.createAsset(req);
         } else {
             call = serviceTab ? api.updateService(id, req) : api.updateAsset(id, req);
@@ -54,7 +56,7 @@ public class ServiceRepository {
         enqueue(call, callback);
     }
 
-    public void deleteCatalog(boolean serviceTab, int id, DataCallback<CatalogItemDto> callback) {
+    public void deleteCatalog(boolean serviceTab, String id, DataCallback<CatalogItemDto> callback) {
         Call<ApiResponse<CatalogItemDto>> call = serviceTab ? api.deleteService(id) : api.deleteAsset(id);
         enqueue(call, callback);
     }
@@ -70,7 +72,8 @@ public class ServiceRepository {
         enqueue(call, callback);
     }
 
-    public void addRoomLine(boolean serviceTab, int roomId, int catalogId, int quantity, DataCallback<RoomLineDto> callback) {
+    public void addRoomLine(boolean serviceTab, int roomId, String catalogId, int quantity,
+            DataCallback<RoomLineDto> callback) {
         RoomLineRequest req = new RoomLineRequest();
         req.catalogId = catalogId;
         req.quantity = quantity;
@@ -86,7 +89,7 @@ public class ServiceRepository {
         enqueue(call, callback);
     }
 
-    public void updateRoomLine(boolean serviceTab, int lineId, int quantity, DataCallback<RoomLineDto> callback) {
+    public void updateRoomLine(boolean serviceTab, String lineId, int quantity, DataCallback<RoomLineDto> callback) {
         QuantityRequest req = new QuantityRequest();
         req.quantity = quantity;
         Call<ApiResponse<RoomLineDto>> call = serviceTab
@@ -95,7 +98,7 @@ public class ServiceRepository {
         enqueue(call, callback);
     }
 
-    public void deleteRoomLine(boolean serviceTab, int lineId, DataCallback<RoomLineDto> callback) {
+    public void deleteRoomLine(boolean serviceTab, String lineId, DataCallback<RoomLineDto> callback) {
         Call<ApiResponse<RoomLineDto>> call = serviceTab
                 ? api.deleteRoomService(lineId)
                 : api.deleteRoomAsset(lineId);

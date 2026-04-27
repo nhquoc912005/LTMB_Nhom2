@@ -1,218 +1,143 @@
--- 1. VaiTro (Role for Permissions)
-CREATE TABLE vai_tro (
-    id_vaitro SERIAL PRIMARY KEY,
-    ten_vaitro VARCHAR(50) UNIQUE NOT NULL
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.chi_tiet_dat_phong (
+  id_ct_dat_phong integer NOT NULL DEFAULT nextval('chi_tiet_dat_phong_id_ct_dat_phong_seq'::regclass),
+  id_phong integer,
+  ma_dat_phong character varying,
+  so_luong_phong integer DEFAULT 1,
+  CONSTRAINT chi_tiet_dat_phong_pkey PRIMARY KEY (id_ct_dat_phong),
+  CONSTRAINT chi_tiet_dat_phong_id_phong_fkey FOREIGN KEY (id_phong) REFERENCES public.phong(id_phong),
+  CONSTRAINT chi_tiet_dat_phong_ma_dat_phong_fkey FOREIGN KEY (ma_dat_phong) REFERENCES public.dat_phong(ma_dat_phong)
 );
-
--- 2. TaiKhoan (User Accounts)
-CREATE TABLE tai_khoan (
-    id_taikhoan SERIAL PRIMARY KEY,
-    ten_dang_nhap VARCHAR(50) UNIQUE NOT NULL,
-    mat_khau VARCHAR(255) NOT NULL,
-    ho_ten VARCHAR(255),
-    id_vaitro INTEGER REFERENCES vai_tro(id_vaitro)
+CREATE TABLE public.dat_phong (
+  ma_dat_phong character varying NOT NULL,
+  email character varying,
+  ngay_nhan timestamp without time zone NOT NULL,
+  ngay_tra timestamp without time zone NOT NULL,
+  phuong_thuc_thanh_toan character varying,
+  sdt_nguoi_dat character varying,
+  so_nguoi_lon integer,
+  so_phong character varying,
+  so_tre_em integer,
+  ten_nguoi_dat character varying,
+  tien_coc numeric,
+  tong_so_nguoi integer,
+  tong_thanh_toan numeric,
+  trang_thai character varying,
+  id_kh integer,
+  ghi_chu text,
+  CONSTRAINT dat_phong_pkey PRIMARY KEY (ma_dat_phong),
+  CONSTRAINT fk9vm0pybe6y9f3acv39vm75lsk FOREIGN KEY (id_kh) REFERENCES public.khach_hang(id_kh)
 );
-
--- 3. LeTan (Receptionist linked to Account)
-CREATE TABLE le_tan (
-    id_letan SERIAL PRIMARY KEY,
-    id_taikhoan INTEGER REFERENCES tai_khoan(id_taikhoan)
+CREATE TABLE public.dich_vu (
+  id_dichvu integer NOT NULL DEFAULT nextval('dich_vu_id_dichvu_seq'::regclass),
+  ten_dich_vu character varying NOT NULL,
+  don_gia numeric NOT NULL,
+  CONSTRAINT dich_vu_pkey PRIMARY KEY (id_dichvu)
 );
-
--- 2. Phong (Room)
-CREATE TABLE phong (
-    id_phong SERIAL PRIMARY KEY,
-    ten_phong VARCHAR(100) NOT NULL,
-    loai_phong VARCHAR(50),
-    suc_chua INTEGER,
-    gia_phong DECIMAL(15, 2),
-    trang_thai VARCHAR(50) -- e.g., 'AVAILABLE', 'OCCUPIED', 'MAINTENANCE'
+CREATE TABLE public.hoa_don (
+  id_hoadon integer NOT NULL DEFAULT nextval('hoa_don_id_hoadon_seq'::regclass),
+  tong_tien numeric DEFAULT 0,
+  trang_thai character varying,
+  ngay_lap timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT hoa_don_pkey PRIMARY KEY (id_hoadon)
 );
-
--- 3. KhachHang (Customer)
-CREATE TABLE khach_hang (
-    id_kh SERIAL PRIMARY KEY,
-    ho_ten VARCHAR(255) NOT NULL,
-    sdt VARCHAR(15),
-    cccd VARCHAR(20) UNIQUE
+CREATE TABLE public.khach_hang (
+  id_kh integer NOT NULL DEFAULT nextval('khach_hang_id_kh_seq'::regclass),
+  ho_ten character varying NOT NULL,
+  sdt character varying,
+  cccd character varying UNIQUE,
+  CONSTRAINT khach_hang_pkey PRIMARY KEY (id_kh)
 );
-
--- 4. DatPhong (Booking)
-CREATE TABLE dat_phong (
-    ma_dat_phong SERIAL PRIMARY KEY,
-    ngay_nhan TIMESTAMP NOT NULL,          -- Expected Check-in
-    ngay_tra TIMESTAMP NOT NULL,           -- Expected Check-out
-    so_nguoi_lon INTEGER DEFAULT 1,
-    so_tre_em INTEGER DEFAULT 0,
-    tong_so_nguoi INTEGER GENERATED ALWAYS AS (so_nguoi_lon + so_tre_em) STORED,
-    so_phong VARCHAR(50),                  -- Room number(s) string for quick reference
-    trang_thai VARCHAR(50),                -- e.g., 'PENDING', 'CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'COMPLETED'
-    ten_nguoi_dat VARCHAR(255),
-    email VARCHAR(255),
-    sdt_nguoi_dat VARCHAR(15),
-    tien_coc DECIMAL(15, 2) DEFAULT 0,
-    tong_thanh_toan DECIMAL(15, 2) DEFAULT 0,
-    id_letan INTEGER REFERENCES le_tan(id_letan),
-    id_kh INTEGER REFERENCES khach_hang(id_kh)
+CREATE TABLE public.le_tan (
+  id_letan integer NOT NULL DEFAULT nextval('le_tan_id_letan_seq'::regclass),
+  id_taikhoan integer,
+  CONSTRAINT le_tan_pkey PRIMARY KEY (id_letan),
+  CONSTRAINT le_tan_id_taikhoan_fkey FOREIGN KEY (id_taikhoan) REFERENCES public.tai_khoan(id_taikhoan)
 );
-
--- 5. ChiTietDatPhong (Booking Details - Many-to-Many between DatPhong and Phong)
-CREATE TABLE chi_tiet_dat_phong (
-    id_ct_dat_phong SERIAL PRIMARY KEY,
-    id_phong INTEGER REFERENCES phong(id_phong),
-    ma_dat_phong INTEGER REFERENCES dat_phong(ma_dat_phong),
-    so_luong_phong INTEGER DEFAULT 1
+CREATE TABLE public.luu_tru (
+  id_luutru integer NOT NULL DEFAULT nextval('luu_tru_id_luutru_seq'::regclass),
+  ma_dat_phong character varying,
+  thoi_gian_checkin_thuc_te timestamp without time zone DEFAULT now(),
+  thoi_gian_checkout_thuc_te timestamp without time zone,
+  so_nguoi_thuc_te integer,
+  CONSTRAINT luu_tru_pkey PRIMARY KEY (id_luutru),
+  CONSTRAINT luu_tru_ma_dat_phong_fkey FOREIGN KEY (ma_dat_phong) REFERENCES public.dat_phong(ma_dat_phong)
 );
-
--- 6. LuuTru (Stay Records / Actual Check-in/out)
-CREATE TABLE luu_tru (
-    id_luutru SERIAL PRIMARY KEY,
-    ma_dat_phong INTEGER REFERENCES dat_phong(ma_dat_phong),
-    thoi_gian_checkin_thuc_te TIMESTAMP,
-    thoi_gian_checkout_thuc_te TIMESTAMP,
-    so_nguoi_thuc_te INTEGER
+CREATE TABLE public.phong (
+  id_phong integer NOT NULL DEFAULT nextval('phong_id_phong_seq'::regclass),
+  ten_phong character varying NOT NULL,
+  loai_phong character varying,
+  suc_chua integer,
+  gia_phong numeric,
+  trang_thai character varying,
+  CONSTRAINT phong_pkey PRIMARY KEY (id_phong)
 );
-
--- 7. DichVu (Services)
-CREATE TABLE dich_vu (
-    id_dichvu SERIAL PRIMARY KEY,
-    ten_dich_vu VARCHAR(255) NOT NULL,
-    don_gia DECIMAL(15, 2) NOT NULL
+CREATE TABLE public.su_dung_dich_vu (
+  id_sudung_dv integer NOT NULL DEFAULT nextval('su_dung_dich_vu_id_sudung_dv_seq'::regclass),
+  soluong integer DEFAULT 1,
+  thoi_gian timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  thanh_tien numeric,
+  id_dichvu integer,
+  id_luutru integer,
+  id_hoadon integer,
+  CONSTRAINT su_dung_dich_vu_pkey PRIMARY KEY (id_sudung_dv),
+  CONSTRAINT su_dung_dich_vu_id_dichvu_fkey FOREIGN KEY (id_dichvu) REFERENCES public.dich_vu(id_dichvu),
+  CONSTRAINT su_dung_dich_vu_id_hoadon_fkey FOREIGN KEY (id_hoadon) REFERENCES public.hoa_don(id_hoadon)
 );
-
--- 8. HoaDon (Invoices)
-CREATE TABLE hoa_don (
-    id_hoadon SERIAL PRIMARY KEY,
-    tong_tien DECIMAL(15, 2) DEFAULT 0,
-    trang_thai VARCHAR(50), -- e.g., 'UNPAID', 'PAID', 'CANCELLED'
-    ngay_lap TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE public.tai_khoan (
+  id_taikhoan integer NOT NULL DEFAULT nextval('tai_khoan_id_taikhoan_seq'::regclass),
+  ten_dang_nhap character varying NOT NULL UNIQUE,
+  mat_khau character varying NOT NULL,
+  ho_ten character varying,
+  id_vaitro integer,
+  id_nhan_vien integer,
+  id_vai_tro integer,
+  id bigint NOT NULL DEFAULT nextval('tai_khoan_id_seq'::regclass),
+  chuc_vu character varying,
+  email character varying,
+  gioi_tinh character varying,
+  ngay_sinh character varying,
+  so_dien_thoai character varying,
+  CONSTRAINT tai_khoan_pkey PRIMARY KEY (id_taikhoan),
+  CONSTRAINT tai_khoan_id_vaitro_fkey FOREIGN KEY (id_vaitro) REFERENCES public.vai_tro(id_vaitro)
 );
-
--- 9. SuDungDichVu (Service Usage)
-CREATE TABLE su_dung_dich_vu (
-    id_sudung_dv SERIAL PRIMARY KEY,
-    soluong INTEGER DEFAULT 1,
-    thoi_gian TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    thanh_tien DECIMAL(15, 2),
-    id_dichvu INTEGER REFERENCES dich_vu(id_dichvu),
-    id_luutru INTEGER REFERENCES luu_tru(id_luutru),
-    id_hoadon INTEGER REFERENCES hoa_don(id_hoadon)
+CREATE TABLE public.tai_san (
+  id_taisan integer NOT NULL DEFAULT nextval('tai_san_id_taisan_seq'::regclass),
+  ten_tai_san character varying NOT NULL,
+  gia_tri_boi_thuong numeric,
+  id_phong integer,
+  CONSTRAINT tai_san_pkey PRIMARY KEY (id_taisan),
+  CONSTRAINT tai_san_id_phong_fkey FOREIGN KEY (id_phong) REFERENCES public.phong(id_phong)
 );
-
--- 10. ThanhToan (Payments)
-CREATE TABLE thanh_toan (
-    id_thanhtoan SERIAL PRIMARY KEY,
-    so_tien DECIMAL(15, 2) NOT NULL,
-    phuong_thuc VARCHAR(50), -- e.g., 'CASH', 'CREDIT_CARD', 'TRANSFER'
-    trang_thai VARCHAR(50),
-    id_hoadon INTEGER REFERENCES hoa_don(id_hoadon)
+CREATE TABLE public.thanh_toan (
+  id_thanhtoan integer NOT NULL DEFAULT nextval('thanh_toan_id_thanhtoan_seq'::regclass),
+  so_tien numeric NOT NULL,
+  phuong_thuc character varying,
+  trang_thai character varying,
+  id_hoadon integer,
+  CONSTRAINT thanh_toan_pkey PRIMARY KEY (id_thanhtoan),
+  CONSTRAINT thanh_toan_id_hoadon_fkey FOREIGN KEY (id_hoadon) REFERENCES public.hoa_don(id_hoadon)
 );
-
--- 11. TaiSan (Assets in Rooms)
-CREATE TABLE tai_san (
-    id_taisan SERIAL PRIMARY KEY,
-    ten_tai_san VARCHAR(255) NOT NULL,
-    gia_tri_boi_thuong DECIMAL(15, 2),
-    id_phong INTEGER REFERENCES phong(id_phong)
+CREATE TABLE public.thiet_hai (
+  id_thie_thai integer NOT NULL DEFAULT nextval('thiet_hai_id_thie_thai_seq'::regclass),
+  muc_do character varying,
+  so_tien_boi_thuong numeric,
+  trang_thai character varying,
+  id_taisan integer,
+  id_luutru integer,
+  CONSTRAINT thiet_hai_pkey PRIMARY KEY (id_thie_thai),
+  CONSTRAINT thiet_hai_id_taisan_fkey FOREIGN KEY (id_taisan) REFERENCES public.tai_san(id_taisan)
 );
-
--- 12. ThietHai (Damages during Stay)
-CREATE TABLE thiet_hai (
-    id_thie_thai SERIAL PRIMARY KEY,
-    muc_do VARCHAR(50),
-    so_tien_boi_thuong DECIMAL(15, 2),
-    trang_thai VARCHAR(50),
-    id_taisan INTEGER REFERENCES tai_san(id_taisan),
-    id_luutru INTEGER REFERENCES luu_tru(id_luutru)
+CREATE TABLE public.users (
+  id bigint NOT NULL DEFAULT nextval('users_id_seq'::regclass),
+  email character varying NOT NULL UNIQUE,
+  name character varying NOT NULL,
+  CONSTRAINT users_pkey PRIMARY KEY (id)
 );
-
--- 13. Service / Compensation catalog used by the mobile service assignment flow
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
-CREATE OR REPLACE FUNCTION set_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TABLE IF NOT EXISTS services (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL,
-    price NUMERIC(15, 2) NOT NULL DEFAULT 0 CHECK (price >= 0),
-    unit TEXT,
-    icon TEXT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+CREATE TABLE public.vai_tro (
+  id_vaitro integer NOT NULL DEFAULT nextval('vai_tro_id_vaitro_seq'::regclass),
+  ten_vaitro character varying NOT NULL UNIQUE,
+  CONSTRAINT vai_tro_pkey PRIMARY KEY (id_vaitro)
 );
-
-CREATE TABLE IF NOT EXISTS assets (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL,
-    price NUMERIC(15, 2) NOT NULL DEFAULT 0 CHECK (price >= 0),
-    unit TEXT,
-    icon TEXT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS room_services (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    room_id INTEGER NOT NULL REFERENCES phong(id_phong) ON DELETE CASCADE,
-    service_id UUID NOT NULL REFERENCES services(id) ON DELETE RESTRICT,
-    quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
-    price NUMERIC(15, 2) NOT NULL CHECK (price >= 0),
-    total_price NUMERIC(15, 2) NOT NULL CHECK (total_price >= 0),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS room_assets (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    room_id INTEGER NOT NULL REFERENCES phong(id_phong) ON DELETE CASCADE,
-    asset_id UUID NOT NULL REFERENCES assets(id) ON DELETE RESTRICT,
-    quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
-    price NUMERIC(15, 2) NOT NULL CHECK (price >= 0),
-    total_price NUMERIC(15, 2) NOT NULL CHECK (total_price >= 0),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_services_name_lower ON services (LOWER(name));
-CREATE INDEX IF NOT EXISTS idx_assets_name_lower ON assets (LOWER(name));
-CREATE INDEX IF NOT EXISTS idx_room_services_room_id ON room_services(room_id);
-CREATE INDEX IF NOT EXISTS idx_room_assets_room_id ON room_assets(room_id);
-
-DROP TRIGGER IF EXISTS trg_services_updated_at ON services;
-CREATE TRIGGER trg_services_updated_at
-    BEFORE UPDATE ON services
-    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
-DROP TRIGGER IF EXISTS trg_assets_updated_at ON assets;
-CREATE TRIGGER trg_assets_updated_at
-    BEFORE UPDATE ON assets
-    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
-DROP TRIGGER IF EXISTS trg_room_services_updated_at ON room_services;
-CREATE TRIGGER trg_room_services_updated_at
-    BEFORE UPDATE ON room_services
-    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
-DROP TRIGGER IF EXISTS trg_room_assets_updated_at ON room_assets;
-CREATE TRIGGER trg_room_assets_updated_at
-    BEFORE UPDATE ON room_assets
-    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
-INSERT INTO services (name, price)
-SELECT ten_dich_vu, COALESCE(don_gia, 0)
-FROM dich_vu
-WHERE ten_dich_vu IS NOT NULL
-  AND NOT EXISTS (SELECT 1 FROM services);
-
-INSERT INTO assets (name, price)
-SELECT ten_tai_san, MAX(COALESCE(gia_tri_boi_thuong, 0))
-FROM tai_san
-WHERE ten_tai_san IS NOT NULL
-  AND NOT EXISTS (SELECT 1 FROM assets)
-GROUP BY ten_tai_san;

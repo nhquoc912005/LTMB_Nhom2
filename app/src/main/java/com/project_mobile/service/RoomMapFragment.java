@@ -26,7 +26,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import androidx.cardview.widget.CardView;
 import com.project_mobile.R;
 import com.project_mobile.network.ApiModels.ActiveRoomDto;
 import com.project_mobile.network.ApiModels.CatalogItemDto;
@@ -48,7 +48,7 @@ public class RoomMapFragment extends Fragment {
     private LinearLayout layoutRoomMap;
     private RecyclerView rcvRoomMap;
     private RelativeLayout layoutRoomDetail;
-    private FloatingActionButton fabAddRoomLine;
+    private View fabAddRoomLine;
 
     private TextView tvTabService;
     private TextView tvTabAsset;
@@ -71,7 +71,8 @@ public class RoomMapFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_room_map, container, false);
         repository = new ServiceRepository();
 
@@ -127,8 +128,6 @@ public class RoomMapFragment extends Fragment {
 
     private void setupActions(View view) {
         view.findViewById(R.id.btnDetailClose).setOnClickListener(v -> closeDetail());
-        view.findViewById(R.id.btnAddServiceInline).setOnClickListener(v -> showAddLineDialog());
-        view.findViewById(R.id.btnAddAssetInline).setOnClickListener(v -> showAddLineDialog());
         fabAddRoomLine.setOnClickListener(v -> showAddLineDialog());
     }
 
@@ -140,7 +139,8 @@ public class RoomMapFragment extends Fragment {
     }
 
     private void updateTabUi(TextView serviceTab, TextView assetTab) {
-        if (serviceTab == null || assetTab == null) return;
+        if (serviceTab == null || assetTab == null)
+            return;
         if (isServiceTab) {
             serviceTab.setBackgroundResource(R.drawable.bg_tab_left_active);
             serviceTab.setTextColor(Color.parseColor("#C0410D"));
@@ -155,7 +155,8 @@ public class RoomMapFragment extends Fragment {
     }
 
     private void updateDetailSectionVisibility() {
-        if (layoutRoomDetail == null || layoutRoomDetail.getVisibility() != View.VISIBLE) return;
+        if (layoutRoomDetail == null || layoutRoomDetail.getVisibility() != View.VISIBLE)
+            return;
         sectionServices.setVisibility(isServiceTab ? View.VISIBLE : View.GONE);
         sectionAssets.setVisibility(isServiceTab ? View.GONE : View.VISIBLE);
         fabAddRoomLine.setVisibility(View.VISIBLE);
@@ -166,11 +167,15 @@ public class RoomMapFragment extends Fragment {
         repository.fetchActiveRooms(query, new ServiceRepository.DataCallback<List<ActiveRoomDto>>() {
             @Override
             public void onSuccess(List<ActiveRoomDto> data) {
-                if (!isAdded()) return;
+                if (!isAdded())
+                    return;
                 List<StayRoomModel> rooms = new ArrayList<>();
                 if (data != null) {
                     for (ActiveRoomDto dto : data) {
-                        rooms.add(StayRoomModel.fromDto(dto));
+                        // Chỉ hiển thị những phòng đang có khách lưu trú (stayId != null)
+                        if (dto.stayId != null) {
+                            rooms.add(StayRoomModel.fromDto(dto));
+                        }
                     }
                 }
                 rcvRoomMap.setAdapter(new FloorAdapter(groupByFloor(rooms), room -> showRoomDetail(room)));
@@ -178,7 +183,8 @@ public class RoomMapFragment extends Fragment {
 
             @Override
             public void onError(String error) {
-                if (!isAdded()) return;
+                if (!isAdded())
+                    return;
                 Toast.makeText(getContext(), readableError(error), Toast.LENGTH_SHORT).show();
             }
         });
@@ -238,20 +244,24 @@ public class RoomMapFragment extends Fragment {
     }
 
     private void loadRoomLines(boolean serviceTab) {
-        if (selectedRoom == null) return;
-        repository.fetchRoomLines(serviceTab, selectedRoom.getRoomId(), new ServiceRepository.DataCallback<List<RoomLineDto>>() {
-            @Override
-            public void onSuccess(List<RoomLineDto> data) {
-                if (!isAdded() || selectedRoom == null) return;
-                renderLines(serviceTab, data == null ? new ArrayList<>() : data);
-            }
+        if (selectedRoom == null)
+            return;
+        repository.fetchRoomLines(serviceTab, selectedRoom.getRoomId(),
+                new ServiceRepository.DataCallback<List<RoomLineDto>>() {
+                    @Override
+                    public void onSuccess(List<RoomLineDto> data) {
+                        if (!isAdded() || selectedRoom == null)
+                            return;
+                        renderLines(serviceTab, data == null ? new ArrayList<>() : data);
+                    }
 
-            @Override
-            public void onError(String error) {
-                if (!isAdded()) return;
-                Toast.makeText(getContext(), readableError(error), Toast.LENGTH_SHORT).show();
-            }
-        });
+                    @Override
+                    public void onError(String error) {
+                        if (!isAdded())
+                            return;
+                        Toast.makeText(getContext(), readableError(error), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void renderLines(boolean serviceTab, List<RoomLineDto> lines) {
@@ -260,13 +270,14 @@ public class RoomMapFragment extends Fragment {
 
         for (int i = 0; i < lines.size(); i++) {
             RoomLineDto line = lines.get(i);
-            View itemView = LayoutInflater.from(requireContext()).inflate(R.layout.item_added_service, container, false);
+            View itemView = LayoutInflater.from(requireContext()).inflate(R.layout.item_added_service, container,
+                    false);
             TextView tvName = itemView.findViewById(R.id.tvItemName);
             TextView tvPrice = itemView.findViewById(R.id.tvItemPrice);
             EditText edtQty = itemView.findViewById(R.id.edtQty);
 
             tvName.setText((i + 1) + ". " + safeText(line.name));
-            tvPrice.setText(formatMoney(line.totalPrice != null ? line.totalPrice : 0));
+            tvPrice.setText(formatMoney(line.total != null ? line.total : 0));
             edtQty.setText(String.valueOf(line.quantity != null ? line.quantity : 1));
             edtQty.setOnFocusChangeListener((v, hasFocus) -> {
                 if (!hasFocus) {
@@ -293,18 +304,21 @@ public class RoomMapFragment extends Fragment {
             edtQty.setError("Số lượng phải là số nguyên dương");
             return;
         }
-        if (line.quantity != null && line.quantity.equals(quantity)) return;
+        if (line.quantity != null && line.quantity.equals(quantity))
+            return;
 
         repository.updateRoomLine(serviceTab, line.id, quantity, new ServiceRepository.DataCallback<RoomLineDto>() {
             @Override
             public void onSuccess(RoomLineDto data) {
-                if (!isAdded()) return;
+                if (!isAdded())
+                    return;
                 loadRoomLines(serviceTab);
             }
 
             @Override
             public void onError(String error) {
-                if (!isAdded()) return;
+                if (!isAdded())
+                    return;
                 Toast.makeText(getContext(), readableError(error), Toast.LENGTH_SHORT).show();
                 loadRoomLines(serviceTab);
             }
@@ -316,31 +330,37 @@ public class RoomMapFragment extends Fragment {
                 .setTitle("Xoá khỏi phòng")
                 .setMessage("Bạn có chắc muốn xoá \"" + safeText(line.name) + "\"?")
                 .setNegativeButton("Huỷ", null)
-                .setPositiveButton("Xác nhận", (dialog, which) -> repository.deleteRoomLine(serviceTab, line.id, new ServiceRepository.DataCallback<RoomLineDto>() {
-                    @Override
-                    public void onSuccess(RoomLineDto data) {
-                        if (!isAdded()) return;
-                        loadRoomLines(serviceTab);
-                    }
+                .setPositiveButton("Xác nhận", (dialog, which) -> repository.deleteRoomLine(serviceTab, line.id,
+                        new ServiceRepository.DataCallback<RoomLineDto>() {
+                            @Override
+                            public void onSuccess(RoomLineDto data) {
+                                if (!isAdded())
+                                    return;
+                                loadRoomLines(serviceTab);
+                            }
 
-                    @Override
-                    public void onError(String error) {
-                        if (!isAdded()) return;
-                        Toast.makeText(getContext(), readableError(error), Toast.LENGTH_SHORT).show();
-                    }
-                }))
+                            @Override
+                            public void onError(String error) {
+                                if (!isAdded())
+                                    return;
+                                Toast.makeText(getContext(), readableError(error), Toast.LENGTH_SHORT).show();
+                            }
+                        }))
                 .show();
     }
 
     private void showAddLineDialog() {
-        if (selectedRoom == null) return;
+        if (selectedRoom == null)
+            return;
         boolean targetServiceTab = isServiceTab;
         repository.fetchCatalog(targetServiceTab, "", new ServiceRepository.DataCallback<List<CatalogItemDto>>() {
             @Override
             public void onSuccess(List<CatalogItemDto> data) {
-                if (!isAdded()) return;
+                if (!isAdded())
+                    return;
                 if (data == null || data.isEmpty()) {
-                    Toast.makeText(getContext(), targetServiceTab ? "Chưa có dịch vụ" : "Chưa có bồi thường", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), targetServiceTab ? "Chưa có dịch vụ" : "Chưa có bồi thường",
+                            Toast.LENGTH_SHORT).show();
                     return;
                 }
                 showCatalogPickerDialog(targetServiceTab, data);
@@ -348,7 +368,8 @@ public class RoomMapFragment extends Fragment {
 
             @Override
             public void onError(String error) {
-                if (!isAdded()) return;
+                if (!isAdded())
+                    return;
                 Toast.makeText(getContext(), readableError(error), Toast.LENGTH_SHORT).show();
             }
         });
@@ -375,7 +396,8 @@ public class RoomMapFragment extends Fragment {
         for (CatalogItemDto item : catalog) {
             labels.add(safeText(item.name) + " - " + formatMoney(item.price != null ? item.price : 0));
         }
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, labels);
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item,
+                labels);
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spCatalog.setAdapter(spinnerAdapter);
 
@@ -417,30 +439,35 @@ public class RoomMapFragment extends Fragment {
         btnCancel.setOnClickListener(v -> dialog.dismiss());
         btnConfirm.setOnClickListener(v -> {
             int position = spCatalog.getSelectedItemPosition();
-            if (position < 0) return;
+            if (position < 0)
+                return;
             Integer quantity = parseQuantity(edtQuantity.getText() == null ? "" : edtQuantity.getText().toString());
             if (quantity == null) {
                 edtQuantity.setError("Số lượng phải là số nguyên dương");
                 return;
             }
-            Integer catalogId = catalog.get(position).id;
-            if (catalogId == null || selectedRoom == null) return;
+            String catalogId = catalog.get(position).id;
+            if (catalogId == null || selectedRoom == null)
+                return;
 
-            repository.addRoomLine(serviceTab, selectedRoom.getRoomId(), catalogId, quantity, new ServiceRepository.DataCallback<RoomLineDto>() {
-                @Override
-                public void onSuccess(RoomLineDto data) {
-                    if (!isAdded()) return;
-                    dialog.dismiss();
-                    setCurrentTab(serviceTab);
-                    loadRoomLines(serviceTab);
-                }
+            repository.addRoomLine(serviceTab, selectedRoom.getRoomId(), catalogId, quantity,
+                    new ServiceRepository.DataCallback<RoomLineDto>() {
+                        @Override
+                        public void onSuccess(RoomLineDto data) {
+                            if (!isAdded())
+                                return;
+                            dialog.dismiss();
+                            setCurrentTab(serviceTab);
+                            loadRoomLines(serviceTab);
+                        }
 
-                @Override
-                public void onError(String error) {
-                    if (!isAdded()) return;
-                    Toast.makeText(getContext(), readableError(error), Toast.LENGTH_SHORT).show();
-                }
-            });
+                        @Override
+                        public void onError(String error) {
+                            if (!isAdded())
+                                return;
+                            Toast.makeText(getContext(), readableError(error), Toast.LENGTH_SHORT).show();
+                        }
+                    });
         });
 
         updateTotal.run();
@@ -458,15 +485,18 @@ public class RoomMapFragment extends Fragment {
     }
 
     private String readableStatus(String status) {
-        if (status == null || status.trim().isEmpty()) return "Đang sử dụng";
-        if ("OCCUPIED".equalsIgnoreCase(status) || "CHECKED_IN".equalsIgnoreCase(status)) {
+        if (status == null || status.trim().isEmpty())
+            return "Đang sử dụng";
+        if ("OCCUPIED".equalsIgnoreCase(status) || "CHECKED_IN".equalsIgnoreCase(status)
+                || "Bận".equalsIgnoreCase(status)) {
             return "Đang sử dụng";
         }
         return status;
     }
 
     private String formatDate(String raw) {
-        if (raw == null || raw.trim().isEmpty()) return "-";
+        if (raw == null || raw.trim().isEmpty())
+            return "-";
         String value = raw.trim();
         try {
             return OffsetDateTime.parse(value).format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));

@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="20dp">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -21,18 +21,18 @@
                 android:id="@+id/tvRoomName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-black"
                 android:text="Phòng 101"
                 android:textColor="#333333"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:textSize="24sp" />
 
             <ImageView
                 android:id="@+id/ivMenu"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
                 android:src="@drawable/ic_hamburger"
-                android:contentDescription="Menu"
                 app:tint="#666666" />
 
             <TextView
@@ -41,85 +41,124 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/tvRoomName"
                 android:layout_marginTop="8dp"
-                android:background="#FFF9C4"
+                android:background="@drawable/bg_status_pending"
                 android:paddingHorizontal="12dp"
-                android:paddingVertical="4dp"
+                android:paddingVertical="6dp"
                 android:text="Chờ check-in"
-                android:textColor="#FBC02D"
-                android:textSize="12sp" />
+                android:textColor="#D4AF37"
+                android:textSize="12sp"
+                android:textStyle="bold" />
         </RelativeLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:background="#F5F0E8"
-            android:orientation="vertical"
-            android:padding="12dp">
+            android:background="@drawable/bg_info_box"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:baselineAligned="false">
 
+            <!-- Left side with info -->
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:src="@android:drawable/ic_menu_myplaces"
-                    app:tint="#607D8B" />
+                android:layout_weight="1.2"
+                android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/tvCustomerName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
                     android:text="Nguyễn Văn A"
-                    android:textColor="#444444" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:src="@android:drawable/ic_dialog_email"
-                    app:tint="#607D8B" />
+                    android:textColor="#555555"
+                    android:textSize="14sp" />
 
                 <TextView
                     android:id="@+id/tvCustomerEmail"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
                     android:text="nguyenvana@gmail.com"
-                    android:textColor="#444444" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:src="@android:drawable/ic_menu_call"
-                    app:tint="#607D8B" />
+                    android:textColor="#555555"
+                    android:textSize="14sp" />
 
                 <TextView
                     android:id="@+id/tvCustomerPhone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
                     android:text="090 123 4567"
-                    android:textColor="#444444" />
+                    android:textColor="#555555"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <!-- Right side with guest counts -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="end">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tổng số người: "
+                        android:textColor="#888888"
+                        android:textSize="12sp" />
+                    <TextView
+                        android:id="@+id/tvTotalGuests"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="3"
+                        android:textColor="#555555"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:orientation="horizontal">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Người lớn: "
+                        android:textColor="#888888"
+                        android:textSize="12sp" />
+                    <TextView
+                        android:id="@+id/tvAdults"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2"
+                        android:textColor="#555555"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:orientation="horizontal">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Trẻ em: "
+                        android:textColor="#888888"
+                        android:textSize="12sp" />
+                    <TextView
+                        android:id="@+id/tvChildren"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1"
+                        android:textColor="#555555"
+                        android:textSize="12sp" />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 
@@ -134,24 +173,26 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:background="@drawable/bg_search_input"
+                android:background="@drawable/bg_date_box"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="8dp">
+                android:padding="12dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="NHẬN PHÒNG"
                     android:textColor="#999999"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
 
                 <TextView
                     android:id="@+id/tvCheckInDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
                     android:text="01 Th2, 2026"
                     android:textColor="#333333"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -159,24 +200,26 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="@drawable/bg_search_input"
+                android:background="@drawable/bg_date_box"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="8dp">
+                android:padding="12dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="TRẢ PHÒNG"
                     android:textColor="#999999"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
 
                 <TextView
                     android:id="@+id/tvCheckOutDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
                     android:text="03 Th2, 2026"
                     android:textColor="#333333"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
@@ -184,13 +227,15 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp">
+            android:layout_marginTop="20dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
                 android:text="Tổng thanh toán"
-                android:textColor="#999999" />
+                android:textColor="#888888"
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/tvTotalPrice"
@@ -199,18 +244,20 @@
                 android:layout_alignParentEnd="true"
                 android:text="2,000,000đ"
                 android:textColor="#A3734D"
-                android:textSize="22sp"
+                android:textSize="24sp"
                 android:textStyle="bold" />
         </RelativeLayout>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCancelBooking"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_height="56dp"
+            android:layout_marginTop="16dp"
             android:backgroundTint="#FF0000"
             android:text="HỦY ĐẶT PHÒNG"
-            android:textColor="#FFFFFF" />
-
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:cornerRadius="8dp" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>

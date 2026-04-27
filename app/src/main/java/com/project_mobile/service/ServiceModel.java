@@ -6,13 +6,13 @@ import java.text.NumberFormat;
 import java.util.Locale;
 
 public class ServiceModel {
-    private final int id;
+    private final String id;
     private final String name;
     private final double price;
     private final String unit;
     private final String icon;
 
-    public ServiceModel(int id, String name, double price, String unit, String icon) {
+    public ServiceModel(String id, String name, double price, String unit, String icon) {
         this.id = id;
         this.name = name;
         this.price = price;
@@ -22,15 +22,14 @@ public class ServiceModel {
 
     public static ServiceModel fromDto(CatalogItemDto dto) {
         return new ServiceModel(
-                dto.id != null ? dto.id : 0,
+                dto.id != null ? dto.id : "",
                 dto.name != null ? dto.name : "",
                 dto.price != null ? dto.price : 0,
                 dto.unit,
-                dto.icon
-        );
+                dto.icon);
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 

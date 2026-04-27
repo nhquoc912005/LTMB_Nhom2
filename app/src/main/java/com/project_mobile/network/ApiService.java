@@ -42,13 +42,7 @@ public interface ApiService {
     Call<ApiResponse<BookingDto>> confirmBooking(@Path("id") String id);
 
     @PUT("/api/bookings/{id}/check-in")
-    Call<ApiResponse<BookingDto>> checkInBooking(@Path("id") String id);
-
-    @PUT("/api/bookings/{id}/check-out")
-    Call<ApiResponse<BookingDto>> checkOutBooking(@Path("id") String id);
-
-    @PUT("/api/bookings/{id}/payment")
-    Call<ApiResponse<BookingDto>> paymentBooking(@Path("id") String id);
+    Call<ApiResponse<BookingDto>> checkInBooking(@Path("id") String id, @Body ApiModels.CheckInRequest req);
 
     // --- Services & Assets ---
     @GET("/api/services")
@@ -107,6 +101,15 @@ public interface ApiService {
     @POST("/api/auth/login")
     Call<ApiResponse<ApiModels.UserDto>> login(@Body ApiModels.LoginRequest req);
 
+    @POST("/api/auth/forgot-password")
+    Call<ApiResponse<ApiModels.IdentityResponse>> forgotPassword(@Body ApiModels.ForgotPasswordRequest req);
+
+    @POST("/api/auth/verify-otp")
+    Call<ApiResponse<Void>> verifyOtp(@Body ApiModels.VerifyOtpRequest req);
+
+    @POST("/api/auth/reset-password")
+    Call<ApiResponse<Void>> resetPassword(@Body ApiModels.ResetPasswordRequest req);
+
     @GET("/api/users")
     Call<ApiResponse<List<ApiModels.UserDto>>> getUsers();
 
@@ -115,6 +118,9 @@ public interface ApiService {
 
     @PUT("/api/users/{id}")
     Call<ApiResponse<ApiModels.UserDto>> updateUser(@Path("id") String id, @Body ApiModels.UserDto req);
+
+    @PUT("/api/users/{id}/lock")
+    Call<ApiResponse<ApiModels.UserDto>> updateUserLock(@Path("id") String id, @Body ApiModels.UserLockRequest req);
 
     @DELETE("/api/users/{id}")
     Call<ApiResponse<ApiModels.UserDto>> deleteUser(@Path("id") String id);
@@ -145,8 +151,17 @@ public interface ApiService {
         @Query("q") String query
     );
 
+    @POST("/api/v2/checkouts/{maDatPhong}/draft-bill")
+    Call<ApiResponse<ApiModels.CheckoutDto>> createCheckoutDraft(@Path("maDatPhong") String maDatPhong);
+
+    @POST("/api/v2/invoices/{idHoaDon}/pay")
+    Call<ApiResponse<Object>> payInvoice(@Path("idHoaDon") int idHoaDon, @Body ApiModels.PaymentRequest req);
+
     @GET("/api/check-in/bookings/{maDatPhong}/available-rooms")
     Call<ApiResponse<List<ApiModels.RoomDto>>> getAvailableRooms(@Path("maDatPhong") String maDatPhong);
+
+    @POST("/api/check-in/bookings/{maDatPhong}/confirm")
+    Call<ApiResponse<Object>> confirmCheckIn(@Path("maDatPhong") String maDatPhong, @Body ApiModels.CheckInRequest req);
 
     @POST("/api/check-in/bookings/{maDatPhong}/change-room")
     Call<ApiResponse<Void>> changeRoom(@Path("maDatPhong") String maDatPhong, @Body ApiModels.ChangeRoomRequest req);

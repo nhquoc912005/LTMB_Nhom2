@@ -17,7 +17,8 @@ public class NetworkConfig {
      * - Kiểm tra Firewall trên Windows (nên tắt tạm hoặc thêm rule cho port 3000).
      * 3. Đảm bảo server Node.js đang chạy (npm start).
      */
-    // public static final String BASE_URL = "http://192.168.1.122:3000/"
-    public static final String BASE_URL = "http://192.168.1.6:3000/";
+    // Use 10.0.2.2 when running on the Android Emulator.
+    // For a physical phone, replace this with your computer's LAN IPv4 address.
+    public static final String BASE_URL = "http://10.0.2.2:3000/";
 
 }

@@ -32,9 +32,10 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        // Set click listener for forgot password (example)
+        // Set click listener for forgot password
         findViewById(R.id.tvForgotPassword).setOnClickListener(v -> {
-            Toast.makeText(this, "Tính năng đang được phát triển", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, ForgotPasswordActivity.class);
+            startActivity(intent);
         });
     }
 

@@ -77,6 +77,13 @@ public class CheckoutFragment extends Fragment {
                         checkoutList.clear();
                         if (response.body().data != null) {
                             for (com.project_mobile.network.ApiModels.CheckoutDto d : response.body().data) {
+                                if (d == null) {
+                                    continue;
+                                }
+                                if (d != null) {
+                                    checkoutList.add(buildCheckoutBill(d));
+                                    continue;
+                                }
                                 checkoutList.add(new CheckoutBill(
                                     new RoomModel(d.roomNames, "Standard", "Tầng 1", d.totalGuests + " người", String.valueOf(d.roomFee), "Đang sử dụng", d.customerName, d.customerPhone, "2 ngày"),
                                     d.email, d.checkinAt, d.expectedCheckoutAt, d.serviceFee + d.damageFee, d.amountDue, d.adults, d.children
@@ -136,9 +143,10 @@ public class CheckoutFragment extends Fragment {
         ((TextView)dialog.findViewById(R.id.tvDialogDateRange)).setText(bill.getCheckInDate() + " - " + bill.getCheckOutDate());
         ((TextView)dialog.findViewById(R.id.tvDialogTotalGuests)).setText("Số người: " + bill.getTotalGuests());
         ((TextView)dialog.findViewById(R.id.tvDialogGuestDetails)).setText(bill.getAdults() + " người lớn" + (bill.getChildren() > 0 ? ", " + bill.getChildren() + " trẻ em" : ""));
-        ((TextView)dialog.findViewById(R.id.tvDialogTotal)).setText(String.format("%,.0f", bill.getTotalFee()));
-        ((TextView)dialog.findViewById(R.id.tvDialogRoomFee)).setText(bill.getRoomModel().getPrice());
-        ((TextView)dialog.findViewById(R.id.tvDialogServiceFee)).setText(String.format("%,.0f", bill.getServiceFee()));
+        ((TextView)dialog.findViewById(R.id.tvDialogTotal)).setText(formatMoney(bill.getTotalFee()));
+        ((TextView)dialog.findViewById(R.id.tvDialogRoomFee)).setText(formatMoney(bill.getRoomFee()));
+        ((TextView)dialog.findViewById(R.id.tvDialogServiceFee)).setText(formatMoney(bill.getServiceFee()));
+        ((TextView)dialog.findViewById(R.id.tvDialogCheckoutDate)).setText(bill.getCheckOutDate());
 
         // ---> ĐOẠN XỬ LÝ CHỌN PHƯƠNG THỨC THANH TOÁN (MỚI) <---
         Spinner spinnerPayment = dialog.findViewById(R.id.spinnerPayment);
@@ -152,7 +160,131 @@ public class CheckoutFragment extends Fragment {
         spinnerPayment.setAdapter(spinnerAdapter);
         // --------------------------------------------------------
 
+        android.widget.EditText etNote = dialog.findViewById(R.id.etNote);
+        View btnConfirmPrint = dialog.findViewById(R.id.btnConfirmPrint);
+        View btnRedInvoice = dialog.findViewById(R.id.btnRedInvoice);
+
         dialog.findViewById(R.id.btnCancel).setOnClickListener(v -> dialog.dismiss());
+        if (btnConfirmPrint != null) {
+            btnConfirmPrint.setOnClickListener(v -> payCheckout(bill, spinnerPayment, etNote, false, dialog, btnConfirmPrint, btnRedInvoice));
+        }
+        if (btnRedInvoice != null) {
+            btnRedInvoice.setOnClickListener(v -> payCheckout(bill, spinnerPayment, etNote, true, dialog, btnConfirmPrint, btnRedInvoice));
+        }
         dialog.show();
+    }
+
+    private CheckoutBill buildCheckoutBill(com.project_mobile.network.ApiModels.CheckoutDto d) {
+        double roomFee = money(d.roomFee);
+        double serviceFee = money(d.serviceFee);
+        double damageFee = money(d.damageFee);
+        double amountDue = money(d.amountDue);
+        return new CheckoutBill(
+                new RoomModel(safe(d.roomNames), "Standard", "Táº§ng 1", totalGuests(d) + " ngÆ°á»i", formatMoney(roomFee), "Äang sá»­ dá»¥ng", safe(d.customerName), safe(d.customerPhone), "2 ngÃ y"),
+                d.email,
+                safe(d.checkinAt),
+                safe(d.expectedCheckoutAt),
+                serviceFee + damageFee,
+                amountDue,
+                d.adults != null ? d.adults : 0,
+                d.children != null ? d.children : 0,
+                d.idLuutru,
+                d.idHoaDon,
+                d.maDatPhong,
+                roomFee,
+                damageFee,
+                money(d.deposit),
+                money(d.grossTotal)
+        );
+    }
+
+    private void payCheckout(CheckoutBill bill, Spinner spinnerPayment, android.widget.EditText etNote, boolean requestVat, Dialog dialog, View btnConfirmPrint, View btnRedInvoice) {
+        if (bill.getMaDatPhong() == null || bill.getMaDatPhong().trim().isEmpty()) {
+            android.widget.Toast.makeText(getContext(), "Thiáº¿u mÃ£ Ä‘áº·t phÃ²ng Ä‘á»ƒ thanh toÃ¡n", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        setPaymentButtonsEnabled(btnConfirmPrint, btnRedInvoice, false);
+        com.project_mobile.network.ApiService api = com.project_mobile.network.ApiClient.getClient().create(com.project_mobile.network.ApiService.class);
+        api.createCheckoutDraft(bill.getMaDatPhong()).enqueue(new retrofit2.Callback<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.CheckoutDto>>() {
+            @Override
+            public void onResponse(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.CheckoutDto>> call, retrofit2.Response<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.CheckoutDto>> response) {
+                if (!response.isSuccessful() || response.body() == null || !response.body().success || response.body().data == null || response.body().data.idHoaDon == null) {
+                    setPaymentButtonsEnabled(btnConfirmPrint, btnRedInvoice, true);
+                    String msg = response.body() != null && response.body().message != null ? response.body().message : "KhÃ´ng thá»ƒ táº¡o hÃ³a Ä‘Æ¡n nhÃ¡p";
+                    android.widget.Toast.makeText(getContext(), msg, android.widget.Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                com.project_mobile.network.ApiModels.CheckoutDto draft = response.body().data;
+                bill.setIdHoaDon(draft.idHoaDon);
+                com.project_mobile.network.ApiModels.PaymentRequest req = new com.project_mobile.network.ApiModels.PaymentRequest();
+                req.paymentMethod = normalizePaymentMethod(spinnerPayment == null || spinnerPayment.getSelectedItem() == null ? null : spinnerPayment.getSelectedItem().toString());
+                req.amount = money(draft.amountDue);
+                req.idLuutru = draft.idLuutru != null ? draft.idLuutru : bill.getIdLuutru();
+                req.maDatPhong = draft.maDatPhong != null ? draft.maDatPhong : bill.getMaDatPhong();
+                req.note = etNote == null ? null : etNote.getText().toString().trim();
+                req.requestVat = requestVat;
+
+                api.payInvoice(draft.idHoaDon, req).enqueue(new retrofit2.Callback<com.project_mobile.network.ApiModels.ApiResponse<Object>>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<Object>> call, retrofit2.Response<com.project_mobile.network.ApiModels.ApiResponse<Object>> response) {
+                        setPaymentButtonsEnabled(btnConfirmPrint, btnRedInvoice, true);
+                        if (response.isSuccessful() && response.body() != null && response.body().success) {
+                            dialog.dismiss();
+                            android.widget.Toast.makeText(getContext(), "Thanh toÃ¡n vÃ  tráº£ phÃ²ng thÃ nh cÃ´ng", android.widget.Toast.LENGTH_SHORT).show();
+                            fetchData();
+                        } else {
+                            String msg = response.body() != null && response.body().message != null ? response.body().message : "Thanh toÃ¡n tháº¥t báº¡i";
+                            android.widget.Toast.makeText(getContext(), msg, android.widget.Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<Object>> call, Throwable t) {
+                        setPaymentButtonsEnabled(btnConfirmPrint, btnRedInvoice, true);
+                        android.widget.Toast.makeText(getContext(), "Lá»—i káº¿t ná»‘i: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.CheckoutDto>> call, Throwable t) {
+                setPaymentButtonsEnabled(btnConfirmPrint, btnRedInvoice, true);
+                android.widget.Toast.makeText(getContext(), "Lá»—i táº¡o hÃ³a Ä‘Æ¡n: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void setPaymentButtonsEnabled(View btnConfirmPrint, View btnRedInvoice, boolean enabled) {
+        if (btnConfirmPrint != null) btnConfirmPrint.setEnabled(enabled);
+        if (btnRedInvoice != null) btnRedInvoice.setEnabled(enabled);
+    }
+
+    private String normalizePaymentMethod(String label) {
+        if (System.currentTimeMillis() >= 0) {
+            return label != null && label.toLowerCase(java.util.Locale.ROOT).contains("chuy") ? "TRANSFER" : "CASH";
+        }
+        if (label != null && label.toLowerCase(java.util.Locale.ROOT).contains("chuy")) {
+            return "Chuyá»ƒn khoáº£n";
+        }
+        return "Tiá»n máº·t";
+    }
+
+    private int totalGuests(com.project_mobile.network.ApiModels.CheckoutDto dto) {
+        if (dto.totalGuests != null) return dto.totalGuests;
+        return (dto.adults != null ? dto.adults : 0) + (dto.children != null ? dto.children : 0);
+    }
+
+    private double money(Double value) {
+        return value == null ? 0d : value;
+    }
+
+    private String formatMoney(double value) {
+        return String.format(java.util.Locale.US, "%,.0f", value);
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value;
     }
 }

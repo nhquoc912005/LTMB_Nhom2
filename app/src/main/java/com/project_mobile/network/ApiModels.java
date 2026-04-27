@@ -13,17 +13,17 @@ public class ApiModels {
     }
 
     public static class BookingDto {
-        @SerializedName("ma_dat_phong")
+        @SerializedName(value = "ma_dat_phong", alternate = {"booking_id"})
         public String bookingId;
 
         @SerializedName(value = "room_number", alternate = {"room_names", "so_phong"})
         public String roomNumber;
 
-        @SerializedName("customer_name")
+        @SerializedName(value = "customer_name", alternate = {"ten_nguoi_dat"})
         public String customerName;
 
         public String email;
-        @SerializedName("customer_phone")
+        @SerializedName(value = "customer_phone", alternate = {"sdt_nguoi_dat"})
         public String phone;
 
         @SerializedName("tong_so_nguoi")
@@ -35,21 +35,23 @@ public class ApiModels {
         @SerializedName("so_tre_em")
         public Integer children;
 
-        @SerializedName("ngay_nhan")
+        @SerializedName(value = "ngay_nhan", alternate = {"check_in", "activity_time"})
         public String checkIn;
 
-        @SerializedName("ngay_tra")
+        @SerializedName(value = "ngay_tra", alternate = {"check_out"})
         public String checkOut;
 
         @SerializedName("payment_method")
         public String paymentMethod;
 
-        @SerializedName("total_amount")
+        @SerializedName(value = "total_amount", alternate = {"tong_thanh_toan"})
         public Double totalAmount;
 
         public String note;
         @SerializedName("trang_thai")
         public String status;
+
+        public List<RoomDto> rooms;
     }
 
     public static class CreateBookingRequest {
@@ -150,6 +152,8 @@ public class ApiModels {
         public String name;
         public Integer quantity;
         public Double price;
+
+        @SerializedName(value = "total", alternate = {"total_price", "thanh_tien", "so_tien_boi_thuong"})
         public Double total;
     }
 
@@ -185,6 +189,10 @@ public class ApiModels {
         public String email;
         public String phone;
         public String position;
+        @SerializedName("id_vaitro")
+        public Integer idVaitro;
+        public Boolean active;
+        public Boolean locked;
     }
 
     public static class StatusRequest {
@@ -216,9 +224,14 @@ public class ApiModels {
         public Double price;
         @SerializedName(value = "status", alternate = {"trang_thai"})
         public String status;
+        @SerializedName("id_ct_dat_phong")
+        public Integer bookingDetailId;
     }
 
     public static class CheckoutDto {
+        @SerializedName("id_hoadon")
+        public Integer idHoaDon;
+
         @SerializedName("id_luutru")
         public Integer idLuutru;
 
@@ -264,6 +277,45 @@ public class ApiModels {
 
         @SerializedName("amount_due")
         public Double amountDue;
+
+        @SerializedName("refund_amount")
+        public Double refundAmount;
+
+        @SerializedName("invoice_status")
+        public String invoiceStatus;
+
+        @SerializedName("payment_url")
+        public String paymentUrl;
+    }
+
+    public static class CheckInRequest {
+        public String cccd;
+        public String note;
+    }
+
+    public static class PaymentRequest {
+        @SerializedName("phuong_thuc")
+        public String paymentMethod;
+
+        @SerializedName("so_tien")
+        public Double amount;
+
+        @SerializedName("id_luutru")
+        public Integer idLuutru;
+
+        @SerializedName("ma_dat_phong")
+        public String maDatPhong;
+
+        @SerializedName("ghi_chu")
+        public String note;
+
+        @SerializedName("yeu_cau_vat")
+        public Boolean requestVat;
+    }
+
+    public static class UserLockRequest {
+        public Boolean locked;
+        public Boolean active;
     }
 
     public static class ChangeRoomRequest {
@@ -279,5 +331,26 @@ public class ApiModels {
         public String currentPassword;
         @SerializedName("new_password")
         public String newPassword;
+    }
+
+    // --- FORGOT PASSWORD MODELS ---
+    public static class ForgotPasswordRequest {
+        public String identity;
+    }
+
+    public static class VerifyOtpRequest {
+        public String identity;
+        public String otp;
+    }
+
+    public static class ResetPasswordRequest {
+        public String identity;
+        public String otp;
+        @SerializedName("newPassword")
+        public String newPassword;
+    }
+    
+    public static class IdentityResponse {
+        public String identity;
     }
 }

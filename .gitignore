@@ -15,3 +15,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+.android-sdk/
+.android/
+build.zip
+.idea/misc.xml

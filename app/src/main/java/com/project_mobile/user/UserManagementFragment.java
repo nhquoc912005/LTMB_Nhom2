@@ -92,11 +92,39 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
                 user.isLocked() ? "Mở khóa" : "Khóa",
                 true,
                 () -> {
+                    if (user != null) {
+                        updateUserLockOnServer(user);
+                        return;
+                    }
                     user.setLocked(!user.isLocked());
                     reloadCurrentList();
                     AppDialog.showSuccess(requireContext(),
                             user.isLocked() ? "Khóa tài khoản thành công" : "Mở khóa thành công");
                 });
+    }
+
+    private void updateUserLockOnServer(UserModel user) {
+        com.project_mobile.network.ApiModels.UserLockRequest req = new com.project_mobile.network.ApiModels.UserLockRequest();
+        req.locked = !user.isLocked();
+        req.active = !req.locked;
+
+        com.project_mobile.network.ApiService api = com.project_mobile.network.ApiClient.getClient().create(com.project_mobile.network.ApiService.class);
+        api.updateUserLock(user.getUserCode(), req).enqueue(new retrofit2.Callback<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.UserDto>>() {
+            @Override
+            public void onResponse(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.UserDto>> call, retrofit2.Response<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.UserDto>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().success) {
+                    fetchUsers();
+                    AppDialog.showSuccess(requireContext(), req.locked ? "Khoa tai khoan thanh cong" : "Mo khoa thanh cong");
+                } else {
+                    AppDialog.showError(requireContext(), "Loi cap nhat trang thai tai khoan");
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.UserDto>> call, Throwable t) {
+                AppDialog.showError(requireContext(), "Loi ket noi");
+            }
+        });
     }
 
     @Override
@@ -146,8 +174,8 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
                             dto.fullName,
                             dto.email,
                             dto.phone,
-                            dto.role,
-                            false // Add lock status to DTO if needed
+                            dto.role != null ? dto.role : dto.position,
+                            dto.locked != null ? dto.locked : Boolean.FALSE.equals(dto.active)
                         ));
                     }
                     reloadCurrentList();
@@ -246,7 +274,8 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
             dto.email = email;
             dto.phone = phone;
             dto.role = role;
-            dto.username = fullName.toLowerCase().replaceAll("\\s+", "_"); 
+            dto.position = role;
+            dto.username = fullName.toLowerCase(Locale.ROOT).replaceAll("\\s+", "_");
             dto.password = password; 
 
             com.project_mobile.network.ApiService api = com.project_mobile.network.ApiClient.getClient().create(com.project_mobile.network.ApiService.class);

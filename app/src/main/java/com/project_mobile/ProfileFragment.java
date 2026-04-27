@@ -108,7 +108,7 @@ public class ProfileFragment extends Fragment {
             tvProfileUsername.setText(user.username != null ? user.username : "N/A");
             tvProfilePhone.setText(user.phone != null ? user.phone : "N/A");
             tvProfileEmail.setText(user.email != null ? user.email : "N/A");
-            tvProfileRole.setText(user.position != null ? user.position : "Nhân viên");
+            tvProfileRole.setText(user.role != null ? user.role : (user.position != null ? user.position : "Nhân viên"));
         } else {
             Toast.makeText(getContext(), "Không tìm thấy thông tin tài khoản", Toast.LENGTH_SHORT).show();
         }

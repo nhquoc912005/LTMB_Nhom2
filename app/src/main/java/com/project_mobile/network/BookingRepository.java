@@ -191,15 +191,8 @@ public class BookingRepository {
     }
 
     public void checkInBooking(String id, CallbackBooking cb) {
-        performSimplePut(id, api.checkInBooking(id), cb);
+        ApiModels.CheckInRequest req = new ApiModels.CheckInRequest();
+        performSimplePut(id, api.checkInBooking(id, req), cb);
     }
 
-    public void checkOutBooking(String id, CallbackBooking cb) {
-        performSimplePut(id, api.checkOutBooking(id), cb);
-    }
-
-    public void paymentBooking(String id, CallbackBooking cb) {
-        performSimplePut(id, api.paymentBooking(id), cb);
-    }
 }
-

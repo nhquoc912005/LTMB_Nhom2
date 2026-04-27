@@ -11,6 +11,13 @@ public class CheckoutBill {
     private double totalFee;
     private int adults;
     private int children;
+    private Integer idLuutru;
+    private Integer idHoaDon;
+    private String maDatPhong;
+    private double roomFee;
+    private double damageFee;
+    private double deposit;
+    private double grossTotal;
 
     public CheckoutBill(RoomModel roomModel, String customerEmail, String checkInDate, String checkOutDate, double serviceFee, double totalFee, int adults, int children) {
         this.roomModel = roomModel;
@@ -23,6 +30,17 @@ public class CheckoutBill {
         this.children = children;
     }
 
+    public CheckoutBill(RoomModel roomModel, String customerEmail, String checkInDate, String checkOutDate, double serviceFee, double totalFee, int adults, int children, Integer idLuutru, Integer idHoaDon, String maDatPhong, double roomFee, double damageFee, double deposit, double grossTotal) {
+        this(roomModel, customerEmail, checkInDate, checkOutDate, serviceFee, totalFee, adults, children);
+        this.idLuutru = idLuutru;
+        this.idHoaDon = idHoaDon;
+        this.maDatPhong = maDatPhong;
+        this.roomFee = roomFee;
+        this.damageFee = damageFee;
+        this.deposit = deposit;
+        this.grossTotal = grossTotal;
+    }
+
     public RoomModel getRoomModel() { return roomModel; }
     public String getCustomerEmail() { return customerEmail; }
     public String getCheckInDate() { return checkInDate; }
@@ -33,4 +51,12 @@ public class CheckoutBill {
     public int getAdults() { return adults; }
     public int getChildren() { return children; }
     public int getTotalGuests() { return adults + children; }
+    public Integer getIdLuutru() { return idLuutru; }
+    public Integer getIdHoaDon() { return idHoaDon; }
+    public void setIdHoaDon(Integer idHoaDon) { this.idHoaDon = idHoaDon; }
+    public String getMaDatPhong() { return maDatPhong; }
+    public double getRoomFee() { return roomFee; }
+    public double getDamageFee() { return damageFee; }
+    public double getDeposit() { return deposit; }
+    public double getGrossTotal() { return grossTotal; }
 }

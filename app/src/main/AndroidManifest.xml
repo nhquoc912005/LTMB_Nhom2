@@ -29,8 +29,10 @@
             android:exported="false" />
 
         <activity
-            android:name=".Quan_ly_phong.MainActivity"
-            android:exported="false" />
+            android:name=".ForgotPasswordActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
 
     </application>
 

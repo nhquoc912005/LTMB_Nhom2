@@ -66,7 +66,8 @@ public class CheckInFragment extends Fragment {
                                     b.checkIn + " - " + b.checkOut,
                                     b.totalGuests != null ? b.totalGuests : 0,
                                     b.adults != null ? b.adults : 0,
-                                    b.children != null ? b.children : 0
+                                    b.children != null ? b.children : 0,
+                                    firstRoomId(b)
                                 ));
                             }
                         }
@@ -187,6 +188,8 @@ public class CheckInFragment extends Fragment {
         TextView tvIn = dialog.findViewById(R.id.tvCheckInDate);
         TextView tvOut = dialog.findViewById(R.id.tvCheckOutDate);
         TextView tvClose = dialog.findViewById(R.id.tvClose);
+        android.widget.EditText etIdCard = dialog.findViewById(R.id.etIdCard);
+        android.widget.EditText etNote = dialog.findViewById(R.id.etNote);
         Button btnCancel = dialog.findViewById(R.id.btnCancel);
         Button btnConfirm = dialog.findViewById(R.id.btnConfirm);
 
@@ -204,12 +207,62 @@ public class CheckInFragment extends Fragment {
         
         if (btnConfirm != null) {
             btnConfirm.setOnClickListener(v -> {
+                if (item != null) {
+                    performCheckInConfirm(item, etIdCard, etNote, btnConfirm, dialog);
+                    return;
+                }
                 dialog.dismiss();
                 showSuccessDialog(item, "Nhận phòng thành công");
             });
         }
 
         dialog.show();
+    }
+
+    private void performCheckInConfirm(CheckInModel item, android.widget.EditText etIdCard, android.widget.EditText etNote, Button btnConfirm, Dialog dialog) {
+        String cccd = etIdCard == null ? "" : etIdCard.getText().toString().trim();
+        String note = etNote == null ? "" : etNote.getText().toString().trim();
+        if (!cccd.matches("^(\\d{9}|\\d{12})$")) {
+            android.widget.Toast.makeText(getContext(), "Vui lÃ²ng nháº­p CMND/CCCD 9 hoáº·c 12 chá»¯ sá»‘", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        btnConfirm.setEnabled(false);
+        com.project_mobile.network.ApiModels.CheckInRequest req = new com.project_mobile.network.ApiModels.CheckInRequest();
+        req.cccd = cccd;
+        req.note = note;
+
+        com.project_mobile.network.ApiService api = com.project_mobile.network.ApiClient.getClient().create(com.project_mobile.network.ApiService.class);
+        api.confirmCheckIn(item.getBookingId(), req).enqueue(new retrofit2.Callback<com.project_mobile.network.ApiModels.ApiResponse<Object>>() {
+            @Override
+            public void onResponse(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<Object>> call, retrofit2.Response<com.project_mobile.network.ApiModels.ApiResponse<Object>> response) {
+                btnConfirm.setEnabled(true);
+                if (response.isSuccessful() && response.body() != null && response.body().success) {
+                    if (isAdded() && getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            dialog.dismiss();
+                            showSuccessDialog(item, "Nháº­n phÃ²ng thÃ nh cÃ´ng");
+                            loadData(null);
+                        });
+                    }
+                } else {
+                    String msg = response.body() != null && response.body().message != null
+                            ? response.body().message
+                            : "KhÃ´ng thá»ƒ nháº­n phÃ²ng";
+                    if (isAdded()) {
+                        android.widget.Toast.makeText(getContext(), msg, android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<Object>> call, Throwable t) {
+                btnConfirm.setEnabled(true);
+                if (isAdded()) {
+                    android.widget.Toast.makeText(getContext(), "Lá»—i káº¿t ná»‘i: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     private void showChangeRoomDialog(CheckInModel item, String bookingId) {
@@ -318,6 +371,7 @@ public class CheckInFragment extends Fragment {
                 com.project_mobile.network.ApiModels.RoomDto selectedRoom = availableRooms.get(selectedPos - 1);
                 com.project_mobile.network.ApiModels.ChangeRoomRequest req = new com.project_mobile.network.ApiModels.ChangeRoomRequest();
                 req.newRoomId = selectedRoom.id;
+                req.oldRoomId = item.getOldRoomId();
                 req.reason = "Khách yêu cầu đổi phòng";
 
                 api.changeRoom(bookingId, req).enqueue(new retrofit2.Callback<com.project_mobile.network.ApiModels.ApiResponse<Void>>() {
@@ -352,6 +406,11 @@ public class CheckInFragment extends Fragment {
         }
 
         dialog.show();
+    }
+
+    private Integer firstRoomId(com.project_mobile.network.ApiModels.BookingDto booking) {
+        if (booking == null || booking.rooms == null || booking.rooms.isEmpty()) return null;
+        return booking.rooms.get(0).id;
     }
 
     private void showSuccessDialog(CheckInModel item, String message) {

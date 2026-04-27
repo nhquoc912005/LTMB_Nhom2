@@ -531,6 +531,7 @@ async function resolveStayForInvoice(client, invoice, body) {
     return getStayForUpdateById(client, parseRequiredId(body.id_luutru, "ID lưu trú"));
   }
   if (body.ma_dat_phong) {
+    return getStayForUpdateByBooking(client, String(body.ma_dat_phong).trim());
     return getStayForUpdateByBooking(client, parseRequiredId(body.ma_dat_phong, "Mã đặt phòng"));
   }
 

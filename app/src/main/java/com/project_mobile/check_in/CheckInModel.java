@@ -10,8 +10,13 @@ public class CheckInModel {
     private int totalGuests;
     private int adults;
     private int children;
+    private Integer oldRoomId;
 
     public CheckInModel(String bookingId, String guestName, String roomNumber, String phoneNumber, String email, String stayPeriod, int totalGuests, int adults, int children) {
+        this(bookingId, guestName, roomNumber, phoneNumber, email, stayPeriod, totalGuests, adults, children, null);
+    }
+
+    public CheckInModel(String bookingId, String guestName, String roomNumber, String phoneNumber, String email, String stayPeriod, int totalGuests, int adults, int children, Integer oldRoomId) {
         this.bookingId = bookingId;
         this.guestName = guestName;
         this.roomNumber = roomNumber;
@@ -21,6 +26,7 @@ public class CheckInModel {
         this.totalGuests = totalGuests;
         this.adults = adults;
         this.children = children;
+        this.oldRoomId = oldRoomId;
     }
 
     public String getBookingId() { return bookingId; }
@@ -32,4 +38,5 @@ public class CheckInModel {
     public int getTotalGuests() { return totalGuests; }
     public int getAdults() { return adults; }
     public int getChildren() { return children; }
+    public Integer getOldRoomId() { return oldRoomId; }
 }

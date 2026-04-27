@@ -10,12 +10,11 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/app_content_background"
-            android:padding="@dimen/app_screen_padding">
+            android:padding="16dp">
 
             <EditText
                 android:id="@+id/edtSearch"
@@ -24,7 +23,7 @@
                 android:layout_toStartOf="@+id/btnSearch"
                 android:layout_marginEnd="8dp"
                 android:background="@drawable/bg_search_input"
-                android:drawableStart="@android:drawable/ic_menu_search"
+                android:drawableStart="@drawable/ic_search_brown"
                 android:drawablePadding="8dp"
                 android:fontFamily="@font/livvic"
                 android:hint="Tìm kiếm dịch vụ, bồi thường"

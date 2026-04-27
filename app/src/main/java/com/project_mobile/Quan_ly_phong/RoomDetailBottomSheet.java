@@ -15,6 +15,7 @@ import androidx.annotation.Nullable;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.project_mobile.MainActivity;
 import com.project_mobile.R;
 import com.project_mobile.common.AppDialog;
 import com.project_mobile.network.ApiClient;
@@ -142,6 +143,14 @@ public class RoomDetailBottomSheet extends BottomSheetDialogFragment {
                     true,
                     () -> updateRoomStatusOnServer(RoomModel.STATUS_EMPTY, "Trả phòng thành công")
             ));
+            primary.setOnClickListener(v -> AppDialog.showConfirm(
+                    requireContext(),
+                    "Checkout",
+                    "Vui long thanh toan truoc khi tra phong " + room.getRoomNumber() + ".",
+                    "Mo checkout",
+                    false,
+                    this::openCheckoutFlow
+            ));
 
             secondary.setVisibility(View.VISIBLE);
             secondary.setText("Đổi phòng");
@@ -197,6 +206,15 @@ public class RoomDetailBottomSheet extends BottomSheetDialogFragment {
                 AppDialog.showError(requireContext(), "Lỗi kết nối: " + t.getMessage());
             }
         });
+    }
+
+    private void openCheckoutFlow() {
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).openStay(false);
+            dismiss();
+        } else {
+            AppDialog.showError(requireContext(), "Vui long vao man hinh Tra phong de thanh toan va checkout.");
+        }
     }
 
     private void openChangeRoomSheet() {

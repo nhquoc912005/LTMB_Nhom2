@@ -155,7 +155,7 @@ function mapBookingRow(row) {
     so_tre_em: children,
     tong_so_nguoi: total,
     trang_thai: row.trang_thai,
-    rooms: [], // Detailed room info not needed for main list
+    rooms: normalizeRooms(row.rooms),
     room_names: row.room_names || "",
   };
 }
@@ -419,7 +419,33 @@ function createCheckInRouter(pool) {
           FROM public.chi_tiet_dat_phong ctdp_sub
           JOIN public.phong p_sub ON p_sub.id_phong = ctdp_sub.id_phong
           WHERE ctdp_sub.ma_dat_phong = dp.ma_dat_phong
-        ) AS room_names
+        ) AS room_names,
+        COALESCE(
+          (
+            SELECT json_agg(
+              json_build_object(
+                'id', p_sub.id_phong,
+                'id_phong', p_sub.id_phong,
+                'id_ct_dat_phong', ctdp_sub.id_ct_dat_phong,
+                'room_number', p_sub.ten_phong,
+                'ten_phong', p_sub.ten_phong,
+                'room_type', p_sub.loai_phong,
+                'loai_phong', p_sub.loai_phong,
+                'capacity', p_sub.suc_chua,
+                'suc_chua', p_sub.suc_chua,
+                'price', p_sub.gia_phong,
+                'gia_phong', p_sub.gia_phong,
+                'status', p_sub.trang_thai,
+                'trang_thai', p_sub.trang_thai
+              )
+              ORDER BY p_sub.ten_phong
+            )
+            FROM public.chi_tiet_dat_phong ctdp_sub
+            JOIN public.phong p_sub ON p_sub.id_phong = ctdp_sub.id_phong
+            WHERE ctdp_sub.ma_dat_phong = dp.ma_dat_phong
+          ),
+          '[]'::json
+        ) AS rooms
       FROM public.dat_phong dp
       LEFT JOIN public.khach_hang kh ON kh.id_kh = dp.id_kh
       WHERE ${where.join(" AND ")}

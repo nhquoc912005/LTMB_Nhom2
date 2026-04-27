@@ -441,42 +441,6 @@ app.post("/api/bookings", async (req, res) => {
   } finally {
     client.release();
   }
-
-  try {
-    const {
-      room_number,
-      customer_name,
-      email,
-      phone,
-      total_guests,
-      adults,
-      children = 0,
-      check_in,
-      check_out,
-      total_amount,
-      note,
-      payment_method
-    } = req.body;
-
-    const result = await pool.query(
-      `INSERT INTO public.dat_phong
-      (so_phong, ten_nguoi_dat, email, sdt_nguoi_dat, tong_so_nguoi, so_nguoi_lon, so_tre_em, ngay_nhan, ngay_tra, tong_thanh_toan, ghi_chu, phuong_thuc_thanh_toan)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-      RETURNING *`,
-      [room_number, customer_name, email, phone, total_guests, adults, children, check_in, check_out, total_amount, note, payment_method]
-    );
-
-    res.status(201).json({
-      success: true,
-      data: result.rows[0],
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      success: false,
-      error: err.message,
-    });
-  }
 });
 
 /* =====================================

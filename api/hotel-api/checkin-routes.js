@@ -3,7 +3,11 @@ const express = require("express");
 const router = express.Router();
 
 const BOOKING_STATUS = {
-  WAITING_CHECKIN: parseStatusList(process.env.CHECKIN_READY_STATUSES, ["Đã đặt cọc"]),
+  // Chấp nhận cả "Đã đặt cọc" và "Chờ check-in"
+  WAITING_CHECKIN: parseStatusList(
+    process.env.CHECKIN_READY_STATUSES,
+    ["Đã đặt cọc", "Chờ check-in"]
+  ),
   CHECKED_IN: process.env.BOOKING_STATUS_CHECKED_IN || "Đang ở",
 };
 
@@ -250,6 +254,7 @@ async function assertNotAlreadyCheckedIn(client, maDatPhong) {
     FROM public.luu_tru
     WHERE ma_dat_phong = $1
       AND thoi_gian_checkin_thuc_te IS NOT NULL
+      AND thoi_gian_checkout_thuc_te IS NULL
     LIMIT 1
     FOR UPDATE
     `,
@@ -257,39 +262,124 @@ async function assertNotAlreadyCheckedIn(client, maDatPhong) {
   );
 
   if (result.rows.length > 0) {
-    throw new BusinessError(409, "ALREADY_CHECKED_IN", "Booking này đã được nhận phòng trước đó");
+    throw new BusinessError(409, "ALREADY_CHECKED_IN", "Booking này đã được nhận phòng và khách đang lưu trú");
   }
 }
 
-async function validateAndUpdateCustomerCccd(client, booking, cccd) {
-  if (!booking.id_kh) {
-    throw new BusinessError(409, "CUSTOMER_NOT_LINKED", "Booking chưa liên kết với khách hàng trong bảng khach_hang");
-  }
-
-  const customer = await getCustomerForUpdate(client, booking.id_kh);
-  if (!customer) {
-    throw new BusinessError(404, "CUSTOMER_NOT_FOUND", "Không tìm thấy khách hàng của booking");
-  }
-
-  const duplicate = await client.query(
-    "SELECT id_kh FROM public.khach_hang WHERE cccd = $1 AND id_kh <> $2 LIMIT 1",
-    [cccd, booking.id_kh]
+/**
+ * Đóng các bản ghi lưu trú "ma" (ghost stays) của các phòng được chọn.
+ * Ghost stay = phòng có trạng thái 'Trống' nhưng vẫn còn luu_tru chưa checkout.
+ * Điều này xảy ra khi dữ liệu bị sai lệch (ví dụ: checkout thủ công bên ngoài).
+ */
+async function closeGhostStays(client, roomIds) {
+  const result = await client.query(
+    `
+    UPDATE public.luu_tru lt
+    SET thoi_gian_checkout_thuc_te = CURRENT_TIMESTAMP
+    FROM public.chi_tiet_dat_phong ctdp
+    JOIN public.phong p ON p.id_phong = ctdp.id_phong
+    WHERE ctdp.ma_dat_phong = lt.ma_dat_phong
+      AND ctdp.id_phong = ANY($1::int[])
+      AND lt.thoi_gian_checkout_thuc_te IS NULL
+      AND p.trang_thai = 'Trống'
+    RETURNING lt.id_luutru, lt.ma_dat_phong
+    `,
+    [roomIds]
   );
-  if (duplicate.rows.length > 0) {
-    throw new BusinessError(409, "DUPLICATE_CCCD", "Số CMND/CCCD đã tồn tại cho khách hàng khác");
+  if (result.rows.length > 0) {
+    console.log(
+      `[CheckIn] Đã đóng ${result.rows.length} ghost stay(s):`,
+      result.rows.map((r) => `#${r.id_luutru} (${r.ma_dat_phong})`).join(", ")
+    );
   }
+  return result.rows;
+}
 
-  if (!customer.cccd) {
-    const updated = await client.query(
-      "UPDATE public.khach_hang SET cccd = $1 WHERE id_kh = $2 RETURNING *",
+/**
+ * Tự động tìm hoặc tạo khách hàng dựa trên CCCD, sau đó gắn vào booking.
+ *
+ * Luồng xử lý:
+ *  1. Nếu booking đã có id_kh → kiểm tra CCCD khớp, cập nhật nếu chưa có.
+ *  2. Nếu booking chưa có id_kh:
+ *     a. Tìm khách hàng theo CCCD trong DB.
+ *     b. Nếu tìm thấy → dùng id_kh đó.
+ *     c. Nếu không thấy → tạo mới khách hàng.
+ *     d. Gắn id_kh vào bảng dat_phong.
+ */
+async function autoLinkOrCreateCustomer(client, booking, cccd) {
+  // --- Trường hợp 1: Booking đã liên kết với khách hàng ---
+  if (booking.id_kh) {
+    const customer = await getCustomerForUpdate(client, booking.id_kh);
+    if (!customer) {
+      throw new BusinessError(404, "CUSTOMER_NOT_FOUND", "Không tìm thấy khách hàng của booking");
+    }
+
+    // Kiểm tra CCCD trùng với khách hàng khác
+    const duplicate = await client.query(
+      "SELECT id_kh FROM public.khach_hang WHERE cccd = $1 AND id_kh <> $2 LIMIT 1",
       [cccd, booking.id_kh]
     );
-    return updated.rows[0];
+    if (duplicate.rows.length > 0) {
+      throw new BusinessError(409, "DUPLICATE_CCCD", "Số CMND/CCCD đã tồn tại cho khách hàng khác");
+    }
+
+    // Cập nhật CCCD nếu khách chưa có
+    if (!customer.cccd) {
+      const updated = await client.query(
+        "UPDATE public.khach_hang SET cccd = $1 WHERE id_kh = $2 RETURNING *",
+        [cccd, booking.id_kh]
+      );
+      console.log(`[CheckIn] Đã cập nhật CCCD cho khách hàng #${booking.id_kh}`);
+      return updated.rows[0];
+    }
+
+    // CCCD đã có nhưng không khớp
+    if (customer.cccd !== cccd) {
+      throw new BusinessError(
+        409,
+        "CCCD_MISMATCH",
+        `Số CMND/CCCD không khớp với hồ sơ của khách hàng (kết thúc bằng ...${customer.cccd.slice(-3)})`
+      );
+    }
+
+    return customer;
   }
 
-  if (customer.cccd !== cccd) {
-    throw new BusinessError(409, "CCCD_MISMATCH", "Số CMND/CCCD không khớp với CCCD hiện có của khách hàng");
+  // --- Trường hợp 2: Booking chưa liên kết (id_kh = null) ---
+  // 2a. Tìm khách hàng theo CCCD
+  const existingBycccd = await client.query(
+    "SELECT * FROM public.khach_hang WHERE cccd = $1 LIMIT 1 FOR UPDATE",
+    [cccd]
+  );
+
+  let customer;
+  if (existingBycccd.rows.length > 0) {
+    // 2b. Tìm thấy — dùng khách hàng có sẵn
+    customer = existingBycccd.rows[0];
+    console.log(`[CheckIn] Tìm thấy khách hàng #${customer.id_kh} theo CCCD, tự động liên kết.`);
+  } else {
+    // 2c. Không tìm thấy — tạo mới khách hàng từ thông tin booking
+    const newCustomer = await client.query(
+      `INSERT INTO public.khach_hang (ho_ten, sdt, email, cccd)
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
+      [
+        booking.ten_nguoi_dat || booking.customer_name || "Khách vãng lai",
+        booking.sdt_nguoi_dat || booking.customer_phone || null,
+        booking.email || null,
+        cccd,
+      ]
+    );
+    customer = newCustomer.rows[0];
+    console.log(`[CheckIn] Tạo mới khách hàng #${customer.id_kh} với CCCD ${cccd}.`);
   }
+
+  // 2d. Gắn id_kh vào booking
+  await client.query(
+    "UPDATE public.dat_phong SET id_kh = $1 WHERE ma_dat_phong = $2",
+    [customer.id_kh, booking.ma_dat_phong]
+  );
+  console.log(`[CheckIn] Đã liên kết khách hàng #${customer.id_kh} vào booking ${booking.ma_dat_phong}.`);
 
   return customer;
 }
@@ -370,11 +460,15 @@ function createCheckInRouter(pool) {
     const values = [BOOKING_STATUS.WAITING_CHECKIN];
     const where = [
       "dp.trang_thai = ANY($1::text[])",
+      // Chỉ loại trừ booking đang có khách lưu trú CHƯA checkout (active stay).
+      // Nếu booking đã checkout trước đó (thoi_gian_checkout_thuc_te IS NOT NULL)
+      // thì vẫn hiển thị trong danh sách chờ check-in (phòng hợp lệ).
       `NOT EXISTS (
         SELECT 1
         FROM public.luu_tru lt
         WHERE lt.ma_dat_phong = dp.ma_dat_phong
           AND lt.thoi_gian_checkin_thuc_te IS NOT NULL
+          AND lt.thoi_gian_checkout_thuc_te IS NULL
       )`,
     ];
 
@@ -477,6 +571,7 @@ function createCheckInRouter(pool) {
     try {
       await client.query("BEGIN");
 
+      // ── Bước 1: Lấy & kiểm tra booking ──────────────────────────────────────
       const booking = await getBookingForUpdate(client, maDatPhong);
       if (!booking) {
         throw new BusinessError(404, "BOOKING_NOT_FOUND", "Không tìm thấy booking");
@@ -486,10 +581,13 @@ function createCheckInRouter(pool) {
         booking.trang_thai,
         BOOKING_STATUS.WAITING_CHECKIN,
         "BOOKING_NOT_READY_FOR_CHECKIN",
-        "Booking không ở trạng thái cho phép nhận phòng"
+        `Booking đang ở trạng thái "${booking.trang_thai}", không thể nhận phòng. ` +
+        `Trạng thái hợp lệ: ${BOOKING_STATUS.WAITING_CHECKIN.join(", ")}.`
       );
+
       await assertNotAlreadyCheckedIn(client, maDatPhong);
 
+      // ── Bước 2: Kiểm tra phòng ───────────────────────────────────────────────
       const rooms = await getRoomDetailsForUpdate(client, maDatPhong);
       if (rooms.length === 0) {
         throw new BusinessError(409, "BOOKING_HAS_NO_ROOM", "Booking chưa có phòng trong chi_tiet_dat_phong");
@@ -507,7 +605,12 @@ function createCheckInRouter(pool) {
         });
       }
 
-      // KIỂM TRA BỔ SUNG: Đảm bảo không có bản ghi lưu trú nào chưa kết thúc cho các phòng này
+      // ── Bước 3: Tự động đóng ghost stays (dữ liệu sai lệch) ─────────────────
+      // Phòng trạng thái 'Trống' nhưng vẫn còn luu_tru chưa kết thúc → đóng lại.
+      const roomIds = rooms.map((r) => r.id_phong);
+      await closeGhostStays(client, roomIds);
+
+      // ── Bước 4: Kiểm tra conflict lần cuối sau khi đóng ghost stays ──────────
       const conflictCheck = await client.query(
         `
         SELECT p.ten_phong
@@ -518,16 +621,17 @@ function createCheckInRouter(pool) {
           AND lt.thoi_gian_checkout_thuc_te IS NULL
         LIMIT 1
         `,
-        [rooms.map((r) => r.id_phong)]
+        [roomIds]
       );
       if (conflictCheck.rows.length > 0) {
         throw new BusinessError(
           409,
           "ROOM_STILL_OCCUPIED",
-          `Phòng ${conflictCheck.rows[0].ten_phong} đang có khách lưu trú khác chưa làm thủ tục trả phòng.`
+          `Phòng "${conflictCheck.rows[0].ten_phong}" đang có khách đang lưu trú thực sự, không thể nhận phòng.`
         );
       }
 
+      // ── Bước 5: Kiểm tra sức chứa ───────────────────────────────────────────
       const guestCount = totalGuests(booking);
       const capacity = totalCapacity(rooms);
       if (capacity > 0 && guestCount > capacity) {
@@ -537,8 +641,10 @@ function createCheckInRouter(pool) {
         });
       }
 
-      await validateAndUpdateCustomerCccd(client, booking, cccd);
+      // ── Bước 6: Tự động tìm/tạo/liên kết khách hàng ─────────────────────────
+      await autoLinkOrCreateCustomer(client, booking, cccd);
 
+      // ── Bước 7: Tạo bản ghi lưu trú mới ─────────────────────────────────────
       const stay = await client.query(
         `
         INSERT INTO public.luu_tru
@@ -549,14 +655,16 @@ function createCheckInRouter(pool) {
         [maDatPhong, guestCount]
       );
 
+      // ── Bước 8: Cập nhật trạng thái booking → "Đang ở" ──────────────────────
       await client.query(
         "UPDATE public.dat_phong SET trang_thai = $1 WHERE ma_dat_phong = $2",
         [BOOKING_STATUS.CHECKED_IN, maDatPhong]
       );
 
+      // ── Bước 9: Cập nhật trạng thái phòng → "Bận" ───────────────────────────
       await client.query(
         "UPDATE public.phong SET trang_thai = $1 WHERE id_phong = ANY($2::int[])",
-        [ROOM_STATUS.OCCUPIED, rooms.map((room) => room.id_phong)]
+        [ROOM_STATUS.OCCUPIED, roomIds]
       );
 
       const updatedBooking = await getBookingDetails(client, maDatPhong);

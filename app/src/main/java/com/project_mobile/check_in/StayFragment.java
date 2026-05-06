@@ -1,3 +1,6 @@
+// Module lưu trú Android.
+// File này là container tab Nhận phòng/Trả phòng trong mục Lưu trú.
+// Dữ liệu chính là tham số show_check_in để quyết định tab con được mở trước.
 package com.project_mobile.check_in;
 
 import android.graphics.Color;
@@ -14,6 +17,10 @@ import androidx.fragment.app.Fragment;
 import com.project_mobile.R;
 import com.project_mobile.checkout.CheckoutFragment;
 
+/**
+ * StayFragment quản lý hai tab nghiệp vụ chính của lưu trú.
+ * Class này không xử lý dữ liệu trực tiếp mà nạp CheckInFragment hoặc CheckoutFragment vào child fragment.
+ */
 public class StayFragment extends Fragment {
 
     private static final String ARG_SHOW_CHECK_IN = "show_check_in";
@@ -21,6 +28,7 @@ public class StayFragment extends Fragment {
     private TextView tabCheckIn;
     private TextView tabCheckOut;
 
+    /** Tạo StayFragment và truyền tab cần mở đầu tiên từ MainActivity/HomeFragment. */
     public static StayFragment newInstance(boolean showCheckIn) {
         StayFragment fragment = new StayFragment();
         Bundle args = new Bundle();
@@ -46,11 +54,13 @@ public class StayFragment extends Fragment {
         return view;
     }
 
+    /** Cập nhật UI tab và nạp Fragment nghiệp vụ tương ứng. */
     private void openTab(boolean showCheckIn) {
         updateTabUI(showCheckIn);
         loadFragment(showCheckIn ? new CheckInFragment() : new CheckoutFragment());
     }
 
+    /** Đổi màu nền/chữ để thể hiện tab Nhận phòng hoặc Trả phòng đang được chọn. */
     private void updateTabUI(boolean isCheckInSelected) {
         if (isCheckInSelected) {
             tabCheckIn.setBackgroundResource(R.drawable.bg_tab_active);
@@ -65,6 +75,7 @@ public class StayFragment extends Fragment {
         }
     }
 
+    /** Thay nội dung con bên trong màn Lưu trú. */
     private void loadFragment(Fragment fragment) {
         getChildFragmentManager().beginTransaction()
                 .replace(R.id.stay_content_frame, fragment)

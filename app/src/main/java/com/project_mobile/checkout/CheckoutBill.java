@@ -1,9 +1,25 @@
+// Module trả phòng Android.
+// File này là model UI cho hóa đơn tạm tính khi trả phòng.
+// Dữ liệu chính gồm phòng, khách, ngày lưu trú, phí phòng, phí dịch vụ, bồi thường, cọc và số tiền phải trả/hoàn.
+/*
+ * File: CheckoutBill.java
+ * Module: Trả phòng/checkout.
+ *
+ * Model UI này gom dữ liệu hóa đơn trả phòng đã nhận từ CheckoutDto.
+ * Các field định danh như idHoaDon/idLuutru/maDatPhong được giữ lại để CheckoutFragment gọi API thanh toán.
+ */
 package com.project_mobile.checkout;
 
 import com.project_mobile.Quan_ly_phong.RoomModel;
 
+/**
+ * CheckoutBill gom dữ liệu đã tính từ backend để hiển thị card và dialog thanh toán.
+ * idHoaDon, idLuutru và maDatPhong là khóa dùng khi gọi API thanh toán.
+ */
 public class CheckoutBill {
+    // RoomModel chứa thông tin phòng/khách đã được format để tái sử dụng với UI quản lý phòng.
     private final RoomModel roomModel;
+    // Thông tin khách và khoảng thời gian lưu trú hiển thị trong dialog thanh toán.
     private final String customerEmail;
     private final String checkInDate;
     private final String checkOutDate;
@@ -11,10 +27,12 @@ public class CheckoutBill {
     private final double totalFee;
     private final int adults;
     private final int children;
+    // Khóa nghiệp vụ từ backend, dùng khi tạo hóa đơn nháp và thanh toán.
     private Integer idLuutru;
     private Integer idHoaDon;
     private String maDatPhong;
     private int chargeableNights;
+    // Các thành phần tiền của hóa đơn checkout.
     private double roomFee;
     private double damageFee;
     private double deposit;

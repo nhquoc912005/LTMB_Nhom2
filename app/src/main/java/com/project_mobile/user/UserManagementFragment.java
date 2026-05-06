@@ -1,3 +1,21 @@
+// Module quản lý tài khoản Android.
+// File này hiển thị danh sách nhân viên, tìm kiếm, thêm/sửa/xóa và khóa/mở khóa tài khoản.
+// Dữ liệu chính lấy từ /api/users và /api/users/roles.
+/*
+ * File: UserManagementFragment.java
+ * Module: Quản lý tài khoản.
+ *
+ * Luồng chính:
+ * 1. fetchRoles gọi GET /api/users/roles để lấy vai trò từ bảng vai_tro.
+ * 2. fetchUsers gọi GET /api/users để lấy danh sách tài khoản.
+ * 3. UserDto được map sang UserModel để hiển thị RecyclerView.
+ * 4. showUserForm tạo/sửa tài khoản bằng POST/PUT /api/users.
+ * 5. updateUserLockOnServer khóa/mở khóa tài khoản qua PUT /api/users/{id}/lock.
+ *
+ * Dữ liệu quan trọng:
+ * - roleOptions luôn lấy từ backend, không hard-code danh sách vai trò trong Android.
+ * - locked/active quyết định tài khoản có được sử dụng hay không.
+ */
 package com.project_mobile.user;
 
 import android.app.AlertDialog;
@@ -32,6 +50,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * UserManagementFragment phụ trách màn Quản lý tài khoản.
+ * Class này tải người dùng/vai trò, map UserDto sang UserModel và gọi API CRUD tài khoản.
+ */
 public class UserManagementFragment extends Fragment implements UserAdapter.UserActionListener {
 
     private final List<UserModel> allUsers = new ArrayList<>();
@@ -83,6 +105,7 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
     }
 
     @Override
+    /** Mở xác nhận khóa/mở khóa và gọi backend cập nhật trạng thái tài khoản. */
     public void onToggleLock(UserModel user) {
         String action = user.isLocked() ? "mở khóa" : "khóa";
         AppDialog.showConfirm(
@@ -103,6 +126,7 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
                 });
     }
 
+    /** Gửi trạng thái locked/active mới lên API /api/users/{id}/lock. */
     private void updateUserLockOnServer(UserModel user) {
         com.project_mobile.network.ApiModels.UserLockRequest req = new com.project_mobile.network.ApiModels.UserLockRequest();
         req.locked = !user.isLocked();
@@ -133,6 +157,7 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
     }
 
     @Override
+    /** Xác nhận xóa nhân viên rồi gọi API DELETE nếu người dùng đồng ý. */
     public void onDelete(UserModel user) {
         AppDialog.showConfirm(
                 requireContext(),
@@ -161,6 +186,18 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
                 });
     }
 
+    /** Tải danh sách tài khoản, map DTO sang UserModel và cập nhật thống kê. */
+    /*
+     * Tải danh sách tài khoản từ backend.
+     *
+     * Input: không có tham số.
+     * Output: allUsers được làm mới bằng UserModel.
+     *
+     * Map dữ liệu:
+     * - dto.id -> userCode.
+     * - dto.role hoặc dto.position -> tên vai trò hiển thị.
+     * - dto.locked ưu tiên dùng trực tiếp; nếu thiếu thì suy ra từ active=false.
+     */
     private void fetchUsers() {
         com.project_mobile.network.ApiService api = com.project_mobile.network.ApiClient.getClient().create(com.project_mobile.network.ApiService.class);
         api.getUsers().enqueue(new retrofit2.Callback<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.UserDto>>>() {
@@ -169,6 +206,7 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
                 if (response.isSuccessful() && response.body() != null && response.body().success) {
                     allUsers.clear();
                     for (com.project_mobile.network.ApiModels.UserDto dto : response.body().data) {
+                        // locked ưu tiên field backend, nếu thiếu thì suy ra từ active=false.
                         allUsers.add(new UserModel(
                             String.valueOf(dto.id),
                             dto.fullName,
@@ -195,6 +233,7 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
         // Obsolete
     }
 
+    /** Lọc người dùng theo họ tên, email hoặc số điện thoại. */
     private void applySearch(String rawQuery) {
         String query = normalize(rawQuery);
         filteredUsers.clear();
@@ -214,6 +253,7 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
         applySearch(edtSearch == null ? "" : edtSearch.getText().toString());
     }
 
+    /** Đếm tổng, đang hoạt động và tạm khóa để hiển thị trên dashboard của màn tài khoản. */
     private void updateStats() {
         int locked = 0;
         for (UserModel user : allUsers) {
@@ -226,6 +266,18 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
         tvLockedUsers.setText(String.valueOf(locked));
     }
 
+    /** Mở form thêm/sửa tài khoản; khi sửa thì ẩn nhóm nhập mật khẩu. */
+    /*
+     * Hiển thị form thêm/sửa tài khoản.
+     *
+     * Khi thêm mới:
+     * - Hiện ô mật khẩu.
+     * - Gọi POST /api/users.
+     *
+     * Khi sửa:
+     * - Ẩn ô mật khẩu để không đổi mật khẩu ngoài ý muốn.
+     * - Gọi PUT /api/users/{id}.
+     */
     private void showUserForm(@Nullable UserModel editingUser) {
         boolean isEdit = editingUser != null;
         View formView = LayoutInflater.from(requireContext()).inflate(R.layout.layout_dialog_user_form, null);
@@ -274,6 +326,10 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
             String email = edtEmail.getText().toString().trim();
             String phone = edtPhone.getText().toString().trim();
             String gender = spGender.getSelectedItem() == null ? "Nam" : spGender.getSelectedItem().toString();
+            // Lấy vai trò từ spinner đã load từ bảng vai_tro để gửi cả tên và id_vaitro.
+            // Danh sách vai trò được lấy trực tiếp từ bảng vai_tro.
+            // Không hard-code trong Android để khi database thêm vai trò mới,
+            // ứng dụng vẫn tự động hiển thị đầy đủ.
             RoleOption selectedRole = spRole.getSelectedItem() instanceof RoleOption
                     ? (RoleOption) spRole.getSelectedItem()
                     : null;
@@ -349,6 +405,11 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
     }
 
     @Nullable
+    /** Kiểm tra input form tài khoản trước khi gọi API tạo/cập nhật. */
+    /*
+     * Validate form trước khi gửi API.
+     * Hàm trả về null nếu dữ liệu hợp lệ, hoặc trả về message lỗi để hiển thị.
+     */
     private String validateUserForm(String fullName, String email, String phone, String role, String password,
             boolean isEdit) {
         if (fullName.isEmpty()) {
@@ -369,6 +430,14 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
         return null;
     }
 
+    /** Lấy danh sách vai trò từ backend để nạp Spinner chọn quyền. */
+    /*
+     * Lấy danh sách vai trò từ backend.
+     *
+     * Endpoint: GET /api/users/roles.
+     * Mục đích: nạp Spinner chọn quyền, tránh hard-code role trong app.
+     * afterLoaded được dùng để cấu hình lại Spinner sau khi API trả dữ liệu.
+     */
     private void fetchRoles(@Nullable Runnable afterLoaded) {
         com.project_mobile.network.ApiService api = com.project_mobile.network.ApiClient.getClient().create(com.project_mobile.network.ApiService.class);
         api.getUserRoles().enqueue(new retrofit2.Callback<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.RoleDto>>>() {
@@ -394,6 +463,7 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
         });
     }
 
+    /** Cấu hình Spinner vai trò, chọn đúng role hiện tại khi đang sửa tài khoản. */
     private void configureRoleSpinner(Spinner spRole, @Nullable UserModel editingUser) {
         List<RoleOption> options = roleOptions.isEmpty() ? new ArrayList<>() : new ArrayList<>(roleOptions);
         if (options.isEmpty()) {
@@ -407,6 +477,7 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
         }
     }
 
+    /** Tìm vị trí role của user trong danh sách roleOptions theo id hoặc tên vai trò. */
     private int roleIndexOf(UserModel user) {
         for (int i = 0; i < roleOptions.size(); i++) {
             RoleOption option = roleOptions.get(i);

@@ -1,3 +1,6 @@
+// Script khởi tạo/kiểm tra database cho module dịch vụ/tài sản.
+// File này kiểm tra kết nối PostgreSQL và gọi ServiceManagementService.ensureSchema().
+// Dữ liệu chính là pool DB và schema dịch vụ/tài sản hiện có.
 const pool = require("./db");
 const { ServiceManagementService } = require("./service-management-service");
 

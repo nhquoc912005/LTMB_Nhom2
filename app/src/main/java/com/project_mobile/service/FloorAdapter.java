@@ -1,3 +1,6 @@
+// Module dịch vụ/tài sản Android.
+// File này bind từng tầng và RecyclerView con chứa các phòng trong tầng.
+// Dữ liệu chính là FloorModel và callback click phòng.
 package com.project_mobile.service;
 
 import android.view.LayoutInflater;
@@ -10,6 +13,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.project_mobile.R;
 import java.util.List;
 
+/**
+ * FloorAdapter tạo danh sách tầng cho sơ đồ phòng.
+ * Mỗi tầng chứa một RoomGridAdapter con để hiển thị các phòng đang lưu trú.
+ */
 public class FloorAdapter extends RecyclerView.Adapter<FloorAdapter.FloorViewHolder> {
 
     private final List<FloorModel> floorList;
@@ -34,6 +41,7 @@ public class FloorAdapter extends RecyclerView.Adapter<FloorAdapter.FloorViewHol
         FloorModel floor = floorList.get(position);
         holder.tvFloorName.setText(floor.getFloorName());
 
+        // Truyền callback click xuống adapter phòng để RoomMapFragment mở chi tiết phòng.
         // ĐÃ SỬA: Truyền sự kiện click xuống cho danh sách các phòng
         RoomGridAdapter roomAdapter = new RoomGridAdapter(floor.getRooms(), roomClickListener);
 

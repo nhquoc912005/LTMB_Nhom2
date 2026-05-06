@@ -1,3 +1,21 @@
+// Module nhận phòng Android.
+// File này hiển thị danh sách đơn đang chờ nhận phòng, xác nhận check-in và đổi phòng trước khi nhận.
+// Dữ liệu chính lấy từ /api/check-in/bookings, /available-rooms, /confirm và /change-room.
+/*
+ * File: CheckInFragment.java
+ * Module: Nhận phòng.
+ *
+ * Luồng chính:
+ * 1. Tải các booking đủ điều kiện nhận phòng từ GET /api/check-in/bookings.
+ * 2. Map BookingDto sang CheckInModel để hiển thị trong RecyclerView.
+ * 3. Người dùng có thể xác nhận nhận phòng hoặc đổi phòng trước khi nhận.
+ * 4. Xác nhận nhận phòng gọi POST /api/check-in/bookings/{maDatPhong}/confirm.
+ * 5. Đổi phòng gọi POST /api/check-in/bookings/{maDatPhong}/change-room.
+ *
+ * Dữ liệu quan trọng:
+ * - BookingDto.rooms chứa id phòng hiện tại, dùng khi đổi phòng.
+ * - CheckInRequest chứa CCCD và ghi chú để backend tạo bản ghi lưu trú.
+ */
 package com.project_mobile.check_in;
 
 import android.app.Dialog;
@@ -28,6 +46,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * CheckInFragment phụ trách màn Nhận phòng trong tab Lưu trú.
+ * Class này lọc đặt phòng theo ngày/từ khóa, map BookingDto sang CheckInModel và gọi API nghiệp vụ check-in.
+ */
 public class CheckInFragment extends Fragment {
 
     private RecyclerView rvCheckIn;
@@ -36,6 +58,18 @@ public class CheckInFragment extends Fragment {
     private TextView tvCheckInDate, tvCheckOutDate;
     private LinearLayout llCheckInDate, llCheckOutDate;
 
+    /** Lấy danh sách đơn đủ điều kiện nhận phòng theo khoảng ngày và từ khóa tìm kiếm, sau đó cập nhật RecyclerView. */
+    /*
+     * Gọi API lấy danh sách booking chờ nhận phòng.
+     *
+     * Input từ UI:
+     * - Ngày nhận, ngày trả được chuyển từ dd/MM/yyyy sang yyyy-MM-dd.
+     * - Từ khóa tìm kiếm lấy từ ô tìm kiếm.
+     *
+     * Output:
+     * - checkInList được làm mới bằng CheckInModel.
+     * - Adapter được notify để cập nhật RecyclerView.
+     */
     private void loadData(View rootView) {
         if (tvCheckInDate == null || tvCheckOutDate == null) return;
         
@@ -58,7 +92,9 @@ public class CheckInFragment extends Fragment {
                         checkInList.clear();
                         List<com.project_mobile.network.ApiModels.BookingDto> data = response.body().data;
                         if (data != null) {
+                            // Map dữ liệu API sang model màn hình; firstRoomId giữ id phòng hiện tại để đổi phòng.
                             for (com.project_mobile.network.ApiModels.BookingDto b : data) {
+                                // BookingDto từ API có nhiều alias field; CheckInModel chỉ giữ các field cần cho card và dialog.
                                 checkInList.add(new CheckInModel(
                                     b.bookingId,
                                     safeText(b.customerName, "Khách vãng lai"),
@@ -105,6 +141,7 @@ public class CheckInFragment extends Fragment {
         });
     }
 
+    /** Chuyển ngày dạng dd/MM/yyyy từ UI sang yyyy-MM-dd để gửi query API. */
     private String formatToApiDate(String uiDate) {
         if (uiDate == null || uiDate.trim().isEmpty()) return null;
         try {
@@ -119,6 +156,7 @@ public class CheckInFragment extends Fragment {
         return null;
     }
 
+    /** Ưu tiên stayPeriod từ backend, nếu thiếu thì ghép ngày nhận - ngày trả. */
     private String buildStayPeriod(com.project_mobile.network.ApiModels.BookingDto booking) {
         if (booking == null) return "";
         if (booking.stayPeriod != null && !booking.stayPeriod.trim().isEmpty()) {
@@ -175,6 +213,7 @@ public class CheckInFragment extends Fragment {
         return view;
     }
 
+    /** Mở lịch chọn ngày và tự tải lại danh sách sau khi người dùng chọn. */
     private void showDatePicker(TextView targetTextView) {
         Dialog calendarDialog = new Dialog(requireContext());
         calendarDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -195,6 +234,11 @@ public class CheckInFragment extends Fragment {
         calendarDialog.show();
     }
 
+    /** Hiển thị dialog xác nhận nhận phòng, gồm thông tin khách, phòng và CMND/CCCD. */
+    /*
+     * Hiển thị dialog xác nhận nhận phòng.
+     * Dialog hiển thị thông tin khách/phòng và thu CCCD, ghi chú trước khi gọi API confirm.
+     */
     private void showConfirmCheckInDialog(CheckInModel item) {
         Dialog dialog = new Dialog(requireContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -243,6 +287,15 @@ public class CheckInFragment extends Fragment {
         dialog.show();
     }
 
+    /** Kiểm tra CCCD 9/12 số rồi gọi API xác nhận nhận phòng; thành công sẽ refresh danh sách. */
+    /*
+     * Xác nhận nhận phòng.
+     *
+     * Nghiệp vụ quan trọng:
+     * - CCCD/CMND bắt buộc 9 hoặc 12 chữ số.
+     * - Backend sẽ kiểm tra lại trạng thái booking, phòng đang bận hay chưa,
+     *   sau đó insert luu_tru và cập nhật trạng thái phòng/đặt phòng.
+     */
     private void performCheckInConfirm(CheckInModel item, android.widget.EditText etIdCard, android.widget.EditText etNote, Button btnConfirm, Dialog dialog) {
         String cccd = etIdCard == null ? "" : etIdCard.getText().toString().trim();
         String note = etNote == null ? "" : etNote.getText().toString().trim();
@@ -289,6 +342,16 @@ public class CheckInFragment extends Fragment {
         });
     }
 
+    /** Mở dialog đổi phòng, tải danh sách phòng trống cho booking và gửi request đổi phòng khi xác nhận. */
+    /*
+     * Đổi phòng trước khi nhận phòng.
+     *
+     * Luồng xử lý:
+     * 1. Gọi GET /api/check-in/bookings/{maDatPhong}/available-rooms.
+     * 2. Backend chỉ trả các phòng đang trống và không bị trùng lịch.
+     * 3. Người dùng chọn phòng mới trong Spinner.
+     * 4. Gửi ChangeRoomRequest gồm oldRoomId, newRoomId và reason.
+     */
     private void showChangeRoomDialog(CheckInModel item, String bookingId) {
         Dialog dialog = new Dialog(requireContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -308,6 +371,7 @@ public class CheckInFragment extends Fragment {
         if (tvCurrentRoom != null) tvCurrentRoom.setText("Phòng hiện tại: " + item.getRoomNumber());
         if (tvStayPeriod != null) tvStayPeriod.setText(item.getStayPeriod());
 
+        // Đặt trạng thái loading cho spinner trong lúc chờ API trả danh sách phòng trống.
         // Set loading state for spinner
         List<String> loadingList = new ArrayList<>();
         loadingList.add("Đang tải danh sách phòng...");
@@ -317,6 +381,7 @@ public class CheckInFragment extends Fragment {
             if (spinnerRooms != null) spinnerRooms.setAdapter(loadingAdapter);
         }
 
+        // Lấy phòng trống thật từ backend; chỉ các phòng trả về ở đây mới được cho chọn.
         // Fetch real available rooms
         com.project_mobile.network.ApiService api = com.project_mobile.network.ApiClient.getClient().create(com.project_mobile.network.ApiService.class);
         final List<com.project_mobile.network.ApiModels.RoomDto> availableRooms = new ArrayList<>();
@@ -386,12 +451,14 @@ public class CheckInFragment extends Fragment {
         if (btnConfirm != null) {
             btnConfirm.setOnClickListener(v -> {
                 if (spinnerRooms == null) return;
+                // selectedPos = 0 là placeholder "-- Chọn phòng trống --", nên phải chọn từ vị trí 1 trở đi.
                 int selectedPos = spinnerRooms.getSelectedItemPosition();
                 if (selectedPos <= 0) {
                     android.widget.Toast.makeText(getContext(), "Vui lòng chọn phòng trống", android.widget.Toast.LENGTH_SHORT).show();
                     return;
                 }
 
+                // selectedPos - 1 vì vị trí 0 của Spinner là dòng placeholder, không phải phòng thật.
                 com.project_mobile.network.ApiModels.RoomDto selectedRoom = availableRooms.get(selectedPos - 1);
                 com.project_mobile.network.ApiModels.ChangeRoomRequest req = new com.project_mobile.network.ApiModels.ChangeRoomRequest();
                 req.newRoomId = selectedRoom.id;
@@ -432,11 +499,13 @@ public class CheckInFragment extends Fragment {
         dialog.show();
     }
 
+    /** Lấy id phòng đầu tiên của booking để backend biết phòng cũ khi đổi phòng. */
     private Integer firstRoomId(com.project_mobile.network.ApiModels.BookingDto booking) {
         if (booking == null || booking.rooms == null || booking.rooms.isEmpty()) return null;
         return booking.rooms.get(0).id;
     }
 
+    /** Đọc errorBody JSON từ backend để hiển thị message nghiệp vụ thay vì chỉ mã HTTP. */
     private String buildErrorMessage(retrofit2.Response<?> response, String fallback) {
         try {
             if (response.errorBody() != null) {
@@ -457,6 +526,7 @@ public class CheckInFragment extends Fragment {
         return fallback;
     }
 
+    /** Hiển thị dialog thành công sau nhận phòng hoặc đổi phòng. */
     private void showSuccessDialog(CheckInModel item, String message) {
         Dialog successDialog = new Dialog(requireContext());
         successDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -481,6 +551,7 @@ public class CheckInFragment extends Fragment {
         successDialog.show();
     }
 
+    /** Căn kích thước dialog theo màn hình để dialog check-in/đổi phòng không quá rộng. */
     private void setupDialogWindow(Dialog dialog) {
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));

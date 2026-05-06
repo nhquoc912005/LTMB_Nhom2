@@ -1,3 +1,7 @@
+// Module service layer cho dịch vụ/tài sản.
+// File này chứa logic truy vấn DB cho service-routes.js, tách khỏi phần khai báo endpoint.
+// Dữ liệu chính xử lý là dich_vu, tai_san, su_dung_dich_vu, thiet_hai và luu_tru đang mở.
+
 /* ==========================================================================
    SERVICE MANAGEMENT SERVICE
    Refactored to match user's database schema:
@@ -59,6 +63,7 @@ function parseStatusList(raw, fallback) {
   return statuses.length > 0 ? statuses : fallback;
 }
 
+// Parse id dương bắt buộc cho room/catalog/line, sai thì ném BusinessError.
 function parseId(value, fieldName) {
   const id = Number.parseInt(value, 10);
   if (!Number.isInteger(id) || id <= 0) {
@@ -67,6 +72,7 @@ function parseId(value, fieldName) {
   return id;
 }
 
+// Chuẩn hóa giá/bồi thường thành số nguyên không âm.
 function parsePrice(value) {
   const parsed = Number(value || 0);
   if (!Number.isFinite(parsed) || parsed < 0) {
@@ -75,6 +81,7 @@ function parsePrice(value) {
   return Math.round(parsed);
 }
 
+// Chuẩn hóa số lượng dịch vụ, mặc định 1 nếu input không hợp lệ.
 function parseQuantity(value) {
   const quantity = Number(value || 1);
   if (!Number.isInteger(quantity) || quantity <= 0) {
@@ -83,6 +90,7 @@ function parseQuantity(value) {
   return quantity;
 }
 
+// Suy luận tầng từ số phòng để response active-rooms có field floor.
 function floorOf(roomNumber) {
   const digits = String(roomNumber || "").replace(/\D+/g, "");
   if (digits.length >= 3) return Number.parseInt(digits.slice(0, -2), 10) || 1;
@@ -90,6 +98,7 @@ function floorOf(roomNumber) {
   return 1;
 }
 
+// Map row từ dich_vu hoặc tai_san sang CatalogItemDto chung cho Android.
 function mapCatalogRow(row, kind) {
   const cfg = CATALOGS[kind];
   return {
@@ -101,6 +110,7 @@ function mapCatalogRow(row, kind) {
   };
 }
 
+// Map row phòng đang lưu trú sang ActiveRoomDto/room detail response.
 function mapRoomRow(row) {
   const roomNumber = row.room_number || "";
   const booking = row.booking_id
@@ -128,6 +138,7 @@ function mapRoomRow(row) {
   };
 }
 
+// Map dòng sử dụng dịch vụ hoặc thiệt hại tài sản sang RoomLineDto chung.
 function mapLineRow(row, kind) {
   const cfg = CATALOGS[kind];
   return {
@@ -153,6 +164,7 @@ class ServiceManagementService {
     console.log("Using user-defined database schema for services.");
   }
 
+  // Lấy danh mục dịch vụ/tài sản, có lọc theo tên nếu search được truyền.
   async listCatalog(kind, search) {
     const cfg = CATALOGS[kind];
     const values = [];
@@ -163,6 +175,7 @@ class ServiceManagementService {
       where = `WHERE ${cfg.nameColumn} ILIKE $1`;
     }
 
+    // SQL đọc bảng danh mục theo kind: public.dich_vu hoặc public.tai_san.
     const result = await this.pool.query(
       `SELECT * FROM ${cfg.table} ${where} ORDER BY ${cfg.idColumn} DESC`,
       values
@@ -170,6 +183,7 @@ class ServiceManagementService {
     return result.rows.map(row => mapCatalogRow(row, kind));
   }
 
+  // Tạo danh mục dịch vụ/tài sản mới sau khi validate tên và giá.
   async createCatalog(kind, body) {
     const cfg = CATALOGS[kind];
     const name = String(body.name || "").trim();
@@ -185,6 +199,7 @@ class ServiceManagementService {
     return mapCatalogRow(result.rows[0], kind);
   }
 
+  // Cập nhật tên/giá của danh mục theo id.
   async updateCatalog(kind, id, body) {
     const cfg = CATALOGS[kind];
     const catalogId = parseId(id, "ID danh mục");
@@ -203,10 +218,12 @@ class ServiceManagementService {
     return mapCatalogRow(result.rows[0], kind);
   }
 
+  // Xóa danh mục nếu chưa được dùng trong bảng phát sinh liên quan.
   async deleteCatalog(kind, id) {
     const cfg = CATALOGS[kind];
     const catalogId = parseId(id, "ID danh mục");
     
+    // Kiểm tra bảng link su_dung_dich_vu/thiet_hai để không xóa item đã phát sinh nghiệp vụ.
     // Check if used
     const used = await this.pool.query(
       `SELECT 1 FROM ${cfg.linkTable} WHERE ${cfg.idColumn} = $1 LIMIT 1`,
@@ -218,6 +235,7 @@ class ServiceManagementService {
     return { id: catalogId };
   }
 
+  // Lấy các phòng đang Bận và có luu_tru chưa checkout để RoomMapFragment hiển thị.
   async getOccupiedRooms(search) {
     const queryValues = [];
     let searchCondition = "";
@@ -227,6 +245,7 @@ class ServiceManagementService {
       searchCondition = `AND p.ten_phong ILIKE $1`;
     }
 
+    // SQL join phong, chi_tiet_dat_phong, dat_phong và luu_tru để lấy stay đang mở của từng phòng.
     const result = await this.pool.query(
       `
       SELECT DISTINCT ON (p.id_phong)
@@ -258,6 +277,7 @@ class ServiceManagementService {
     return result.rows.map(mapRoomRow);
   }
 
+  // Lấy chi tiết một phòng, ưu tiên lưu trú mới nhất nếu phòng đang có khách.
   async getRoomDetail(roomIdValue) {
     const roomId = parseId(roomIdValue, "ID phòng");
     const result = await this.pool.query(
@@ -287,11 +307,13 @@ class ServiceManagementService {
     return mapRoomRow(result.rows[0]);
   }
 
+  // Lấy các dòng dịch vụ/tài sản của phòng thông qua stay_id đang mở.
   async listRoomLines(kind, roomIdValue) {
     const cfg = CATALOGS[kind];
     const room = await this.getRoomDetail(roomIdValue);
     if (!room.stay_id) return [];
 
+    // SQL đọc bảng phát sinh theo id_luutru và join danh mục để có tên/đơn giá.
     const result = await this.pool.query(
       `SELECT rl.*, c.${cfg.nameColumn}, c.${cfg.priceColumn}
        FROM ${cfg.linkTable} rl
@@ -303,6 +325,7 @@ class ServiceManagementService {
     return result.rows.map(row => mapLineRow({ ...row, room_id: room.room_id }, kind));
   }
 
+  // Thêm dịch vụ/tài sản vào phòng đang lưu trú và tính thành tiền.
   async addRoomLine(kind, roomIdValue, body) {
     const cfg = CATALOGS[kind];
     const room = await this.getRoomDetail(roomIdValue);
@@ -317,6 +340,7 @@ class ServiceManagementService {
     const price = Number(catalog.rows[0][cfg.priceColumn] || 0);
     const totalPrice = Math.round(price * quantity);
 
+    // Service ghi vào su_dung_dich_vu; asset ghi vào thiet_hai với mức độ mặc định nếu thiếu.
     const sql = kind === "service" 
       ? `INSERT INTO public.su_dung_dich_vu (id_luutru, id_dichvu, soluong, thanh_tien) VALUES ($1, $2, $3, $4) RETURNING *`
       : `INSERT INTO public.thiet_hai (id_luutru, id_taisan, muc_do, so_tien_boi_thuong, trang_thai) VALUES ($1, $2, $3, $4, 'Chưa xử lý') RETURNING *`;
@@ -329,6 +353,7 @@ class ServiceManagementService {
     return this.loadLine(kind, result.rows[0][cfg.pkColumn]);
   }
 
+  // Cập nhật dòng phát sinh: service cập nhật số lượng/thành tiền, asset cập nhật bồi thường/trạng thái.
   async updateRoomLine(kind, roomIdValue, lineIdValue, body) {
     const cfg = CATALOGS[kind];
     const lineId = parseId(lineIdValue, "ID dòng");
@@ -357,6 +382,7 @@ class ServiceManagementService {
     return this.loadLine(kind, lineId);
   }
 
+  // Xóa dòng dịch vụ/tài sản khỏi bảng phát sinh.
   async deleteRoomLine(kind, roomIdValue, lineIdValue) {
     const cfg = CATALOGS[kind];
     const lineId = parseId(lineIdValue, "ID dòng");
@@ -364,6 +390,7 @@ class ServiceManagementService {
     return { id: lineId };
   }
 
+  // Đọc lại một dòng sau khi thêm/sửa để response có tên và giá từ danh mục.
   async loadLine(kind, lineId) {
     const cfg = CATALOGS[kind];
     const result = await this.pool.query(

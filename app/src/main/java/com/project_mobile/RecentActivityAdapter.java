@@ -1,3 +1,6 @@
+// Module trang chủ Android.
+// File này bind hoạt động gần đây lên RecyclerView trong HomeFragment.
+// Dữ liệu chính là RecentActivityModel đã được map từ API dashboard activities.
 package com.project_mobile;
 
 import android.view.LayoutInflater;
@@ -9,6 +12,10 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
+/**
+ * RecentActivityAdapter hiển thị các hoạt động booking/check-out mới nhất.
+ * Adapter nhận sẵn màu chữ/nền trạng thái từ HomeFragment để không tự quyết định nghiệp vụ.
+ */
 public class RecentActivityAdapter extends RecyclerView.Adapter<RecentActivityAdapter.ViewHolder> {
 
     private final List<RecentActivityModel> activityList;

@@ -1,3 +1,6 @@
+// Module dịch vụ/tài sản Android.
+// File này bind danh mục trong bottom sheet picker khi thêm dịch vụ/tài sản vào phòng.
+// Dữ liệu chính là CatalogItemDto lấy từ API danh mục.
 package com.project_mobile.service;
 
 import android.view.LayoutInflater;
@@ -17,6 +20,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * ServicePickerAdapter dùng lại layout item_service nhưng ẩn nút sửa/xóa.
+ * Khi người dùng chọn item, adapter trả CatalogItemDto về RoomMapFragment để thêm vào phòng.
+ */
 public class ServicePickerAdapter extends RecyclerView.Adapter<ServicePickerAdapter.ViewHolder> {
 
     public interface OnItemClickListener {
@@ -30,6 +37,7 @@ public class ServicePickerAdapter extends RecyclerView.Adapter<ServicePickerAdap
         this.listener = listener;
     }
 
+    /** Cập nhật danh sách item đang hiển thị trong picker sau khi tải/lọc. */
     public void submitList(List<CatalogItemDto> newItems) {
         items.clear();
         if (newItems != null) {
@@ -51,6 +59,7 @@ public class ServicePickerAdapter extends RecyclerView.Adapter<ServicePickerAdap
         holder.tvName.setText(item.name);
         holder.tvPrice.setText(formatMoney(item.price != null ? item.price : 0));
         
+        // Picker chỉ cho chọn item nên ẩn các nút quản trị sửa/xóa của layout dùng chung.
         // Hide edit/delete buttons as this is a picker
         if (holder.btnEdit != null) holder.btnEdit.setVisibility(View.GONE);
         if (holder.btnDelete != null) holder.btnDelete.setVisibility(View.GONE);

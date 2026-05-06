@@ -1,7 +1,11 @@
+// Module cấu hình Supabase client.
+// File này tạo Supabase JS client khi có URL và key trong biến môi trường.
+// Dữ liệu chính là SUPABASE_URL và SUPABASE_ANON_KEY/SUPABASE_SERVICE_ROLE_KEY.
 const path = require("path");
 
 require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
+// Tạo client REST/Auth của Supabase, không lưu session vì backend dùng theo request/server.
 function createSupabaseClient() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;

@@ -1,3 +1,6 @@
+// Module backend tổng hợp cho hotel-api.
+// File này khởi tạo Express app, mount các router nghiệp vụ và chứa các endpoint booking/phòng/dashboard.
+// Dữ liệu chính xử lý là bảng dat_phong, chi_tiet_dat_phong, phong và response envelope cho Android.
 const express = require("express");
 const cors = require('cors');
 const app = express();
@@ -41,6 +44,7 @@ const ROOM_STATUS = {
   RESERVED: "Đã đặt",
 };
 
+// Chuẩn hóa input phòng từ query/body: có thể là mảng, chuỗi nhiều phòng hoặc chuỗi có tiền tố "Phòng".
 function normalizeRoomNumbers(value) {
   if (Array.isArray(value)) {
     return value.map((item) => String(item || "").trim()).filter(Boolean);
@@ -51,12 +55,14 @@ function normalizeRoomNumbers(value) {
     .filter(Boolean);
 }
 
+// Sinh mã đặt phòng mới theo timestamp + random để dùng làm khóa ma_dat_phong.
 function generateBookingId() {
   const stamp = new Date().toISOString().replace(/\D/g, "").slice(0, 14);
   const random = Math.random().toString(36).slice(2, 6).toUpperCase();
   return `DP${stamp}${random}`;
 }
 
+// Ưu tiên tổng số người đã lưu; nếu thiếu thì tính từ người lớn + trẻ em.
 function normalizeTotalGuests(row) {
   const storedTotal = Number(row.tong_so_nguoi ?? row.total_guests ?? 0);
   if (Number.isFinite(storedTotal) && storedTotal > 0) {
@@ -67,10 +73,12 @@ function normalizeTotalGuests(row) {
   return (Number.isFinite(adults) ? adults : 0) + (Number.isFinite(children) ? children : 0);
 }
 
+// Chỉ các trạng thái chờ nhận phòng/đã đặt cọc mới được hủy booking.
 function canCancelBookingStatus(status) {
   return CANCELLABLE_BOOKING_STATUSES.has(String(status || "").trim());
 }
 
+// Map một dòng SQL booking sang DTO có cả field tiếng Việt, snake_case và alias cho Android.
 function mapBookingRow(row) {
   if (!row) return null;
   const totalGuests = normalizeTotalGuests(row);
@@ -103,7 +111,9 @@ function mapBookingRow(row) {
   };
 }
 
+// Lấy chi tiết một booking kèm danh sách phòng liên kết trong chi_tiet_dat_phong.
 async function getBookingDetails(client, maDatPhong) {
+  // SQL đọc dat_phong, phòng liên kết và chi tiết đặt phòng để trả một booking đầy đủ cho Android.
   const result = await client.query(
     `
     SELECT
@@ -150,7 +160,9 @@ async function getBookingDetails(client, maDatPhong) {
   return mapBookingRow(result.rows[0]);
 }
 
+// Kiểm tra các phòng có bị trùng khoảng ngày với booking khác chưa hủy/chưa check-out hay không.
 async function assertRoomsAvailableForBooking(client, roomIds, checkIn, checkOut, excludeBookingId) {
+  // SQL tìm booking khác đang dùng cùng phòng và có khoảng ngày giao nhau với yêu cầu mới.
   const conflict = await client.query(
     `
     SELECT dp.ma_dat_phong, p.ten_phong
@@ -175,7 +187,9 @@ async function assertRoomsAvailableForBooking(client, roomIds, checkIn, checkOut
   }
 }
 
+// Khi hủy booking, trả phòng về trạng thái trống nếu phòng không còn lưu trú mở nào khác.
 async function releaseBookingRooms(client, maDatPhong) {
+  // SQL cập nhật phong về Trống nếu phòng không còn bản ghi luu_tru đang mở.
   await client.query(
     `
     UPDATE public.phong p
@@ -198,8 +212,12 @@ async function releaseBookingRooms(client, maDatPhong) {
 /* =====================================
    0. DASHBOARD STATS (Thống kê trang chủ)
 ===================================== */
+// GET /api/stats
+// Chức năng: thống kê số phòng theo trạng thái cho HomeFragment.
+// Input: không có. Output: totalRooms, occupiedRooms, availableRooms, maintenanceRooms.
 app.get("/api/stats", async (req, res) => {
   try {
+    // Các SQL này đếm trực tiếp trên bảng phong theo từng trạng thái phòng.
     const totalRooms = await pool.query("SELECT COUNT(*) FROM public.phong");
     const occupiedRooms = await pool.query("SELECT COUNT(*) FROM public.phong WHERE trang_thai = 'Bận'");
     const availableRooms = await pool.query("SELECT COUNT(*) FROM public.phong WHERE trang_thai = 'Trống' OR trang_thai IS NULL");
@@ -223,9 +241,13 @@ app.get("/api/stats", async (req, res) => {
 /* =====================================
    1. BOOKINGS (Danh sách đặt phòng)
 ===================================== */
+// GET /api/bookings
+// Chức năng: lấy toàn bộ booking cho màn quản lý đặt phòng.
+// Input: không có. Output: danh sách BookingDto đã chuẩn hóa alias.
 // API: Lấy danh sách toàn bộ các bản ghi đặt phòng
 app.get("/api/bookings", async (req, res) => {
   try {
+    // Truy vấn dat_phong và ghép phòng từ chi_tiet_dat_phong/phong để mobile có room_number.
     const result = await pool.query(`
       SELECT 
         dp.ma_dat_phong,
@@ -262,9 +284,13 @@ app.get("/api/bookings", async (req, res) => {
   }
 });
 
+// GET /api/dashboard/activities
+// Chức năng: lấy 5 hoạt động gần đây cho dashboard, gồm booking chờ nhận phòng và lưu trú đã checkout.
+// Input: không có. Output: booking_id, room_number, customer_name, activity_time, status.
 // API: Lấy các hoạt động gần đây nhất (Chờ nhận phòng và Đã trả phòng)
 app.get("/api/dashboard/activities", async (req, res) => {
   try {
+    // UNION hai nguồn hoạt động: dat_phong đang đặt cọc và luu_tru đã có checkout thực tế.
     const result = await pool.query(`
       (
         -- Hoạt động đặt cọc (Hiển thị là Chờ nhận phòng)
@@ -320,6 +346,9 @@ ensureServiceTables(pool).catch((err) => {
 /* =====================================
    2. CREATE BOOKING (Tạo mới)
 ===================================== */
+// GET /api/bookings/check-availability
+// Chức năng: kiểm tra phòng còn trống trong khoảng ngày trước khi tạo booking.
+// Input query: room_number/room_numbers, check_in, check_out. Output: boolean data.
 // API: Tạo một bản ghi đặt phòng mới
 app.get("/api/bookings/check-availability", async (req, res) => {
   const client = await pool.connect();
@@ -331,6 +360,7 @@ app.get("/api/bookings/check-availability", async (req, res) => {
       return res.status(400).json({ success: false, data: false, message: "Thiếu phòng hoặc ngày nhận/trả" });
     }
 
+    // Lấy các phòng theo tên và kiểm tra đủ số lượng phòng được yêu cầu.
     const rooms = await client.query(
       "SELECT id_phong, ten_phong, trang_thai FROM public.phong WHERE ten_phong = ANY($1::text[])",
       [roomNumbers]
@@ -357,6 +387,9 @@ app.get("/api/bookings/check-availability", async (req, res) => {
   }
 });
 
+// GET /api/bookings/:id
+// Chức năng: lấy chi tiết một booking theo mã đặt phòng.
+// Input path: id/ma_dat_phong. Output: BookingDto hoặc 404.
 app.get("/api/bookings/:id", async (req, res) => {
   const client = await pool.connect();
   try {
@@ -373,6 +406,9 @@ app.get("/api/bookings/:id", async (req, res) => {
   }
 });
 
+// POST /api/bookings
+// Chức năng: tạo booking mới và giữ trạng thái phòng đã đặt.
+// Input body: phòng, khách, ngày nhận/trả, số khách, tổng tiền. Output: booking vừa tạo.
 app.post("/api/bookings", async (req, res) => {
   const client = await pool.connect();
   try {
@@ -404,6 +440,7 @@ app.post("/api/bookings", async (req, res) => {
     }
 
     await client.query("BEGIN");
+    // FOR UPDATE khóa các phòng được chọn để tránh hai request đặt cùng phòng cùng lúc.
     const rooms = await client.query(
       "SELECT * FROM public.phong WHERE ten_phong = ANY($1::text[]) FOR UPDATE",
       [roomsRequested]
@@ -417,6 +454,7 @@ app.post("/api/bookings", async (req, res) => {
       throw Object.assign(new Error(`Phòng ${invalidRoom.ten_phong} không sẵn sàng để đặt`), { statusCode: 409 });
     }
 
+    // Sau khi xác định phòng hợp lệ, kiểm tra xung đột ngày với các booking khác.
     const roomIds = rooms.rows.map((room) => room.id_phong);
     await assertRoomsAvailableForBooking(client, roomIds, check_in, check_out, null);
 
@@ -427,6 +465,7 @@ app.post("/api/bookings", async (req, res) => {
     const phoneNumber = phone || sdt_nguoi_dat;
     const requestedTotalGuests = Number(total_guests || 0);
     const totalGuests = requestedTotalGuests > 0 ? requestedTotalGuests : (Number(adults || 0) + Number(children || 0));
+    // Ghi dat_phong trước, sau đó ghi chi_tiet_dat_phong cho từng phòng được chọn.
     const insert = await client.query(
       `INSERT INTO public.dat_phong
         (ma_dat_phong, so_phong, ten_nguoi_dat, email, sdt_nguoi_dat, tong_so_nguoi, so_nguoi_lon, so_tre_em, ngay_nhan, ngay_tra, tong_thanh_toan, ghi_chu, phuong_thuc_thanh_toan, trang_thai)
@@ -476,11 +515,16 @@ app.post("/api/bookings", async (req, res) => {
 /* =====================================
    3. UPDATE STATUS (Cập nhật trạng thái)
 ===================================== */
+// PUT /api/bookings/:id/cancel
+// Chức năng: hủy booking nếu trạng thái còn cho phép hủy.
+// Input path: id/ma_dat_phong. Output: booking sau khi hủy.
+// Điều kiện nghiệp vụ: chỉ hủy được khi booking còn chờ nhận phòng/đã đặt cọc.
 // API: Cập nhật trạng thái của một bản ghi đặt phòng (ví dụ: Chờ nhận phòng -> Đã nhận phòng)
 app.put("/api/bookings/:id/cancel", async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
+    // Khóa booking hiện tại để trạng thái không đổi trong lúc kiểm tra và cập nhật.
     const current = await client.query(
       "SELECT ma_dat_phong, trang_thai FROM public.dat_phong WHERE ma_dat_phong = $1 FOR UPDATE",
       [req.params.id]
@@ -516,6 +560,9 @@ app.put("/api/bookings/:id/cancel", async (req, res) => {
   }
 });
 
+// PUT /api/bookings/:id/confirm
+// Chức năng: xác nhận booking về trạng thái đã đặt cọc/đã đặt và giữ phòng.
+// Input path: id/ma_dat_phong. Output: booking sau cập nhật.
 app.put("/api/bookings/:id/confirm", async (req, res) => {
   const client = await pool.connect();
   try {
@@ -548,6 +595,9 @@ app.put("/api/bookings/:id/confirm", async (req, res) => {
   }
 });
 
+// PUT /api/bookings/:id/status
+// Chức năng: cập nhật trạng thái booking trực tiếp theo body.status.
+// Input body: status. Output: dòng dat_phong đã cập nhật.
 app.put("/api/bookings/:id/status", async (req, res) => {
   try {
     const { status } = req.body;
@@ -566,10 +616,14 @@ app.put("/api/bookings/:id/status", async (req, res) => {
 /* =====================================
    4. ROOMS (Lấy từ bảng phong)
 ===================================== */
+// GET /api/rooms
+// Chức năng: lấy danh sách đầy đủ thông tin phòng cho màn Quản lý phòng.
+// Input: không có. Output: id, room_number, room_type, capacity, price, status.
 // API: Lấy danh sách các số phòng hiện có trong hệ thống
 // API: Lấy danh sách đầy đủ thông tin phòng
 app.get("/api/rooms", async (req, res) => {
   try {
+    // Truy vấn bảng phong và đổi tên cột tiếng Việt sang field mobile đang dùng.
     const result = await pool.query(`
       SELECT 
         id_phong as id,
@@ -588,6 +642,9 @@ app.get("/api/rooms", async (req, res) => {
   }
 });
 
+// PUT /api/rooms/:id/status
+// Chức năng: cập nhật trạng thái phòng từ màn chi tiết phòng.
+// Input body: status. Output: dòng phong sau cập nhật.
 // API: Cập nhật trạng thái phòng
 app.put("/api/rooms/:id/status", async (req, res) => {
   try {

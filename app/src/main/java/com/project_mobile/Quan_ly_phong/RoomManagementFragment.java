@@ -1,3 +1,20 @@
+// Module quản lý phòng Android.
+// File này hiển thị lưới phòng, thống kê trạng thái phòng và mở bottom sheet chi tiết phòng.
+// Dữ liệu chính lấy từ /api/rooms và map sang RoomModel.
+/*
+ * File: RoomManagementFragment.java
+ * Module: Quản lý phòng.
+ *
+ * Luồng chính:
+ * - fetchRooms gọi GET /api/rooms để lấy danh sách phòng từ backend.
+ * - RoomDto được map sang RoomModel để hiển thị trong RecyclerView.
+ * - Người dùng tìm kiếm theo số phòng, loại phòng hoặc trạng thái.
+ * - Khi bấm vào một phòng, RoomDetailBottomSheet hiển thị chi tiết và hành động liên quan.
+ *
+ * Dữ liệu chính:
+ * - allRooms: danh sách phòng gốc từ API.
+ * - filteredRooms: danh sách sau tìm kiếm.
+ */
 package com.project_mobile.Quan_ly_phong;
 
 import android.graphics.Color;
@@ -22,6 +39,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * RoomManagementFragment phụ trách màn Quản lý phòng.
+ * Class này tải danh sách phòng, lọc theo từ khóa và chuyển phòng được chọn sang RoomDetailBottomSheet.
+ */
 public class RoomManagementFragment extends Fragment implements RoomAdapter.OnRoomClickListener {
 
     private RecyclerView rvRooms;
@@ -45,6 +66,12 @@ public class RoomManagementFragment extends Fragment implements RoomAdapter.OnRo
         return view;
     }
 
+    /** Gọi API lấy phòng, map RoomDto sang RoomModel và cập nhật thống kê. */
+    /*
+     * Tải danh sách phòng từ backend.
+     * API: GET /api/rooms.
+     * Output: allRooms/filteredRooms được cập nhật và các card thống kê được tính lại.
+     */
     private void fetchRooms(View view) {
         com.project_mobile.network.ApiService api = com.project_mobile.network.ApiClient.getClient().create(com.project_mobile.network.ApiService.class);
         api.getRooms().enqueue(new retrofit2.Callback<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.RoomDto>>>() {
@@ -53,6 +80,7 @@ public class RoomManagementFragment extends Fragment implements RoomAdapter.OnRo
                 if (response.isSuccessful() && response.body() != null && response.body().success) {
                     allRooms.clear();
                     for (com.project_mobile.network.ApiModels.RoomDto dto : response.body().data) {
+                            // Suy luận tầng từ ký tự đầu của số phòng để khớp UI hiện tại.
                             allRooms.add(new RoomModel(
                             dto.id,
                             dto.roomNumber,
@@ -72,12 +100,14 @@ public class RoomManagementFragment extends Fragment implements RoomAdapter.OnRo
         });
     }
 
+    /** Thiết lập lưới 2 cột cho danh sách phòng. */
     private void setupRecyclerView() {
         adapter = new RoomAdapter(filteredRooms, this);
         rvRooms.setLayoutManager(new GridLayoutManager(getContext(), 2));
         rvRooms.setAdapter(adapter);
     }
 
+    /** Gắn tìm kiếm realtime theo số phòng, loại phòng, tầng hoặc trạng thái. */
     private void setupSearch() {
         edtRoomSearch.addTextChangedListener(new TextWatcher() {
             @Override
@@ -99,6 +129,11 @@ public class RoomManagementFragment extends Fragment implements RoomAdapter.OnRo
         // Obsolete
     }
 
+    /** Lọc phòng theo từ khóa đã normalize và gửi danh sách mới cho adapter. */
+    /*
+     * Lọc phòng theo từ khóa.
+     * Từ khóa được so sánh với số phòng, loại phòng và trạng thái đã chuẩn hóa chữ thường.
+     */
     private void applySearch(String rawQuery) {
         String query = normalize(rawQuery);
         filteredRooms.clear();
@@ -114,11 +149,13 @@ public class RoomManagementFragment extends Fragment implements RoomAdapter.OnRo
         adapter.submitList(filteredRooms);
     }
 
+    /** Reload theo từ khóa hiện tại sau khi API hoặc bottom sheet cập nhật dữ liệu. */
     private void reloadCurrentList() {
         applySearch(edtRoomSearch == null ? "" : edtRoomSearch.getText().toString());
         updateSummaryCards(requireView());
     }
 
+    /** Cập nhật các ô tổng phòng, trống, đang sử dụng và bảo trì. */
     private void updateSummaryCards(View view) {
         bindSummary(view.findViewById(R.id.cardTotal), allRooms.size(), "Tổng\nphòng", "#D1C19F");
         bindSummary(view.findViewById(R.id.cardEmpty), countEmptyRooms(), "Trống", "#D1C19F");
@@ -165,6 +202,11 @@ public class RoomManagementFragment extends Fragment implements RoomAdapter.OnRo
     }
 
     @Override
+    /** Khi chọn phòng, mở bottom sheet chi tiết và truyền toàn bộ danh sách để đổi/trạng thái. */
+    /*
+     * Mở bottom sheet chi tiết phòng.
+     * Bottom sheet nhận danh sách phòng hiện tại để có thể tìm lại phòng mới nhất khi đổi trạng thái.
+     */
     public void onRoomClick(RoomModel room) {
         RoomDetailBottomSheet bottomSheet = RoomDetailBottomSheet.newInstance(room);
         bottomSheet.setRooms(allRooms);

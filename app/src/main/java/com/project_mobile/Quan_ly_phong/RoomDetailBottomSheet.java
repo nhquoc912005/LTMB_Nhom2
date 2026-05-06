@@ -1,3 +1,18 @@
+// Module quản lý phòng Android.
+// File này là bottom sheet chi tiết phòng, cho phép trả phòng, đổi phòng hoặc chuyển bảo trì.
+// Dữ liệu chính là RoomModel hiện tại và API cập nhật trạng thái phòng.
+/*
+ * File: RoomDetailBottomSheet.java
+ * Module: Quản lý phòng.
+ *
+ * Chức năng:
+ * - Hiển thị thông tin chi tiết của một phòng được chọn từ RoomManagementFragment.
+ * - Tùy trạng thái phòng, hiển thị các hành động như cập nhật trạng thái, trả phòng hoặc đổi phòng.
+ * - Gọi API cập nhật trạng thái phòng khi cần.
+ *
+ * Lưu ý:
+ * - Luồng dịch vụ/tài sản theo phòng đang lưu trú nằm ở RoomMapFragment, không nằm trong file này.
+ */
 package com.project_mobile.Quan_ly_phong;
 
 import android.content.res.ColorStateList;
@@ -29,6 +44,10 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * RoomDetailBottomSheet hiển thị chi tiết một phòng được chọn trong lưới.
+ * Class này quyết định action theo trạng thái phòng và gọi API khi cập nhật trạng thái.
+ */
 public class RoomDetailBottomSheet extends BottomSheetDialogFragment {
 
     private RoomModel room;
@@ -97,6 +116,11 @@ public class RoomDetailBottomSheet extends BottomSheetDialogFragment {
         setupActions(btnPrimary, btnSecondary, btnTertiary);
     }
 
+    /** Chỉ hiển thị thông tin khách khi phòng đang có khách/lưu trú. */
+    /*
+     * Hiển thị thông tin khách nếu phòng đang có khách.
+     * Nếu phòng trống/bảo trì, các field khách sẽ dùng giá trị rỗng hoặc fallback từ RoomModel.
+     */
     private void bindCustomerInfo(View view) {
         MaterialCardView cvCustomer = view.findViewById(R.id.cvCustomerInfo);
         if (room.isOccupied()) {
@@ -109,6 +133,7 @@ public class RoomDetailBottomSheet extends BottomSheetDialogFragment {
         }
     }
 
+    /** Cập nhật màu badge theo trạng thái phòng hiện tại. */
     private void updateStatusBadge(TextView tvStatus) {
         int bgColor;
         int textColor = Color.parseColor("#C0410D");
@@ -126,11 +151,17 @@ public class RoomDetailBottomSheet extends BottomSheetDialogFragment {
         tvStatus.setBackground(gd);
     }
 
+    /** Thiết lập nút nghiệp vụ theo trạng thái: trả phòng/đổi phòng/bảo trì/hoàn tất bảo trì. */
+    /*
+     * Cấu hình các nút hành động theo trạng thái phòng.
+     * Trạng thái phòng quyết định người dùng được đổi trạng thái, mở checkout hay đổi phòng.
+     */
     private void setupActions(MaterialButton primary, MaterialButton secondary, MaterialButton tertiary) {
         primary.setVisibility(View.GONE);
         secondary.setVisibility(View.GONE);
         tertiary.setVisibility(View.GONE);
 
+        // Phòng đang có khách: trả phòng phải chuyển sang luồng checkout; đổi phòng mở bottom sheet riêng.
         if (room.isOccupied()) {
             primary.setVisibility(View.VISIBLE);
             primary.setText("Trả phòng");
@@ -171,6 +202,12 @@ public class RoomDetailBottomSheet extends BottomSheetDialogFragment {
         }
     }
 
+    /** Gửi trạng thái phòng mới lên backend và refresh danh sách phòng sau khi thành công. */
+    /*
+     * Gửi trạng thái phòng mới lên backend.
+     * API: PUT /api/rooms/{id}/status.
+     * Thành công sẽ gọi callback để RoomManagementFragment tải lại danh sách phòng.
+     */
     private void updateRoomStatusOnServer(String status, String successMessage) {
         AppDialog.showLoading(requireContext());
         ApiModels.StatusRequest req = new ApiModels.StatusRequest();
@@ -200,6 +237,7 @@ public class RoomDetailBottomSheet extends BottomSheetDialogFragment {
         });
     }
 
+    /** Điều hướng người dùng sang tab Trả phòng để thanh toán trước khi đóng lưu trú. */
     private void openCheckoutFlow() {
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).openStay(false);
@@ -209,6 +247,7 @@ public class RoomDetailBottomSheet extends BottomSheetDialogFragment {
         }
     }
 
+    /** Mở bottom sheet đổi phòng, sau khi đổi xong sẽ báo Fragment cha reload dữ liệu. */
     private void openChangeRoomSheet() {
         ChangeRoomBottomSheet changeRoomBottomSheet = ChangeRoomBottomSheet.newInstance(room);
         changeRoomBottomSheet.setRooms(rooms);
@@ -225,6 +264,7 @@ public class RoomDetailBottomSheet extends BottomSheetDialogFragment {
         }
     }
 
+    /** Tìm object RoomModel mới nhất trong danh sách hiện tại để tránh dùng snapshot cũ. */
     private RoomModel findLiveRoom(RoomModel fallback) {
         if (fallback == null) {
             return null;

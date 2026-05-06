@@ -1,3 +1,6 @@
+// Module network/repository Android.
+// File này bọc các API đặt phòng cũ thành callback đơn giản cho UI đặt phòng.
+// Dữ liệu chính được xử lý là BookingDto từ API và Booking model của module datphong_mobile.
 package com.project_mobile.network;
 
 import android.util.Log;
@@ -13,6 +16,10 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * BookingRepository chịu trách nhiệm gọi API đặt phòng và map DTO về model hiển thị.
+ * Fragment/Adapter không gọi Retrofit trực tiếp khi dùng repository này.
+ */
 public class BookingRepository {
     private final ApiService api;
 
@@ -25,6 +32,7 @@ public class BookingRepository {
         void onError(String error);
     }
 
+    /** Lấy toàn bộ đặt phòng từ /api/bookings rồi map sang danh sách Booking cho RecyclerView. */
     public void fetchBookings(CallbackList cb) {
         Call<ApiResponse<List<BookingDto>>> call = api.getBookings();
         call.enqueue(new Callback<ApiResponse<List<BookingDto>>>() {
@@ -53,6 +61,7 @@ public class BookingRepository {
                 List<Booking> mapped = new ArrayList<>();
                 if (apiResp.data != null) {
                     for (BookingDto d : apiResp.data) {
+                        // Map DTO từ backend sang model màn hình, đồng thời đặt fallback khi field null.
                         // map DTO to UI model (simple mapping)
                         String roomName = d.roomNumber != null ? d.roomNumber : "";
                         String status = d.status != null ? d.status : "";
@@ -87,6 +96,7 @@ public class BookingRepository {
         void onError(String error);
     }
 
+    /** Kiểm tra phòng còn trống theo khoảng ngày trước khi tạo đặt phòng. */
     public void checkAvailability(String roomNumber, String checkIn, String checkOut, CallbackBoolean cb) {
         Call<ApiResponse<Boolean>> call = api.checkAvailability(roomNumber, checkIn, checkOut);
         call.enqueue(new Callback<ApiResponse<Boolean>>() {
@@ -118,6 +128,7 @@ public class BookingRepository {
         void onError(String error);
     }
 
+    /** Chuyển một BookingDto sang Booking UI model, giữ nguyên trạng thái và thông tin khách. */
     private Booking mapDtoToBooking(BookingDto d) {
         String roomName = d.roomNumber != null ? d.roomNumber : "";
         String status = d.status != null ? d.status : "";
@@ -133,6 +144,7 @@ public class BookingRepository {
                 d.children != null ? d.children : 0);
     }
 
+    /** Gửi request tạo đặt phòng mới và trả về model đã map nếu backend tạo thành công. */
     public void createBooking(ApiModels.CreateBookingRequest req, CallbackBooking cb) {
         Call<ApiResponse<BookingDto>> call = api.createBooking(req);
         call.enqueue(new Callback<ApiResponse<BookingDto>>() {
@@ -158,6 +170,7 @@ public class BookingRepository {
         });
     }
 
+    /** Dùng chung cho các API PUT đổi trạng thái đặt phòng: hủy, xác nhận, check-in cũ. */
     private void performSimplePut(String id, Call<ApiResponse<BookingDto>> call, CallbackBooking cb) {
         call.enqueue(new Callback<ApiResponse<BookingDto>>() {
             @Override

@@ -1,7 +1,14 @@
+// Module quản lý phòng Android.
+// File này là model UI đại diện cho một phòng trong màn quản lý phòng.
+// Dữ liệu chính gồm id, số phòng, loại, tầng, sức chứa, giá, trạng thái và thông tin khách nếu có.
 package com.project_mobile.Quan_ly_phong;
 
 import java.io.Serializable;
 
+/**
+ * RoomModel đóng vai trò dữ liệu hiển thị và chứa helper nhận diện trạng thái phòng.
+ * Các helper isEmpty/isOccupied/isMaintenance gom cả nhãn tiếng Việt và mã tiếng Anh từ backend.
+ */
 public class RoomModel implements Serializable {
     public static final String STATUS_EMPTY = "Trống";
     public static final String STATUS_STAYING = "Đang lưu trú";
@@ -88,28 +95,33 @@ public class RoomModel implements Serializable {
         this.status = status;
     }
 
+    /** Kiểm tra phòng đang trống theo nhiều biến thể trạng thái từ DB/API. */
     public boolean isEmpty() {
         if (status == null) return false;
         return STATUS_EMPTY.equalsIgnoreCase(status) || "AVAILABLE".equalsIgnoreCase(status) || "EMPTY".equalsIgnoreCase(status);
     }
 
+    /** Kiểm tra phòng đang có khách/đang sử dụng. */
     public boolean isOccupied() {
         if (status == null) return false;
         return STATUS_STAYING.equalsIgnoreCase(status) || STATUS_IN_USE.equalsIgnoreCase(status) 
                 || "Bận".equalsIgnoreCase(status) || "OCCUPIED".equalsIgnoreCase(status) || "CHECKED_IN".equalsIgnoreCase(status);
     }
 
+    /** Kiểm tra phòng đang bảo trì. */
     public boolean isMaintenance() {
         if (status == null) return false;
         return STATUS_MAINTENANCE.equalsIgnoreCase(status) || "MAINTENANCE".equalsIgnoreCase(status);
     }
 
+    /** Xóa thông tin khách khi phòng được trả về trạng thái trống/bảo trì. */
     public void clearCustomer() {
         customerName = null;
         customerPhone = null;
         duration = null;
     }
 
+    /** Copy thông tin khách từ phòng cũ sang phòng mới khi đổi phòng. */
     public void copyCustomerFrom(RoomModel source) {
         customerName = source.customerName;
         customerPhone = source.customerPhone;

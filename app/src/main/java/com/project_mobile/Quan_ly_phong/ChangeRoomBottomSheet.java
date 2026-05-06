@@ -1,3 +1,6 @@
+// Module quản lý phòng Android.
+// File này là bottom sheet đổi phòng nội bộ trong danh sách RoomModel hiện có.
+// Dữ liệu chính gồm phòng hiện tại, danh sách phòng trống và phòng mới được chọn.
 package com.project_mobile.Quan_ly_phong;
 
 import android.os.Bundle;
@@ -20,6 +23,10 @@ import com.project_mobile.common.AppDialog;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * ChangeRoomBottomSheet cho phép chuyển thông tin khách từ phòng đang dùng sang phòng trống.
+ * Class này hiện thao tác trên danh sách RoomModel trong bộ nhớ và thông báo callback về màn cha.
+ */
 public class ChangeRoomBottomSheet extends BottomSheetDialogFragment {
 
     private RoomModel currentRoom;
@@ -97,12 +104,14 @@ public class ChangeRoomBottomSheet extends BottomSheetDialogFragment {
         view.findViewById(R.id.btnConfirmChangeRoom).setOnClickListener(v -> confirmChangeRoom());
     }
 
+    /** Kiểm tra đã chọn phòng trống rồi copy thông tin khách sang phòng mới. */
     private void confirmChangeRoom() {
         if (selectedRoom == null) {
             AppDialog.showError(requireContext(), "Vui lòng chọn phòng trống để đổi.");
             return;
         }
 
+        // Giữ trạng thái lưu trú cũ cho phòng mới, đồng thời trả phòng cũ về trạng thái trống.
         String oldStatus = currentRoom.getStatus();
         selectedRoom.copyCustomerFrom(currentRoom);
         selectedRoom.setStatus(oldStatus);
@@ -116,6 +125,7 @@ public class ChangeRoomBottomSheet extends BottomSheetDialogFragment {
         AppDialog.showSuccess(requireContext(), "Đổi phòng thành công");
     }
 
+    /** Hiển thị thông tin phòng trống đang được chọn trong spinner. */
     private void bindNewRoomInfo(View view, MaterialCardView card) {
         if (selectedRoom == null) {
             card.setVisibility(View.GONE);
@@ -129,6 +139,7 @@ public class ChangeRoomBottomSheet extends BottomSheetDialogFragment {
         ((TextView) view.findViewById(R.id.tvNewRoomPrice)).setText(selectedRoom.getPrice() + "/đêm");
     }
 
+    /** Chỉ đưa vào spinner các phòng đang trống và không phải chính phòng hiện tại. */
     private void buildEmptyRoomList() {
         emptyRooms.clear();
         for (RoomModel room : rooms) {
@@ -149,6 +160,7 @@ public class ChangeRoomBottomSheet extends BottomSheetDialogFragment {
         return labels;
     }
 
+    /** Lấy lại RoomModel từ danh sách hiện tại để tránh trạng thái cũ khi bottom sheet mở. */
     private RoomModel findLiveRoom(RoomModel fallback) {
         if (fallback == null) {
             return null;

@@ -1,3 +1,6 @@
+// Module network/config Android.
+// File này chứa địa chỉ backend Node.js mà Retrofit sẽ gọi.
+// Dữ liệu chính là BASE_URL, cần đổi theo emulator, máy thật hoặc môi trường triển khai.
 package com.project_mobile.network;
 
 /**

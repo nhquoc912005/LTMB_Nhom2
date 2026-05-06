@@ -1,3 +1,6 @@
+// Module backend nhận phòng.
+// File này khai báo các endpoint lấy booking chờ check-in, xác nhận nhận phòng và lấy phòng trống.
+// Dữ liệu chính xử lý là dat_phong, chi_tiet_dat_phong, phong, khach_hang và luu_tru.
 const express = require("express");
 
 const router = express.Router();
@@ -39,6 +42,7 @@ function asyncRoute(handler) {
   };
 }
 
+// Chuẩn hóa JSON aggregate từ PostgreSQL về mảng an toàn cho DTO Android.
 function normalizeRows(rows) {
   if (Array.isArray(rows)) return rows;
   if (!rows) return [];
@@ -53,6 +57,7 @@ function normalizeRows(rows) {
   return [];
 }
 
+// Format ngày từ DB sang dd/MM/yyyy để CheckInFragment hiển thị trực tiếp.
 function formatDate(dateStr) {
   if (!dateStr) return "";
   try {
@@ -67,14 +72,17 @@ function formatDate(dateStr) {
   }
 }
 
+// Ghép ngày nhận và ngày trả thành chuỗi thời gian lưu trú.
 function buildStayPeriod(checkIn, checkOut) {
   return [checkIn, checkOut].filter(Boolean).join(" - ");
 }
 
+// Kiểm tra booking có thuộc nhóm trạng thái được phép nhận phòng hay không.
 function isWaitingCheckInStatus(status) {
   return BOOKING_STATUS.WAITING_CHECKIN.includes(String(status || "").trim());
 }
 
+// Map SQL row của booking chờ nhận phòng sang DTO có alias cho Android.
 function mapBookingRow(row) {
   const rooms = normalizeRows(row.rooms);
   const adults = Number(row.so_nguoi_lon || 0);
@@ -120,6 +128,10 @@ function mapBookingRow(row) {
 }
 
 module.exports = function (pool) {
+  // GET /api/check-in/bookings
+  // Chức năng: lấy danh sách booking đủ điều kiện nhận phòng.
+  // Input query: from, to, q. Output: danh sách BookingDto kèm rooms.
+  // Điều kiện nghiệp vụ: booking phải đang chờ check-in, chưa có lưu trú mở và phòng chưa bị booking khác chiếm.
   router.get("/check-in/bookings", asyncRoute(async (req, res) => {
     const values = [BOOKING_STATUS.WAITING_CHECKIN];
     const where = [
@@ -178,6 +190,7 @@ module.exports = function (pool) {
       )`);
     }
 
+    // SQL lọc dat_phong theo trạng thái chờ nhận phòng, loại các booking/phòng đã có luu_tru đang mở.
     const result = await pool.query(
       `
       SELECT
@@ -242,6 +255,10 @@ module.exports = function (pool) {
     });
   }));
 
+  // POST /api/check-in/bookings/:maDatPhong/confirm
+  // Chức năng: xác nhận nhận phòng cho booking.
+  // Input body: cccd, note. Output: success/message.
+  // Điều kiện nghiệp vụ: CCCD 9/12 số, booking đang chờ nhận phòng, phòng chưa có khách lưu trú.
   router.post("/check-in/bookings/:maDatPhong/confirm", asyncRoute(async (req, res) => {
     const { maDatPhong } = req.params;
     const { cccd } = req.body || {};
@@ -254,6 +271,7 @@ module.exports = function (pool) {
     try {
       await client.query("BEGIN");
 
+      // Khóa booking để kiểm tra trạng thái trước khi tạo lưu trú.
       const bookingResult = await client.query(
         "SELECT * FROM public.dat_phong WHERE ma_dat_phong = $1 FOR UPDATE",
         [maDatPhong]
@@ -269,6 +287,7 @@ module.exports = function (pool) {
         });
       }
 
+      // Khóa các phòng trong chi tiết đặt phòng để tránh check-in trùng phòng.
       const roomsResult = await client.query(
         `
         SELECT p.id_phong, p.ten_phong, p.trang_thai
@@ -284,6 +303,7 @@ module.exports = function (pool) {
         throw new BusinessError(409, "BOOKING_HAS_NO_ROOM", "Đơn đặt phòng chưa có thông tin phòng");
       }
 
+      // Kiểm tra booking này đã có một lưu trú đang mở hay chưa.
       const existingOwnStay = await client.query(
         `
         SELECT id_luutru
@@ -299,6 +319,7 @@ module.exports = function (pool) {
         throw new BusinessError(409, "BOOKING_ALREADY_CHECKED_IN", "Đơn đặt phòng này đã có lưu trú đang mở");
       }
 
+      // Kiểm tra phòng có đang bị một lưu trú khác chiếm không.
       const occupiedStay = await client.query(
         `
         SELECT DISTINCT p.ten_phong, lt.ma_dat_phong
@@ -323,6 +344,7 @@ module.exports = function (pool) {
       }
 
       let finalIdKh = booking.id_kh;
+      // Tìm khách hàng theo CCCD; nếu chưa có thì tạo khách mới từ thông tin booking.
       const guestResult = await client.query(
         "SELECT id_kh FROM public.khach_hang WHERE cccd = $1 LIMIT 1",
         [cccd]
@@ -338,16 +360,19 @@ module.exports = function (pool) {
         finalIdKh = newGuestResult.rows[0].id_kh;
       }
 
+      // Cập nhật booking sang trạng thái đang ở và gắn id_kh chính thức.
       await client.query(
         "UPDATE public.dat_phong SET id_kh = $1, trang_thai = $2 WHERE ma_dat_phong = $3",
         [finalIdKh, BOOKING_STATUS.CHECKED_IN, maDatPhong]
       );
 
+      // Tạo bản ghi luu_tru mở, checkout sẽ đóng bản ghi này sau khi thanh toán.
       await client.query(
         "INSERT INTO public.luu_tru (ma_dat_phong, thoi_gian_checkin_thuc_te, so_nguoi_thuc_te) VALUES ($1, CURRENT_TIMESTAMP, $2)",
         [maDatPhong, booking.tong_so_nguoi || ((booking.so_nguoi_lon || 0) + (booking.so_tre_em || 0))]
       );
 
+      // Chuyển tất cả phòng của booking sang trạng thái bận.
       await client.query(
         "UPDATE public.phong SET trang_thai = $1 WHERE id_phong = ANY($2::int[])",
         [ROOM_STATUS.OCCUPIED, roomIds]
@@ -363,7 +388,11 @@ module.exports = function (pool) {
     }
   }));
 
+  // GET /api/check-in/bookings/:maDatPhong/available-rooms
+  // Chức năng: lấy phòng trống để đổi phòng trước khi nhận phòng.
+  // Input path: maDatPhong. Output: danh sách RoomDto trạng thái Trống.
   router.get("/check-in/bookings/:maDatPhong/available-rooms", asyncRoute(async (req, res) => {
+    // SQL chỉ lấy bảng phong với trạng thái Trống để spinner đổi phòng có dữ liệu hợp lệ.
     const result = await pool.query(
       "SELECT id_phong as id, ten_phong as room_number, loai_phong as room_type, gia_phong as price FROM public.phong WHERE trang_thai = $1",
       [ROOM_STATUS.AVAILABLE]

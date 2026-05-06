@@ -1,3 +1,6 @@
+// Module backend xác thực.
+// File này xử lý đăng nhập và luồng quên mật khẩu bằng OTP tạm trong bộ nhớ.
+// Dữ liệu chính xử lý là bảng tai_khoan, vai_tro và otpStore.
 const express = require("express");
 const router = express.Router();
 
@@ -6,6 +9,10 @@ const otpStore = new Map();
 
 module.exports = function (pool) {
 
+  // POST /api/auth/login
+  // Chức năng: đăng nhập bằng tên đăng nhập hoặc email.
+  // Input body: username, password. Output: UserDto cho Android lưu session.
+  // Điều kiện nghiệp vụ: tài khoản không bị khóa và mật khẩu phải khớp.
   // 1. Đăng nhập
   router.post("/login", async (req, res) => {
     const { username, password } = req.body;
@@ -13,6 +20,7 @@ module.exports = function (pool) {
       return res.status(400).json({ success: false, message: "Vui lòng nhập tên đăng nhập và mật khẩu" });
     }
     try {
+      // SQL tìm tài khoản và vai trò theo username hoặc email.
       const result = await pool.query(
         `SELECT tk.*, vt.ten_vaitro 
          FROM public.tai_khoan tk
@@ -52,10 +60,14 @@ module.exports = function (pool) {
     }
   });
 
+  // POST /api/auth/forgot-password
+  // Chức năng: tạo OTP 4 số cho email hoặc số điện thoại.
+  // Input body: identity. Output: identity để client tiếp tục verify.
   // 2. Quên mật khẩu - Gửi OTP
   router.post("/forgot-password", async (req, res) => {
     const { identity } = req.body; // email hoặc số điện thoại
     try {
+      // SQL kiểm tra identity có tồn tại trong tai_khoan hay không.
       const result = await pool.query(
         "SELECT id_taikhoan, email, so_dien_thoai FROM public.tai_khoan WHERE email = $1 OR so_dien_thoai = $1",
         [identity]
@@ -82,6 +94,9 @@ module.exports = function (pool) {
     }
   });
 
+  // POST /api/auth/verify-otp
+  // Chức năng: xác thực OTP còn hạn trong otpStore.
+  // Input body: identity, otp. Output: success/message.
   // 3. Xác thực OTP
   router.post("/verify-otp", (req, res) => {
     const { identity, otp } = req.body;
@@ -98,6 +113,9 @@ module.exports = function (pool) {
     res.json({ success: true, message: "Xác thực thành công" });
   });
 
+  // POST /api/auth/reset-password
+  // Chức năng: đổi mật khẩu sau khi OTP hợp lệ.
+  // Input body: identity, otp, newPassword. Output: success/message.
   // 4. Đặt lại mật khẩu
   router.post("/reset-password", async (req, res) => {
     const { identity, otp, newPassword } = req.body;
@@ -108,6 +126,7 @@ module.exports = function (pool) {
     }
 
     try {
+      // SQL cập nhật mật khẩu cho tài khoản đã được OTP xác thực.
       await pool.query("UPDATE public.tai_khoan SET mat_khau = $1 WHERE id_taikhoan = $2", [newPassword, stored.userId]);
       otpStore.delete(identity); // Xóa OTP sau khi dùng xong
       res.json({ success: true, message: "Đặt lại mật khẩu thành công" });

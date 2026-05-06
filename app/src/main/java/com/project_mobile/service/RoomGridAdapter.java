@@ -1,3 +1,6 @@
+// Module dịch vụ/tài sản Android.
+// File này bind từng ô phòng trong một tầng của RoomMapFragment.
+// Dữ liệu chính là StayRoomModel và callback chọn phòng.
 package com.project_mobile.service;
 
 import android.view.LayoutInflater;
@@ -9,6 +12,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.project_mobile.R;
 import java.util.List;
 
+/**
+ * RoomGridAdapter hiển thị các phòng đang lưu trú trong một tầng.
+ * Adapter chỉ bind số phòng và phát sự kiện click về FloorAdapter/RoomMapFragment.
+ */
 public class RoomGridAdapter extends RecyclerView.Adapter<RoomGridAdapter.RoomViewHolder> {
 
     private final List<StayRoomModel> rooms;
@@ -38,6 +45,7 @@ public class RoomGridAdapter extends RecyclerView.Adapter<RoomGridAdapter.RoomVi
         StayRoomModel room = rooms.get(position);
         holder.tvRoomNumber.setText(room.getRoomNumber());
 
+        // Bắt sự kiện click vào ô phòng và chuyển ra ngoài để mở chi tiết phòng.
         // ĐÃ THÊM: Bắt sự kiện click vào ô phòng và ném ra ngoài
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {

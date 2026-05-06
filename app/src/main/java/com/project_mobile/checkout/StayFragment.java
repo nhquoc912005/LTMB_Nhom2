@@ -1,3 +1,6 @@
+// Module trả phòng Android.
+// File này là container tab lưu trú phiên bản cũ, mặc định mở CheckoutFragment.
+// Dữ liệu chính chỉ là trạng thái tab UI, không gọi API trực tiếp.
 package com.project_mobile.checkout;
 
 import android.graphics.Color;
@@ -12,6 +15,10 @@ import androidx.fragment.app.Fragment;
 
 import com.project_mobile.R;
 
+/**
+ * StayFragment trong package checkout là container cũ cho màn trả phòng.
+ * Luồng điều hướng hiện tại chủ yếu dùng com.project_mobile.check_in.StayFragment.
+ */
 public class StayFragment extends Fragment {
 
     private TextView tabCheckIn, tabCheckOut;

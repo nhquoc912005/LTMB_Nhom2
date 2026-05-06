@@ -1,3 +1,6 @@
+// Module dịch vụ/tài sản Android.
+// File này là repository gọi API danh mục và các dòng dịch vụ/tài sản của phòng.
+// Dữ liệu chính gồm CatalogItemDto, ActiveRoomDto và RoomLineDto.
 package com.project_mobile.service;
 
 import android.util.Log;
@@ -19,6 +22,10 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * ServiceRepository bọc ApiService cho các màn ServiceFragment và RoomMapFragment.
+ * Class này chọn endpoint service/asset dựa trên biến serviceTab để UI không phải lặp nhánh Retrofit.
+ */
 public class ServiceRepository {
     private final ApiService api;
 
@@ -32,6 +39,7 @@ public class ServiceRepository {
         api = ApiClient.getClient().create(ApiService.class);
     }
 
+    /** Lấy danh mục dịch vụ hoặc tài sản theo từ khóa. */
     public void fetchCatalog(boolean serviceTab, String query, DataCallback<List<CatalogItemDto>> callback) {
         Call<ApiResponse<List<CatalogItemDto>>> call = serviceTab
                 ? api.getServices(query)
@@ -39,6 +47,7 @@ public class ServiceRepository {
         enqueue(call, callback);
     }
 
+    /** Tạo mới hoặc cập nhật danh mục dựa vào id null/rỗng. */
     public void saveCatalog(boolean serviceTab, String id, String name, double price, String unit,
             DataCallback<CatalogItemDto> callback) {
         CatalogItemRequest req = new CatalogItemRequest();
@@ -61,10 +70,12 @@ public class ServiceRepository {
         enqueue(call, callback);
     }
 
+    /** Lấy danh sách phòng đang có khách để quản lý dịch vụ/tài sản phát sinh. */
     public void fetchActiveRooms(String query, DataCallback<List<ActiveRoomDto>> callback) {
         enqueue(api.getActiveRooms(query), callback);
     }
 
+    /** Lấy các dòng dịch vụ hoặc tài sản đang gắn với một phòng. */
     public void fetchRoomLines(boolean serviceTab, int roomId, DataCallback<List<RoomLineDto>> callback) {
         Call<ApiResponse<List<RoomLineDto>>> call = serviceTab
                 ? api.getRoomServices(roomId)
@@ -72,6 +83,7 @@ public class ServiceRepository {
         enqueue(call, callback);
     }
 
+    /** Thêm một dịch vụ/tài sản vào phòng với số lượng ban đầu. */
     public void addRoomLine(boolean serviceTab, int roomId, String catalogId, int quantity,
             DataCallback<RoomLineDto> callback) {
         RoomLineRequest req = new RoomLineRequest();
@@ -105,6 +117,7 @@ public class ServiceRepository {
         enqueue(call, callback);
     }
 
+    /** Hàm enqueue chung để chuẩn hóa success/error callback cho mọi API trong repository. */
     private <T> void enqueue(Call<ApiResponse<T>> call, DataCallback<T> callback) {
         call.enqueue(new Callback<ApiResponse<T>>() {
             @Override

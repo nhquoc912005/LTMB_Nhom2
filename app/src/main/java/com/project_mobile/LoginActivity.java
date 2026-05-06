@@ -1,3 +1,6 @@
+// Module xác thực Android.
+// File này xử lý màn đăng nhập, gọi API login và lưu phiên người dùng vào SharedPreferences.
+// Dữ liệu chính gồm username/password nhập từ UI và UserDto trả về từ backend.
 package com.project_mobile;
 
 import android.content.Intent;
@@ -9,6 +12,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
+/**
+ * LoginActivity là màn vào hệ thống.
+ * Class này kiểm tra input, gọi /api/auth/login và chuyển sang MainActivity khi đăng nhập thành công.
+ */
 public class LoginActivity extends AppCompatActivity {
 
     private TextInputEditText etUsername;
@@ -39,6 +46,7 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    /** Kiểm tra username/password không rỗng trước khi gọi API đăng nhập. */
     private boolean validateInput() {
         String username = etUsername.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
@@ -58,6 +66,7 @@ public class LoginActivity extends AppCompatActivity {
         return true;
     }
 
+    /** Gửi thông tin đăng nhập lên backend, lưu UserDto vào SessionManager và mở MainActivity nếu thành công. */
     private void performLogin() {
         String username = etUsername.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
@@ -73,6 +82,7 @@ public class LoginActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null && response.body().success) {
                     com.project_mobile.network.ApiModels.UserDto user = response.body().data;
                     
+                    // Lưu phiên đăng nhập để các màn sau lấy thông tin tài khoản hiện tại.
                     // Save session
                     com.project_mobile.common.SessionManager sessionManager = new com.project_mobile.common.SessionManager(LoginActivity.this);
                     sessionManager.saveUser(user);

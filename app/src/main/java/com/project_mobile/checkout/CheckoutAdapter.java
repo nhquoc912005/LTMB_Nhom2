@@ -1,3 +1,6 @@
+// Module trả phòng Android.
+// File này bind danh sách CheckoutBill lên RecyclerView màn Trả phòng.
+// Dữ liệu chính là thông tin khách, phòng, phí và số tiền cần thanh toán/hoàn.
 package com.project_mobile.checkout;
 
 import android.content.Context;
@@ -12,6 +15,10 @@ import com.project_mobile.R;
 import java.text.DecimalFormat;
 import java.util.List;
 
+/**
+ * CheckoutAdapter hiển thị mỗi phòng đang lưu trú như một card thanh toán.
+ * Adapter chỉ phát sự kiện bấm thanh toán về CheckoutFragment.
+ */
 public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.CheckoutViewHolder> {
 
     private final Context context;
@@ -37,6 +44,7 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.Checko
     }
 
     @Override
+    /** Bind thông tin hóa đơn tạm tính và quyết định nhãn cần thanh toán hay hoàn lại. */
     public void onBindViewHolder(@NonNull CheckoutViewHolder holder, int position) {
         CheckoutBill bill = billList.get(position);
 
@@ -55,6 +63,7 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.Checko
         holder.tvDamageFee.setText(formatMoney(bill.getDamageFee()));
         holder.tvTotalFee.setText(formatMoney(bill.getGrossTotal()));
         holder.tvDeposit.setText(formatMoney(bill.getDeposit()));
+        // Nếu cọc vượt tổng phí, card chuyển sang trạng thái hoàn lại thay vì cần thanh toán.
         if (bill.getRefundAmount() > 0) {
             holder.tvAmountDueLabel.setText("Hoàn lại:");
             holder.tvAmountDue.setText(formatMoney(bill.getRefundAmount()));

@@ -1,3 +1,6 @@
+// Module trang chủ Android.
+// File này hiển thị thống kê phòng, hoạt động gần đây và các thao tác nhanh cho check-in/check-out.
+// Dữ liệu chính lấy từ /api/stats và /api/dashboard/activities.
 package com.project_mobile;
 
 import android.os.Bundle;
@@ -15,6 +18,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * HomeFragment là dashboard đầu tiên sau đăng nhập.
+ * Class này cập nhật số liệu phòng và điều hướng nhanh sang luồng Nhận phòng/Trả phòng.
+ */
 public class HomeFragment extends Fragment {
 
     private RecyclerView rvRecentActivities;
@@ -51,6 +58,7 @@ public class HomeFragment extends Fragment {
         });
     }
 
+    /** Khởi tạo RecyclerView hiển thị tối đa các hoạt động đặt/trả phòng gần đây. */
     private void setupRecyclerView() {
         activityList = new ArrayList<>();
         adapter = new RecentActivityAdapter(activityList);
@@ -58,6 +66,7 @@ public class HomeFragment extends Fragment {
         rvRecentActivities.setAdapter(adapter);
     }
 
+    /** Hiển thị ngày hiện tại ở header theo locale Việt Nam. */
     private void setHeaderDate(View view) {
         android.widget.TextView tvDate = view.findViewById(R.id.tvCurrentDate);
         if (tvDate == null) return;
@@ -70,6 +79,7 @@ public class HomeFragment extends Fragment {
         tvDate.setText(date);
     }
 
+    /** Gọi API thống kê phòng và đổ số liệu lên các ô tổng quan. */
     private void loadStats(View view) {
         com.project_mobile.network.ApiService api = com.project_mobile.network.ApiClient.getClient().create(com.project_mobile.network.ApiService.class);
         api.getStats().enqueue(new retrofit2.Callback<com.project_mobile.network.ApiModels.ApiResponse<com.project_mobile.network.ApiModels.DashboardStatsDto>>() {
@@ -89,6 +99,7 @@ public class HomeFragment extends Fragment {
         });
     }
 
+    /** Lấy hoạt động gần đây, chuẩn hóa trạng thái và map sang RecentActivityModel cho RecyclerView. */
     private void loadRecentActivities() {
         com.project_mobile.network.ApiService api = com.project_mobile.network.ApiClient.getClient().create(com.project_mobile.network.ApiService.class);
         api.getDashboardActivities().enqueue(new retrofit2.Callback<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.BookingDto>>>() {
@@ -115,6 +126,7 @@ public class HomeFragment extends Fragment {
                         }
 
                         // Extract time from activity_time
+                        // Trích giờ hiển thị từ activity_time/checkIn do backend trả về ở dạng ISO hoặc datetime.
                         String timeStr = "Gần đây";
                         try {
                             // Extract time HH:mm from activity_time string (ISO or custom)
@@ -132,6 +144,7 @@ public class HomeFragment extends Fragment {
                         } catch (Exception e) {}
 
                         // Format room display
+                        // Chuẩn hóa tên phòng để UI luôn hiển thị dạng "Phòng ...".
                         String roomDisplay = b.roomNumber;
                         if (roomDisplay == null || roomDisplay.equals("Chưa gán") || roomDisplay.equals("N/A")) {
                             roomDisplay = "Phòng chưa gán";
@@ -157,6 +170,7 @@ public class HomeFragment extends Fragment {
         });
     }
 
+    /** Gom nhiều biến thể trạng thái backend về nhãn ngắn trên dashboard. */
     private String normalizeDisplayStatus(String status) {
         if (status.contains("Đã đặt cọc") || status.contains("Chờ check-in") || status.contains("Chờ nhận phòng")) {
             return "Chờ nhận phòng";

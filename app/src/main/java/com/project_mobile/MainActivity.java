@@ -1,3 +1,6 @@
+// Module app shell Android.
+// File này là Activity chính sau đăng nhập, điều hướng giữa các màn hình bằng bottom navigation và menu góc trên.
+// Dữ liệu chính là lựa chọn menu/tab hiện tại và Fragment tương ứng được nạp vào fragment_container.
 package com.project_mobile;
 
 import android.os.Bundle;
@@ -17,6 +20,10 @@ import com.project_mobile.service.RoomMapFragment;
 import com.project_mobile.service.ServiceFragment;
 import com.project_mobile.user.UserManagementFragment;
 
+/**
+ * MainActivity quản lý khung ứng dụng sau khi người dùng đăng nhập.
+ * Class này quyết định màn nào được mở cho Trang chủ, Lưu trú, Đặt phòng, Quản lý phòng và Dịch vụ.
+ */
 public class MainActivity extends AppCompatActivity {
 
     private BottomNavigationView bottomNav;
@@ -58,21 +65,25 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /** Mở màn Lưu trú và chọn sẵn tab Nhận phòng hoặc Trả phòng theo tham số showCheckIn. */
     public void openStay(boolean showCheckIn) {
         loadFragment(StayFragment.newInstance(showCheckIn));
         bottomNav.getMenu().findItem(R.id.nav_stay).setChecked(true);
     }
 
+    /** Mở màn quản lý tài khoản từ menu phụ, không đánh dấu tab bottom navigation. */
     public void openUserManagement() {
         loadFragment(new UserManagementFragment());
         clearBottomSelection();
     }
 
+    /** Mở màn quản lý danh mục dịch vụ/tài sản từ menu phụ. */
     public void openServiceManagement() {
         loadFragment(new ServiceFragment());
         clearBottomSelection();
     }
 
+    /** Hiển thị menu chức năng phụ: người dùng, danh mục dịch vụ, thông tin tài khoản và đăng xuất. */
     private void showAppMenu(View anchor) {
         PopupMenu popupMenu = new PopupMenu(this, anchor);
         popupMenu.inflate(R.menu.app_shell_menu);
@@ -99,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
         popupMenu.show();
     }
 
+    /** Bỏ trạng thái chọn của bottom navigation khi đang ở màn không thuộc 5 tab chính. */
     private void clearBottomSelection() {
         bottomNav.getMenu().setGroupCheckable(0, true, false);
         for (int i = 0; i < bottomNav.getMenu().size(); i++) {
@@ -107,6 +119,7 @@ public class MainActivity extends AppCompatActivity {
         bottomNav.getMenu().setGroupCheckable(0, true, true);
     }
 
+    /** Thay Fragment hiện tại trong vùng nội dung chính. */
     private void loadFragment(Fragment fragment) {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, fragment)

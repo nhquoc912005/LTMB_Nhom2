@@ -1,3 +1,21 @@
+// Module network/API Android.
+// File này khai báo toàn bộ endpoint Retrofit mà app mobile dùng để gọi Node.js API.
+// Dữ liệu chính đi qua file gồm booking, check-in, checkout, phòng, dịch vụ/tài sản và người dùng.
+/*
+ * File: ApiService.java
+ * Module: Network/API contract Android.
+ *
+ * Chức năng:
+ * - Khai báo toàn bộ endpoint Retrofit mà app gọi sang Node.js API.
+ * - Mỗi method mô tả HTTP method, path, query/path param và body tương ứng.
+ * - Các Fragment/Repository không tự build URL thủ công mà gọi qua interface này.
+ *
+ * Cách đọc:
+ * - @GET/@POST/@PUT/@DELETE là method HTTP.
+ * - @Path lấy giá trị đưa vào URL.
+ * - @Query đưa dữ liệu lên query string.
+ * - @Body gửi JSON request body.
+ */
 package com.project_mobile.network;
 
 import com.project_mobile.network.ApiModels.ApiResponse;
@@ -20,7 +38,12 @@ import retrofit2.http.PUT;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
+/**
+ * ApiService là hợp đồng giữa Android và backend Express.
+ * Mỗi method tương ứng một endpoint, Retrofit sẽ map path/query/body sang HTTP request.
+ */
 public interface ApiService {
+    // Đặt phòng: lấy danh sách, chi tiết, kiểm tra trùng lịch, tạo mới và đổi trạng thái đặt phòng.
     @GET("/api/bookings")
     Call<ApiResponse<List<BookingDto>>> getBookings();
 
@@ -45,6 +68,7 @@ public interface ApiService {
     Call<ApiResponse<BookingDto>> checkInBooking(@Path("id") String id, @Body ApiModels.CheckInRequest req);
 
     // --- Services & Assets ---
+    // Danh mục dịch vụ và tài sản: dùng cho màn quản lý danh mục và chọn thêm vào phòng đang lưu trú.
     @GET("/api/services")
     Call<ApiResponse<List<CatalogItemDto>>> getServices(@Query("q") String query);
 
@@ -73,6 +97,7 @@ public interface ApiService {
     Call<ApiResponse<List<ActiveRoomDto>>> getActiveRooms(@Query("q") String query);
 
     // --- Room Specific Items ---
+    // Dòng dịch vụ/tài sản của từng phòng: dùng trong RoomMapFragment khi xem phòng đang có khách.
     @GET("/api/rooms/{roomId}/room-services")
     Call<ApiResponse<List<RoomLineDto>>> getRoomServices(@Path("roomId") int roomId);
 
@@ -98,6 +123,7 @@ public interface ApiService {
     Call<ApiResponse<RoomLineDto>> deleteRoomAsset(@Path("id") String id);
 
     // --- Auth & Users ---
+    // Xác thực, quên mật khẩu và CRUD nhân viên/tài khoản.
     @POST("/api/auth/login")
     Call<ApiResponse<ApiModels.UserDto>> login(@Body ApiModels.LoginRequest req);
 
@@ -135,12 +161,14 @@ public interface ApiService {
     Call<ApiResponse<ApiModels.RoomDto>> updateRoomStatus(@Path("id") int id, @Body ApiModels.StatusRequest req);
 
     // Stats
+    // Dashboard trang chủ: số phòng theo trạng thái và hoạt động gần đây.
     @GET("/api/stats")
     Call<ApiResponse<ApiModels.DashboardStatsDto>> getStats();
 
     @GET("/api/dashboard/activities")
     Call<ApiResponse<List<BookingDto>>> getDashboardActivities();
 
+    // Nhận phòng: lấy danh sách booking đủ điều kiện check-in theo ngày và từ khóa.
     @GET("/api/check-in/bookings")
     Call<ApiResponse<List<ApiModels.BookingDto>>> getCheckInBookings(
         @Query("from") String from,
@@ -148,24 +176,30 @@ public interface ApiService {
         @Query("q") String query
     );
 
+    // Trả phòng: lấy các lưu trú đang mở, backend đã tính sẵn phí và số tiền cần thanh toán.
     @GET("/api/v2/checkouts")
     Call<ApiResponse<List<ApiModels.CheckoutDto>>> getCheckouts(
         @Query("date") String date,
         @Query("q") String query
     );
 
+    // Tạo/cập nhật hóa đơn nháp trước khi thanh toán để số tiền luôn lấy từ backend mới nhất.
     @POST("/api/v2/checkouts/{maDatPhong}/draft-bill")
     Call<ApiResponse<ApiModels.CheckoutDto>> createCheckoutDraft(@Path("maDatPhong") String maDatPhong);
 
+    // Thanh toán hóa đơn; backend sẽ đóng lưu trú và cập nhật trạng thái phòng/booking.
     @POST("/api/v2/invoices/{idHoaDon}/pay")
     Call<ApiResponse<Object>> payInvoice(@Path("idHoaDon") int idHoaDon, @Body ApiModels.PaymentRequest req);
 
+    // Lấy phòng trống có thể đổi sang trước khi nhận phòng.
     @GET("/api/check-in/bookings/{maDatPhong}/available-rooms")
     Call<ApiResponse<List<ApiModels.RoomDto>>> getAvailableRooms(@Path("maDatPhong") String maDatPhong);
 
+    // Xác nhận nhận phòng; backend tạo bản ghi luu_tru và cập nhật trạng thái phòng.
     @POST("/api/check-in/bookings/{maDatPhong}/confirm")
     Call<ApiResponse<Object>> confirmCheckIn(@Path("maDatPhong") String maDatPhong, @Body ApiModels.CheckInRequest req);
 
+    // Đổi phòng trong chi tiết đặt phòng trước khi check-in.
     @POST("/api/check-in/bookings/{maDatPhong}/change-room")
     Call<ApiResponse<Void>> changeRoom(@Path("maDatPhong") String maDatPhong, @Body ApiModels.ChangeRoomRequest req);
 

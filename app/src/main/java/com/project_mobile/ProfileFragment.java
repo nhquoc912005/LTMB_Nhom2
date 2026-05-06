@@ -1,3 +1,6 @@
+// Module tài khoản Android.
+// File này hiển thị thông tin hồ sơ người dùng hiện tại và xử lý đổi mật khẩu.
+// Dữ liệu chính được lấy từ SessionManager và endpoint /api/users/{id}/change-password.
 package com.project_mobile;
 
 import android.os.Bundle;
@@ -12,6 +15,10 @@ import androidx.fragment.app.Fragment;
 import com.project_mobile.common.SessionManager;
 import com.project_mobile.network.ApiModels.UserDto;
 
+/**
+ * ProfileFragment là màn thông tin tài khoản cá nhân.
+ * Class này đọc UserDto đã lưu sau đăng nhập và gửi request đổi mật khẩu khi người dùng xác nhận.
+ */
 public class ProfileFragment extends Fragment {
 
     private TextView tvProfileFullName, tvProfileUsername, tvProfilePhone, tvProfileEmail, tvProfileRole;
@@ -36,6 +43,7 @@ public class ProfileFragment extends Fragment {
         return view;
     }
 
+    /** Mở dialog đổi mật khẩu và kiểm tra các trường nhập cơ bản trước khi gọi API. */
     private void showChangePasswordDialog() {
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_change_password, null);
@@ -72,6 +80,7 @@ public class ProfileFragment extends Fragment {
         dialog.show();
     }
 
+    /** Gửi mật khẩu hiện tại/mật khẩu mới lên backend, cập nhật UI bằng Toast theo kết quả. */
     private void performChangePassword(String current, String newPass, android.app.AlertDialog dialog) {
         UserDto user = sessionManager.getUser();
         if (user == null || user.id == null) return;
@@ -101,6 +110,7 @@ public class ProfileFragment extends Fragment {
         });
     }
 
+    /** Đổ thông tin user đã lưu trong phiên vào các TextView của màn hồ sơ. */
     private void loadUserData() {
         UserDto user = sessionManager.getUser();
         if (user != null) {

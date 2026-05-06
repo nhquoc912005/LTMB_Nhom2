@@ -1,5 +1,9 @@
+// Module đặt phòng Android.
+// File này là model UI cho item đặt phòng trong màn RoomBookingFragmentV2.
+// Dữ liệu chính gồm phòng, trạng thái, khách, liên hệ, ngày lưu trú, giá và số khách.
 package com.project_mobile.datphong_mobile;
 
+/** RoomBooking là model đã format chuỗi để RoomBookingAdapter hiển thị trực tiếp. */
 public class RoomBooking {
     private final String roomNumber;
     private final String status;

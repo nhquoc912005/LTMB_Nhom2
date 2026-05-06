@@ -1,3 +1,22 @@
+// Module trả phòng Android.
+// File này hiển thị danh sách phòng đang lưu trú, tạo hóa đơn nháp và xác nhận thanh toán/trả phòng.
+// Dữ liệu chính lấy từ /api/v2/checkouts, /draft-bill và /api/v2/invoices/{id}/pay.
+/*
+ * File: CheckoutFragment.java
+ * Module: Trả phòng/checkout.
+ *
+ * Luồng chính:
+ * 1. GET /api/v2/checkouts lấy các lưu trú đang mở, có thể lọc theo ngày/từ khóa.
+ * 2. buildCheckoutBill map CheckoutDto sang CheckoutBill để hiển thị card và dialog.
+ * 3. Khi thanh toán, app gọi POST /api/v2/checkouts/{maDatPhong}/draft-bill để tạo/cập nhật hóa đơn nháp.
+ * 4. Sau đó gọi POST /api/v2/invoices/{idHoaDon}/pay để thanh toán và đóng lưu trú.
+ *
+ * Dữ liệu tiền:
+ * - roomFee: tiền phòng.
+ * - serviceFee: tổng tiền dịch vụ.
+ * - damageFee: tiền bồi thường tài sản nếu có.
+ * - deposit/amountDue/refundAmount: cọc, số cần thanh toán hoặc số hoàn lại.
+ */
 package com.project_mobile.checkout;
 
 import android.app.Dialog;
@@ -18,6 +37,10 @@ import com.project_mobile.Quan_ly_phong.RoomModel;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * CheckoutFragment phụ trách màn Trả phòng.
+ * Class này map CheckoutDto thành CheckoutBill, hiển thị phí và gọi API thanh toán để đóng lưu trú.
+ */
 public class CheckoutFragment extends Fragment {
     private RecyclerView recyclerView;
     private CheckoutAdapter adapter;
@@ -44,6 +67,7 @@ public class CheckoutFragment extends Fragment {
         return view;
     }
 
+    /** Chọn ngày trả phòng cần lọc và tải lại danh sách checkout. */
     private void showDatePicker() {
         android.app.Dialog calendarDialog = new android.app.Dialog(requireContext());
         calendarDialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE);
@@ -63,6 +87,18 @@ public class CheckoutFragment extends Fragment {
         calendarDialog.show();
     }
 
+    /** Gọi API lấy các lưu trú đang mở theo ngày/từ khóa, sau đó cập nhật danh sách hóa đơn checkout. */
+    /*
+     * Tải danh sách checkout từ backend.
+     *
+     * Input:
+     * - date: ngày lọc theo yyyy-MM-dd, có thể null nếu không chọn ngày.
+     * - q: từ khóa tìm khách/phòng/booking.
+     *
+     * Output:
+     * - checkoutList chứa CheckoutBill đã map cho UI.
+     * - RecyclerView được notify để render lại danh sách.
+     */
     private void fetchData() {
         String dateStr = tvSelectedDate.getText().toString();
         String apiDate = formatToApiDate(dateStr);
@@ -77,6 +113,7 @@ public class CheckoutFragment extends Fragment {
                         checkoutList.clear();
                         if (response.body().data != null) {
                             for (com.project_mobile.network.ApiModels.CheckoutDto d : response.body().data) {
+                                // Backend đã tính sẵn phí phòng/dịch vụ/bồi thường; buildCheckoutBill chỉ map sang model UI.
                                 if (d == null) {
                                     continue;
                                 }
@@ -122,6 +159,7 @@ public class CheckoutFragment extends Fragment {
         });
     }
 
+    /** Chuyển ngày dd/MM/yyyy từ UI sang yyyy-MM-dd để lọc query checkout. */
     private String formatToApiDate(String uiDate) {
         if (uiDate == null || uiDate.trim().isEmpty()) return null;
         try {
@@ -133,6 +171,13 @@ public class CheckoutFragment extends Fragment {
         return null;
     }
 
+    /** Hiển thị dialog hóa đơn, phương thức thanh toán và nút xác nhận thanh toán/trả phòng. */
+    /*
+     * Hiển thị dialog thanh toán/trả phòng.
+     *
+     * Dialog này không tự tính nghiệp vụ từ database; nó hiển thị số tiền đã được
+     * backend tính trong CheckoutDto và người dùng chọn phương thức thanh toán.
+     */
     private void showPaymentDialog(CheckoutBill bill) {
         Dialog dialog = new Dialog(requireContext());
         dialog.setContentView(R.layout.dialog_payment_checkout);
@@ -150,6 +195,8 @@ public class CheckoutFragment extends Fragment {
         ((TextView)dialog.findViewById(R.id.tvDialogDeposit)).setText(formatMoney(bill.getDeposit()));
         TextView tvDialogAmountDueLabel = dialog.findViewById(R.id.tvDialogAmountDueLabel);
         TextView tvDialogAmountDue = dialog.findViewById(R.id.tvDialogAmountDue);
+        // Nếu tiền cọc lớn hơn tổng phí thì hiển thị số tiền cần hoàn, ngược lại hiển thị số cần thanh toán.
+        // Nếu tiền cọc lớn hơn tổng phí thì phát sinh hoàn tiền, ngược lại khách cần thanh toán thêm.
         if (bill.getRefundAmount() > 0) {
             tvDialogAmountDueLabel.setText("Hoàn lại:");
             tvDialogAmountDue.setText(formatMoney(bill.getRefundAmount()));
@@ -185,6 +232,13 @@ public class CheckoutFragment extends Fragment {
         dialog.show();
     }
 
+    /** Map CheckoutDto từ backend sang CheckoutBill dùng cho card và dialog thanh toán. */
+    /*
+     * Map CheckoutDto sang CheckoutBill.
+     *
+     * Các field tiền được chuẩn hóa null -> 0 để UI không bị crash.
+     * grossTotal ưu tiên giá trị backend; nếu thiếu thì app cộng roomFee + serviceFee + damageFee.
+     */
     private CheckoutBill buildCheckoutBill(com.project_mobile.network.ApiModels.CheckoutDto d) {
         double roomFee = money(d.roomFee);
         double serviceFee = money(d.serviceFee);
@@ -214,6 +268,16 @@ public class CheckoutFragment extends Fragment {
         );
     }
 
+    /** Tạo/cập nhật hóa đơn nháp rồi gửi thanh toán; thành công sẽ checkout lưu trú và refresh danh sách. */
+    /*
+     * Gửi yêu cầu thanh toán và trả phòng.
+     *
+     * Luồng xử lý:
+     * 1. Kiểm tra mã đặt phòng.
+     * 2. Tạo/cập nhật hóa đơn nháp để backend trả idHoaDon và số tiền mới nhất.
+     * 3. Gửi PaymentRequest tới endpoint pay invoice.
+     * 4. Thành công thì backend cập nhật hoa_don/thanh_toan/luu_tru/phong và app refresh danh sách.
+     */
     private void payCheckout(CheckoutBill bill, Spinner spinnerPayment, android.widget.EditText etNote, boolean requestVat, Dialog dialog, View btnConfirmPrint, View btnRedInvoice) {
         if (bill.getMaDatPhong() == null || bill.getMaDatPhong().trim().isEmpty()) {
             android.widget.Toast.makeText(getContext(), "Thiếu mã đặt phòng để thanh toán", android.widget.Toast.LENGTH_SHORT).show();
@@ -277,6 +341,7 @@ public class CheckoutFragment extends Fragment {
         if (btnRedInvoice != null) btnRedInvoice.setEnabled(enabled);
     }
 
+    /** Đổi nhãn UI của Spinner thành mã backend đang nhận: CASH hoặc TRANSFER. */
     private String normalizePaymentMethod(String label) {
         if (System.currentTimeMillis() >= 0) {
             return label != null && label.toLowerCase(java.util.Locale.ROOT).contains("chuy") ? "TRANSFER" : "CASH";

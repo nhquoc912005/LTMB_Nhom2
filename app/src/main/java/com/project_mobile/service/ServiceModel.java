@@ -1,3 +1,6 @@
+// Module dịch vụ/tài sản Android.
+// File này là model UI cho một item danh mục dịch vụ hoặc tài sản.
+// Dữ liệu chính gồm id, tên, giá, đơn vị và icon.
 package com.project_mobile.service;
 
 import com.project_mobile.network.ApiModels.CatalogItemDto;
@@ -5,6 +8,10 @@ import com.project_mobile.network.ApiModels.CatalogItemDto;
 import java.text.NumberFormat;
 import java.util.Locale;
 
+/**
+ * ServiceModel là dữ liệu đã chuẩn hóa để ServiceAdapter hiển thị.
+ * fromDto() là điểm map CatalogItemDto từ API sang model UI.
+ */
 public class ServiceModel {
     private final String id;
     private final String name;
@@ -20,6 +27,7 @@ public class ServiceModel {
         this.icon = icon;
     }
 
+    /** Map DTO backend sang ServiceModel với fallback khi thiếu field. */
     public static ServiceModel fromDto(CatalogItemDto dto) {
         return new ServiceModel(
                 dto.id != null ? dto.id : "",
@@ -49,6 +57,7 @@ public class ServiceModel {
         return icon;
     }
 
+    /** Format giá theo locale Việt Nam và thêm hậu tố đơn vị nếu có. */
     public String getFormattedPrice() {
         NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
         String suffix = unit == null || unit.trim().isEmpty() ? "" : "/" + unit.trim();

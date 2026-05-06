@@ -1,3 +1,6 @@
+// Module đặt phòng Android.
+// File này bind model RoomBooking lên layout item_room_booking_v2.
+// Dữ liệu chính là thông tin phòng, khách, ngày nhận/trả và giá.
 package com.project_mobile.datphong_mobile;
 
 import android.view.LayoutInflater;
@@ -9,6 +12,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.project_mobile.R;
 import java.util.List;
 
+/**
+ * RoomBookingAdapter là adapter hiển thị danh sách booking dạng V2.
+ * Adapter chỉ bind dữ liệu, không phát sinh thao tác nghiệp vụ.
+ */
 public class RoomBookingAdapter extends RecyclerView.Adapter<RoomBookingAdapter.ViewHolder> {
 
     private final List<RoomBooking> bookings;

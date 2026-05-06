@@ -1,5 +1,9 @@
+// Module backend quản lý tài khoản nhân viên.
+// File này khai báo endpoint lấy vai trò, CRUD nhân viên, khóa/mở khóa và đổi mật khẩu.
+// Dữ liệu chính xử lý là bảng tai_khoan và vai_tro.
 const express = require("express");
 
+// Map row từ tai_khoan/vai_tro sang UserDto mà Android đang dùng.
 function mapUserRow(row) {
   const locked = row.trang_thai === "Tạm khóa" || row.trang_thai === "Khóa";
   return {
@@ -18,6 +22,7 @@ function mapUserRow(row) {
   };
 }
 
+// Bổ sung cột tương thích nếu DB hiện tại chưa có trang_thai/gioi_tinh.
 async function ensureAccountColumns(pool) {
   await pool.query(
     "ALTER TABLE public.tai_khoan ADD COLUMN IF NOT EXISTS trang_thai character varying DEFAULT 'Hoạt động'"
@@ -27,6 +32,7 @@ async function ensureAccountColumns(pool) {
   );
 }
 
+// Ưu tiên id_vaitro client gửi; nếu thiếu thì tìm theo tên vai trò trong bảng vai_tro.
 async function resolveRoleId(pool, role, idVaitro) {
   if (idVaitro) return idVaitro;
   if (!role) return null;
@@ -37,6 +43,7 @@ async function resolveRoleId(pool, role, idVaitro) {
   return result.rows[0]?.id_vaitro || null;
 }
 
+// Lấy lại user sau khi tạo/sửa để response luôn có role name từ bảng vai_tro.
 async function getUserById(pool, id) {
   const result = await pool.query(
     `SELECT tk.*, vt.ten_vaitro
@@ -54,8 +61,12 @@ module.exports = function (pool) {
     console.error("Không thể bảo đảm cột tài khoản:", error.message);
   });
 
+  // GET /api/users/roles
+  // Chức năng: lấy danh sách vai trò để Android nạp Spinner.
+  // Input: không có. Output: id_vaitro, ten_vaitro.
   router.get("/roles", async (req, res) => {
     try {
+      // SQL đọc bảng vai_tro theo id để giữ thứ tự quyền ổn định trên UI.
       const result = await pool.query(
         `SELECT id_vaitro, ten_vaitro
          FROM public.vai_tro
@@ -68,9 +79,13 @@ module.exports = function (pool) {
     }
   });
 
+  // GET /api/users
+  // Chức năng: lấy danh sách nhân viên/tài khoản cho màn quản lý.
+  // Input: không có. Output: danh sách UserDto.
   router.get("/", async (req, res) => {
     try {
       await schemaReady;
+      // SQL join tai_khoan với vai_tro để trả cả thông tin tài khoản và tên vai trò.
       const result = await pool.query(
         `SELECT tk.*, vt.ten_vaitro
          FROM public.tai_khoan tk
@@ -84,6 +99,10 @@ module.exports = function (pool) {
     }
   });
 
+  // POST /api/users
+  // Chức năng: tạo tài khoản nhân viên mới.
+  // Input body: username, password, fullName, email, phone, gender, role/id_vaitro, active/locked.
+  // Output: UserDto vừa tạo.
   router.post("/", async (req, res) => {
     const {
       username,
@@ -106,6 +125,7 @@ module.exports = function (pool) {
       const roleId = await resolveRoleId(pool, roleLabel, id_vaitro || idVaitro);
       const status = locked || active === false ? "Tạm khóa" : "Hoạt động";
       const genderValue = gender || gioi_tinh || "Nam";
+      // SQL insert tai_khoan với trạng thái suy ra từ active/locked.
       const result = await pool.query(
         `INSERT INTO public.tai_khoan
            (ten_dang_nhap, mat_khau, ho_ten, email, so_dien_thoai, gioi_tinh, chuc_vu, id_vaitro, trang_thai)
@@ -121,6 +141,10 @@ module.exports = function (pool) {
     }
   });
 
+  // PUT /api/users/:id
+  // Chức năng: cập nhật thông tin tài khoản nhân viên.
+  // Input body: các field cần đổi; field null giữ nguyên nhờ COALESCE.
+  // Output: UserDto sau cập nhật.
   router.put("/:id", async (req, res) => {
     const { id } = req.params;
     const { fullName, email, phone, role, position, password, id_vaitro, idVaitro, gender, gioi_tinh, active, locked } = req.body;
@@ -129,6 +153,7 @@ module.exports = function (pool) {
       const roleLabel = role || position;
       const roleId = await resolveRoleId(pool, roleLabel, id_vaitro || idVaitro);
       const status = locked === true || active === false ? "Tạm khóa" : locked === false || active === true ? "Hoạt động" : null;
+      // SQL update tai_khoan, giữ mật khẩu cũ nếu password rỗng/null.
       const result = await pool.query(
         `UPDATE public.tai_khoan
          SET ho_ten = COALESCE($1, ho_ten),
@@ -154,11 +179,15 @@ module.exports = function (pool) {
     }
   });
 
+  // PUT /api/users/:id/lock
+  // Chức năng: khóa hoặc mở khóa tài khoản.
+  // Input body: locked hoặc active. Output: UserDto sau cập nhật.
   router.put("/:id/lock", async (req, res) => {
     const { id } = req.params;
     const locked = req.body.locked === true || req.body.active === false;
     try {
       await schemaReady;
+      // SQL đổi trang_thai giữa Tạm khóa và Hoạt động theo flag locked.
       const result = await pool.query(
         "UPDATE public.tai_khoan SET trang_thai = $1 WHERE id_taikhoan = $2 RETURNING id_taikhoan",
         [locked ? "Tạm khóa" : "Hoạt động", id]
@@ -174,9 +203,13 @@ module.exports = function (pool) {
     }
   });
 
+  // DELETE /api/users/:id
+  // Chức năng: xóa tài khoản nhân viên.
+  // Input path: id_taikhoan. Output: success/message.
   router.delete("/:id", async (req, res) => {
     const { id } = req.params;
     try {
+      // SQL xóa trực tiếp khỏi tai_khoan theo khóa chính id_taikhoan.
       await pool.query("DELETE FROM public.tai_khoan WHERE id_taikhoan = $1", [id]);
       res.json({ success: true, message: "Đã xoá nhân viên" });
     } catch (error) {
@@ -185,10 +218,15 @@ module.exports = function (pool) {
     }
   });
 
+  // PUT /api/users/:id/change-password
+  // Chức năng: đổi mật khẩu cá nhân từ ProfileFragment.
+  // Input body: current_password, new_password. Output: success/message.
+  // Điều kiện nghiệp vụ: current_password phải khớp mật khẩu đang lưu.
   router.put("/:id/change-password", async (req, res) => {
     const { id } = req.params;
     const { current_password, new_password } = req.body;
     try {
+      // SQL đọc mật khẩu hiện tại để so khớp trước khi update.
       const check = await pool.query("SELECT mat_khau FROM public.tai_khoan WHERE id_taikhoan = $1", [id]);
       if (check.rows.length === 0) {
         return res.status(404).json({ success: false, message: "Người dùng không tồn tại" });

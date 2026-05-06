@@ -1,5 +1,9 @@
+// Module trang chủ Android.
+// File này là model UI cho một hoạt động gần đây trên dashboard.
+// Dữ liệu chính gồm phòng, khách, trạng thái, thời gian và resource màu badge.
 package com.project_mobile;
 
+/** RecentActivityModel là dữ liệu đọc-only để RecentActivityAdapter hiển thị. */
 public class RecentActivityModel {
     private final String roomNumber;
     private final String customerName;

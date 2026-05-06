@@ -1,3 +1,6 @@
+// Module nhận phòng Android.
+// File này bind từng đơn chờ nhận phòng lên RecyclerView và chuyển sự kiện click về Fragment.
+// Dữ liệu chính là CheckInModel của từng booking đang chờ check-in.
 package com.project_mobile.check_in;
 
 import android.view.LayoutInflater;
@@ -10,11 +13,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.project_mobile.R;
 import java.util.List;
 
+/**
+ * CheckInAdapter hiển thị thẻ nhận phòng.
+ * Adapter không gọi API, chỉ bind dữ liệu và phát sự kiện Nhận phòng/Đổi phòng.
+ */
 public class CheckInAdapter extends RecyclerView.Adapter<CheckInAdapter.CheckInViewHolder> {
 
     private final List<CheckInModel> checkInList;
     private final OnCheckInClickListener listener;
 
+    /** Callback để CheckInFragment xử lý nghiệp vụ khi người dùng bấm nút trên card. */
     public interface OnCheckInClickListener {
         void onCheckInClick(CheckInModel item);
         void onChangeRoomClick(CheckInModel item);
@@ -33,6 +41,7 @@ public class CheckInAdapter extends RecyclerView.Adapter<CheckInAdapter.CheckInV
     }
 
     @Override
+    /** Bind thông tin khách, phòng, liên hệ và số người lên item_checkin_card. */
     public void onBindViewHolder(@NonNull CheckInViewHolder holder, int position) {
         CheckInModel item = checkInList.get(position);
         holder.tvGuestName.setText(item.getGuestName());

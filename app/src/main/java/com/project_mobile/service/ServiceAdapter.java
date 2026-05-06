@@ -1,3 +1,6 @@
+// Module dịch vụ/tài sản Android.
+// File này bind danh mục dịch vụ/tài sản lên RecyclerView của ServiceFragment.
+// Dữ liệu chính là ServiceModel đã map từ CatalogItemDto.
 package com.project_mobile.service;
 
 import android.view.LayoutInflater;
@@ -12,6 +15,10 @@ import com.project_mobile.R;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * ServiceAdapter hiển thị danh mục và phát sự kiện sửa/xóa về ServiceFragment.
+ * Adapter đổi icon theo tab hiện tại: dịch vụ hoặc tài sản/bồi thường.
+ */
 public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceViewHolder> {
 
     private List<ServiceModel> serviceList;
@@ -28,6 +35,7 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceV
         this.listener = listener;
     }
 
+    /** Nhận danh sách mới từ repository và refresh RecyclerView. */
     public void submitList(List<ServiceModel> items) {
         this.serviceList = new ArrayList<>(items);
         notifyDataSetChanged();

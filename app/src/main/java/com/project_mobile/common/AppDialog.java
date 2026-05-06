@@ -1,3 +1,6 @@
+// Module common/dialog Android.
+// File này gom các dialog dùng chung: loading, thành công, lỗi và xác nhận.
+// Dữ liệu chính là title/message/callback để các màn gọi lại sau khi người dùng xác nhận.
 package com.project_mobile.common;
 
 import android.app.AlertDialog;
@@ -16,6 +19,10 @@ import androidx.annotation.Nullable;
 import com.google.android.material.button.MaterialButton;
 import com.project_mobile.R;
 
+/**
+ * AppDialog chuẩn hóa các hộp thoại dùng nhiều nơi trong app.
+ * Class này tránh lặp layout và style dialog ở từng Fragment.
+ */
 public final class AppDialog {
 
     private static AlertDialog loadingDialog;
@@ -23,6 +30,7 @@ public final class AppDialog {
     private AppDialog() {
     }
 
+    /** Hiển thị dialog loading toàn cục, không tạo thêm nếu đang mở. */
     public static void showLoading(Context context) {
         if (loadingDialog != null && loadingDialog.isShowing()) {
             return;
@@ -33,6 +41,7 @@ public final class AppDialog {
         loadingDialog.show();
     }
 
+    /** Đóng dialog loading nếu đang hiển thị. */
     public static void hideLoading() {
         if (loadingDialog != null && loadingDialog.isShowing()) {
             loadingDialog.dismiss();
@@ -40,6 +49,7 @@ public final class AppDialog {
         }
     }
 
+    /** Hiển thị dialog thành công với thông điệp do màn gọi truyền vào. */
     public static void showSuccess(Context context, String message) {
         AlertDialog dialog = createDialog(context, R.layout.layout_dialog_success);
         dialog.setOnShowListener(d -> styleWindow(dialog, 0.86f));
@@ -59,6 +69,7 @@ public final class AppDialog {
         showConfirm(context, "Có lỗi xảy ra", message, "Đã hiểu", false, null);
     }
 
+    /** Hiển thị dialog xác nhận, có thể dùng như dialog lỗi nếu không truyền callback confirm. */
     public static void showConfirm(
             Context context,
             String title,
@@ -105,6 +116,7 @@ public final class AppDialog {
         }
     }
 
+    /** Inflate layout dialog và tạo AlertDialog chung. */
     private static AlertDialog createDialog(Context context, int layoutRes) {
         View view = LayoutInflater.from(context).inflate(layoutRes, null);
         AlertDialog dialog = new AlertDialog.Builder(context).setView(view).create();
@@ -112,6 +124,7 @@ public final class AppDialog {
         return dialog;
     }
 
+    /** Căn nền trong suốt và đặt chiều rộng dialog theo tỷ lệ màn hình. */
     private static void styleWindow(AlertDialog dialog, float widthRatio) {
         Window window = dialog.getWindow();
         if (window == null) {

@@ -1,10 +1,31 @@
+// Module network/API Android.
+// File này gom các DTO request/response dùng để Gson map JSON backend sang object Java.
+// Dữ liệu chính gồm booking, phòng, hóa đơn checkout, nhân viên, vai trò, dịch vụ và tài sản.
+/*
+ * File: ApiModels.java
+ * Module: Network/API contract Android.
+ *
+ * Chức năng:
+ * - Định nghĩa DTO request/response dùng bởi Retrofit.
+ * - Khớp tên field JSON từ Node.js API qua @SerializedName.
+ * - Gom các nhóm dữ liệu: đặt phòng, nhận phòng, trả phòng, phòng, tài khoản, dịch vụ/tài sản.
+ *
+ * Quy ước đọc file:
+ * - DTO thường phản ánh dữ liệu backend trả về.
+ * - UI model trong từng module có thể format lại dữ liệu trước khi hiển thị.
+ */
 package com.project_mobile.network;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
+/**
+ * ApiModels là lớp chứa các model thuần dữ liệu cho Retrofit.
+ * Các @SerializedName có alternate giúp app nhận được cả field tiếng Việt và field camel/snake_case từ API.
+ */
 public class ApiModels {
 
+    /** Envelope chung của backend: success + data + message/error. */
     public static class ApiResponse<T> {
         public boolean success;
         public T data;
@@ -12,13 +33,23 @@ public class ApiModels {
         public String error;
     }
 
+    /**
+     * DTO nhận dữ liệu đặt phòng từ API backend.
+     *
+     * Tên field cần khớp với JSON server trả về.
+     * Sau khi nhận response, DTO này thường được map sang Booking/CheckInModel
+     * để dễ hiển thị trên giao diện Android.
+     */
     public static class BookingDto {
+        // Thông tin định danh đặt phòng.
         @SerializedName(value = "ma_dat_phong", alternate = {"booking_id", "bookingId"})
         public String bookingId;
 
+        // Thông tin phòng; một booking có thể có nhiều phòng nên backend có thể trả chuỗi room_names.
         @SerializedName(value = "room_number", alternate = {"room_names", "so_phong", "roomNumber"})
         public String roomNumber;
 
+        // Thông tin khách hàng.
         @SerializedName(value = "customer_name", alternate = {"ten_nguoi_dat", "customerName"})
         public String customerName;
 
@@ -27,6 +58,7 @@ public class ApiModels {
         @SerializedName(value = "customer_phone", alternate = {"sdt_nguoi_dat", "customerPhone", "phone"})
         public String phone;
 
+        // Thông tin số lượng khách, dùng để hiển thị và đối chiếu khi nhận phòng.
         @SerializedName(value = "tong_so_nguoi", alternate = {"total_guests", "totalGuests"})
         public Integer totalGuests;
 
@@ -36,6 +68,7 @@ public class ApiModels {
         @SerializedName(value = "so_tre_em", alternate = {"children"})
         public Integer children;
 
+        // Thông tin ngày nhận/trả phòng.
         @SerializedName(value = "ngay_nhan", alternate = {"check_in", "activity_time", "checkIn"})
         public String checkIn;
 
@@ -45,6 +78,7 @@ public class ApiModels {
         @SerializedName("stayPeriod")
         public String stayPeriod;
 
+        // Thông tin thanh toán và trạng thái đặt phòng.
         @SerializedName("payment_method")
         public String paymentMethod;
 
@@ -55,9 +89,11 @@ public class ApiModels {
         @SerializedName(value = "trang_thai", alternate = {"status"})
         public String status;
 
+        // Danh sách phòng gắn với đơn đặt phòng, dùng khi check-in cần biết id phòng cũ.
         public List<RoomDto> rooms;
     }
 
+    /** Payload tạo đặt phòng mới từ màn đặt phòng. */
     public static class CreateBookingRequest {
         @SerializedName("room_number")
         public String roomNumber;
@@ -89,6 +125,7 @@ public class ApiModels {
         public String note;
     }
 
+    /** Item danh mục dịch vụ hoặc tài sản/bồi thường. */
     public static class CatalogItemDto {
         public String id;
         public String name;
@@ -103,6 +140,7 @@ public class ApiModels {
         public String updatedAt;
     }
 
+    /** Payload tạo/sửa một dịch vụ hoặc tài sản trong danh mục. */
     public static class CatalogItemRequest {
         public String name;
         public Double price;
@@ -110,6 +148,7 @@ public class ApiModels {
         public String icon;
     }
 
+    /** Phòng đang có lưu trú mở, dùng cho màn sơ đồ phòng dịch vụ/tài sản. */
     public static class ActiveRoomDto {
         @SerializedName("room_id")
         public Integer roomId;
@@ -138,6 +177,7 @@ public class ApiModels {
         public Double roomFee;
     }
 
+    /** Một dòng dịch vụ/tài sản đã gắn vào phòng trong thời gian lưu trú. */
     public static class RoomLineDto {
         public String id;
 
@@ -161,6 +201,10 @@ public class ApiModels {
         public Double total;
     }
 
+    /**
+     * Request thêm một dịch vụ/tài sản vào phòng đang lưu trú.
+     * catalogId là id danh mục chung; serviceId/assetId là alias theo từng loại endpoint.
+     */
     public static class RoomLineRequest {
         @SerializedName("catalog_id")
         public String catalogId;
@@ -174,16 +218,19 @@ public class ApiModels {
         public Integer quantity;
     }
 
+    /** Request cập nhật số lượng của một dòng dịch vụ/tài sản đã gắn vào phòng. */
     public static class QuantityRequest {
         public Integer quantity;
     }
 
     // --- AUTH & USER DTOs ---
+    /** Request đăng nhập bằng username/password từ màn LoginActivity. */
     public static class LoginRequest {
         public String username;
         public String password;
     }
 
+    /** Dữ liệu tài khoản nhân viên trả về từ login và màn quản lý người dùng. */
     public static class UserDto {
         public String id;
         public String username;
@@ -201,6 +248,7 @@ public class ApiModels {
         public Boolean locked;
     }
 
+    /** Vai trò lấy từ bảng vai_tro để nạp spinner chọn quyền nhân viên. */
     public static class RoleDto {
         @SerializedName("id_vaitro")
         public Integer idVaitro;
@@ -209,6 +257,7 @@ public class ApiModels {
         public String name;
     }
 
+    /** Request cập nhật trạng thái phòng, ví dụ Trống/Bận/Bảo trì. */
     public static class StatusRequest {
         public String status;
     }
@@ -225,6 +274,10 @@ public class ApiModels {
         public Integer maintenanceRooms;
     }
 
+    /**
+     * DTO phòng từ API.
+     * Dùng ở quản lý phòng, nhận phòng đổi phòng, và các flow cần biết id_phong.
+     */
     public static class RoomDto {
         @SerializedName(value = "id", alternate = {"id_phong"})
         public Integer id;
@@ -242,7 +295,14 @@ public class ApiModels {
         public Integer bookingDetailId;
     }
 
+    /**
+     * Dữ liệu checkout đã được backend tính phí phòng, dịch vụ, bồi thường, cọc và số tiền cần trả/hoàn.
+     *
+     * Android chủ yếu hiển thị các số này, không tự ghi vào database.
+     * Nếu cần thanh toán, CheckoutFragment sẽ dùng maDatPhong/idHoaDon/idLuutru để gọi endpoint thanh toán.
+     */
     public static class CheckoutDto {
+        // Định danh hóa đơn/lưu trú/đặt phòng dùng cho flow thanh toán.
         @SerializedName("id_hoadon")
         public Integer idHoaDon;
 
@@ -252,6 +312,7 @@ public class ApiModels {
         @SerializedName("ma_dat_phong")
         public String maDatPhong;
 
+        // Thông tin khách và phòng đang checkout.
         @SerializedName("customer_name")
         public String customerName;
 
@@ -263,6 +324,7 @@ public class ApiModels {
         @SerializedName("room_names")
         public String roomNames;
 
+        // Thời gian check-in/check-out dự kiến để hiển thị khoảng lưu trú.
         @SerializedName("checkin_at")
         public String checkinAt;
 
@@ -275,9 +337,11 @@ public class ApiModels {
         public Integer adults;
         public Integer children;
 
+        // Thông tin số khách và số đêm tính phí.
         @SerializedName("chargeable_nights")
         public Integer chargeableNights;
 
+        // Các thành phần tiền của hóa đơn.
         @SerializedName("room_fee")
         public Double roomFee;
 
@@ -305,11 +369,16 @@ public class ApiModels {
         public String paymentUrl;
     }
 
+    /** Request xác nhận nhận phòng, gửi CCCD và ghi chú để backend tạo bản ghi luu_tru. */
     public static class CheckInRequest {
         public String cccd;
         public String note;
     }
 
+    /**
+     * Request thanh toán hóa đơn checkout.
+     * Backend dùng idLuutru/maDatPhong để đóng lưu trú và cập nhật trạng thái phòng.
+     */
     public static class PaymentRequest {
         @SerializedName("phuong_thuc")
         public String paymentMethod;
@@ -330,11 +399,13 @@ public class ApiModels {
         public Boolean requestVat;
     }
 
+    /** Request khóa/mở khóa tài khoản nhân viên. */
     public static class UserLockRequest {
         public Boolean locked;
         public Boolean active;
     }
 
+    /** Request đổi phòng trước khi nhận phòng. */
     public static class ChangeRoomRequest {
         @SerializedName("new_room_id")
         public Integer newRoomId;
@@ -343,6 +414,7 @@ public class ApiModels {
         public String reason;
     }
 
+    /** Request đổi mật khẩu từ màn Profile. */
     public static class ChangePasswordRequest {
         @SerializedName("current_password")
         public String currentPassword;
@@ -351,15 +423,18 @@ public class ApiModels {
     }
 
     // --- FORGOT PASSWORD MODELS ---
+    /** Request bắt đầu flow quên mật khẩu bằng username/email/số điện thoại. */
     public static class ForgotPasswordRequest {
         public String identity;
     }
 
+    /** Request xác thực OTP trong flow quên mật khẩu. */
     public static class VerifyOtpRequest {
         public String identity;
         public String otp;
     }
 
+    /** Request đặt lại mật khẩu sau khi OTP hợp lệ. */
     public static class ResetPasswordRequest {
         public String identity;
         public String otp;

@@ -1,3 +1,19 @@
+// Module dịch vụ/tài sản Android.
+// File này quản lý danh mục dịch vụ và danh mục tài sản/bồi thường.
+// Dữ liệu chính lấy từ /api/services và /api/assets, có thêm/sửa/xóa danh mục.
+/*
+ * File: ServiceFragment.java
+ * Module: Quản lý danh mục dịch vụ và tài sản.
+ *
+ * Luồng chính:
+ * - Tab Dịch vụ gọi các endpoint /api/services.
+ * - Tab Tài sản gọi các endpoint /api/assets.
+ * - loadCatalog tải danh mục hiện tại.
+ * - showCatalogDialog tạo hoặc cập nhật một item.
+ * - confirmDelete xóa item khỏi danh mục.
+ *
+ * File này quản lý danh mục chung, khác với RoomMapFragment là nơi gắn dịch vụ/tài sản vào từng phòng.
+ */
 package com.project_mobile.service;
 
 import android.app.AlertDialog;
@@ -26,6 +42,10 @@ import com.project_mobile.network.ApiModels.CatalogItemDto;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * ServiceFragment là màn CRUD danh mục dịch vụ/tài sản.
+ * Class này chuyển tab giữa service/asset, gọi ServiceRepository và mở dialog nhập thông tin danh mục.
+ */
 public class ServiceFragment extends Fragment {
     private RecyclerView rcvServices;
     private ServiceAdapter adapter;
@@ -81,6 +101,8 @@ public class ServiceFragment extends Fragment {
         return view;
     }
 
+    /** Chuyển tab danh mục và reload dữ liệu tương ứng. */
+    /** Chuyển giữa danh mục dịch vụ và danh mục tài sản, sau đó tải lại dữ liệu tương ứng. */
     private void switchTab(boolean toServiceTab) {
         if (isServiceTab == toServiceTab) return;
         isServiceTab = toServiceTab;
@@ -89,6 +111,7 @@ public class ServiceFragment extends Fragment {
         loadCatalog();
     }
 
+    /** Cập nhật màu tab service/asset đang chọn. */
     private void updateTabUI() {
         if (isServiceTab) {
             tvTabService.setBackgroundResource(R.drawable.bg_tab_left_active);
@@ -103,6 +126,11 @@ public class ServiceFragment extends Fragment {
         }
     }
 
+    /** Lấy danh mục từ backend theo tab hiện tại và từ khóa tìm kiếm. */
+    /*
+     * Tải danh mục hiện tại từ API.
+     * isServiceTab=true gọi /api/services, ngược lại gọi /api/assets.
+     */
     private void loadCatalog() {
         String query = edtSearch.getText() == null ? "" : edtSearch.getText().toString().trim();
         repository.fetchCatalog(isServiceTab, query, new ServiceRepository.DataCallback<List<CatalogItemDto>>() {
@@ -126,6 +154,11 @@ public class ServiceFragment extends Fragment {
         });
     }
 
+    /** Mở dialog thêm/sửa danh mục; item null là thêm mới, khác null là chỉnh sửa. */
+    /*
+     * Hiển thị form thêm/sửa dịch vụ hoặc tài sản.
+     * Input item=null nghĩa là tạo mới; item khác null nghĩa là cập nhật item hiện có.
+     */
     private void showCatalogDialog(@Nullable ServiceModel item) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         View view = LayoutInflater.from(requireContext()).inflate(R.layout.popup_service, null);
@@ -158,6 +191,7 @@ public class ServiceFragment extends Fragment {
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
         btnConfirm.setOnClickListener(v -> {
+            // Validate tên và giá tiền trước khi gửi request lưu danh mục.
             String name = edtName.getText() == null ? "" : edtName.getText().toString().trim();
             String unit = edtUnit.getText() == null ? "" : edtUnit.getText().toString().trim();
             if (name.isEmpty()) {
@@ -191,6 +225,11 @@ public class ServiceFragment extends Fragment {
         dialog.show();
     }
 
+    /** Xác nhận xóa danh mục; backend có thể chặn nếu item đã phát sinh sử dụng. */
+    /*
+     * Xác nhận xóa danh mục.
+     * Việc xóa chỉ gửi lên backend sau khi người dùng xác nhận trong dialog.
+     */
     private void confirmDelete(ServiceModel item) {
         String typeName = isServiceTab ? "dịch vụ" : "bồi thường";
         new AlertDialog.Builder(requireContext())
@@ -215,6 +254,7 @@ public class ServiceFragment extends Fragment {
     }
 
     @Nullable
+    /** Chuẩn hóa tiền nhập từ UI, bỏ ký hiệu đ/dấu phân cách trước khi parse số. */
     private Double parseMoneyInput(String value) {
         String normalized = value.replace("đ", "")
                 .replace(" ", "")

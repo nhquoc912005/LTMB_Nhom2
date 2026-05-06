@@ -1,3 +1,6 @@
+// Module cấu hình database backend.
+// File này tạo pool PostgreSQL/Supabase dùng chung cho toàn bộ route Express.
+// Dữ liệu chính là connection string hoặc bộ biến PG_* trong file .env.
 const { Pool } = require("pg");
 const path = require("path");
 
@@ -10,6 +13,7 @@ const connectionString =
   process.env.POSTGRES_CONNECTION_STRING ||
   process.env.PG_CONNECTION_STRING;
 
+// Lấy hostname từ connection string để quyết định có cần SSL hay không.
 function extractHostname(value) {
   if (!value) return "";
   try {
@@ -22,6 +26,7 @@ function extractHostname(value) {
   return String(value).trim();
 }
 
+// Supabase/pooler thường cần SSL, còn local Postgres có thể không cần.
 function shouldUseSsl(value) {
   const host = extractHostname(value);
   return process.env.PGSSLMODE === "require" ||
@@ -29,6 +34,7 @@ function shouldUseSsl(value) {
     /(^|[.-])pooler([.-]|$)/i.test(host);
 }
 
+// Dựng cấu hình Pool từ connection string ưu tiên, nếu thiếu thì fallback sang PG_*.
 function buildPoolConfig() {
   const timeoutConfig = {
     connectionTimeoutMillis: 20000,
@@ -45,6 +51,7 @@ function buildPoolConfig() {
   }
 
   const required = ["PG_USER", "PG_HOST", "PG_DATABASE", "PG_PASSWORD", "PG_PORT"];
+  // Kiểm tra đủ biến môi trường bắt buộc khi không có connection string tổng.
   const missing = required.filter((key) => !process.env[key]);
   if (missing.length > 0) {
     throw new Error(

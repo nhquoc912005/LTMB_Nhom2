@@ -1,5 +1,12 @@
+// Module quản lý tài khoản Android.
+// File này là model UI cho một tài khoản nhân viên.
+// Dữ liệu chính gồm mã user, họ tên, liên hệ, vai trò, giới tính, id vai trò và trạng thái khóa.
 package com.project_mobile.user;
 
+/**
+ * UserModel chứa dữ liệu đã chuẩn hóa cho UserAdapter.
+ * roleId giúp form sửa tài khoản chọn lại đúng vai trò từ bảng vai_tro.
+ */
 public class UserModel {
     private final String userCode;
     private String fullName;
@@ -77,10 +84,12 @@ public class UserModel {
         this.locked = locked;
     }
 
+    /** Nhãn trạng thái hiển thị trên card người dùng. */
     public String getStatusLabel() {
         return locked ? "Tạm khóa" : "Hoạt động";
     }
 
+    /** Nhãn nút hành động ngược với trạng thái khóa hiện tại. */
     public String getToggleLabel() {
         return locked ? "Mở khóa" : "Khóa";
     }

@@ -1,3 +1,6 @@
+// Module đặt phòng Android.
+// File này là màn danh sách đặt phòng phiên bản V2 theo layout phòng/booking.
+// Dữ liệu chính lấy từ /api/bookings và map sang RoomBooking để hiển thị.
 package com.project_mobile.datphong_mobile;
 
 import android.os.Bundle;
@@ -25,6 +28,10 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * RoomBookingFragmentV2 hiển thị booking kèm thống kê trạng thái ở dạng danh sách phòng.
+ * Class này là màn đọc dữ liệu, không xử lý hủy hay thanh toán.
+ */
 public class RoomBookingFragmentV2 extends Fragment {
 
     private RecyclerView rvRoomBookings;
@@ -55,6 +62,7 @@ public class RoomBookingFragmentV2 extends Fragment {
         return view;
     }
 
+    /** Đếm booking theo trạng thái để cập nhật các ô thống kê phía trên. */
     private void updateStats(List<BookingDto> data) {
         int total = data.size();
         int waiting = 0;
@@ -83,6 +91,7 @@ public class RoomBookingFragmentV2 extends Fragment {
         tvDate.setText(date);
     }
 
+    /** Tải booking từ backend và map sang RoomBooking UI model. */
     private void loadBookings() {
         ApiService api = ApiClient.getClient().create(ApiService.class);
         api.getBookings().enqueue(new Callback<ApiResponse<List<BookingDto>>>() {
@@ -122,6 +131,7 @@ public class RoomBookingFragmentV2 extends Fragment {
         });
     }
 
+    /** Chuẩn hóa nhiều nhãn trạng thái backend thành nhãn hiển thị thống nhất. */
     private String normalizeDisplayStatus(String status) {
         if (status.contains("Đã đặt cọc") || status.contains("Chờ check-in") || status.contains("Chờ nhận phòng")) {
             return "Chờ nhận phòng";
@@ -135,6 +145,7 @@ public class RoomBookingFragmentV2 extends Fragment {
         return status;
     }
 
+    /** Format ngày API sang dạng hiển thị tiếng Việt, giữ nguyên nếu parse thất bại. */
     private String formatDate(String dateStr) {
         if (dateStr == null || dateStr.isEmpty()) return "-";
         try {

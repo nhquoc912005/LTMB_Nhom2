@@ -1,3 +1,23 @@
+// Module dịch vụ/tài sản Android.
+// File này hiển thị các phòng đang lưu trú và quản lý dịch vụ/tài sản phát sinh trong từng phòng.
+// Dữ liệu chính lấy từ /api/active-rooms, /room-services và /room-assets.
+/*
+ * File: RoomMapFragment.java
+ * Module: Dịch vụ và tài sản theo phòng đang lưu trú.
+ *
+ * Luồng chính:
+ * 1. loadActiveRooms gọi GET /api/active-rooms để lấy các phòng đang có khách.
+ * 2. groupByFloor gom phòng theo tầng để hiển thị sơ đồ phòng.
+ * 3. showRoomDetail mở panel chi tiết phòng đang chọn.
+ * 4. loadRoomLines gọi API lấy dịch vụ/tài sản đã gắn vào phòng.
+ * 5. showCatalogPickerBottomSheet cho phép chọn dịch vụ/tài sản từ danh mục.
+ * 6. addCatalogItemToCurrentRoom kiểm tra trùng, sau đó thêm mới hoặc tăng số lượng.
+ *
+ * Dữ liệu xử lý chính:
+ * - ActiveRoomDto/StayRoomModel: phòng đang lưu trú.
+ * - RoomLineDto: dòng dịch vụ hoặc tài sản đã gắn với phòng.
+ * - CatalogItemDto: danh mục dịch vụ/tài sản có thể thêm.
+ */
 package com.project_mobile.service;
 
 import android.app.AlertDialog;
@@ -46,6 +66,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TreeMap;
 
+/**
+ * RoomMapFragment là màn nghiệp vụ gắn dịch vụ/tài sản cho phòng đang có khách.
+ * Class này tải phòng đang lưu trú, mở chi tiết phòng, thêm/xóa/cập nhật số lượng dịch vụ hoặc tài sản.
+ */
 public class RoomMapFragment extends Fragment {
     private static final String TAG = "RoomMapFragment";
 
@@ -124,6 +148,7 @@ public class RoomMapFragment extends Fragment {
         return view;
     }
 
+    /** Gắn sự kiện cho tab Dịch vụ/Tài sản ở cả màn danh sách và màn chi tiết phòng. */
     private void setupTabs() {
         View.OnClickListener serviceClick = v -> setCurrentTab(true);
         View.OnClickListener assetClick = v -> setCurrentTab(false);
@@ -134,6 +159,7 @@ public class RoomMapFragment extends Fragment {
         setCurrentTab(true);
     }
 
+    /** Gắn các action đóng chi tiết và thêm dịch vụ/tài sản vào phòng đang chọn. */
     private void setupActions(View view) {
         view.findViewById(R.id.btnDetailClose).setOnClickListener(v -> closeDetail());
         fabAddRoomLine.setOnClickListener(v -> handleAddRoomLineClick());
@@ -150,6 +176,7 @@ public class RoomMapFragment extends Fragment {
         });
     }
 
+    /** Chuyển giữa tab dịch vụ và tài sản, sau đó cập nhật vùng chi tiết đang hiển thị. */
     private void setCurrentTab(boolean serviceTab) {
         isServiceTab = serviceTab;
         updateTabUi(tvTabService, tvTabAsset);
@@ -181,6 +208,7 @@ public class RoomMapFragment extends Fragment {
         fabAddRoomLine.setVisibility(View.VISIBLE);
     }
 
+    /** Xử lý nút thêm ở màn chi tiết; yêu cầu phải có selectedRoom trước khi mở picker. */
     private void handleAddRoomLineClick() {
         if (selectedRoom == null) {
             Toast.makeText(getContext(), "Vui lòng chọn phòng trước", Toast.LENGTH_SHORT).show();
@@ -193,6 +221,14 @@ public class RoomMapFragment extends Fragment {
         }
     }
 
+    /** Lấy các phòng đang có lưu trú mở, lọc stayId khác null rồi nhóm theo tầng để hiển thị. */
+    /*
+     * Tải danh sách phòng đang có khách.
+     *
+     * API: GET /api/active-rooms.
+     * Output: danh sách ActiveRoomDto được map sang StayRoomModel rồi gom theo tầng.
+     * UI cập nhật: RecyclerView sơ đồ tầng/phòng và panel chi tiết nếu phòng đang chọn còn tồn tại.
+     */
     private void loadActiveRooms() {
         String query = edtSearch.getText() == null ? "" : edtSearch.getText().toString().trim();
         repository.fetchActiveRooms(query, new ServiceRepository.DataCallback<List<ActiveRoomDto>>() {
@@ -221,6 +257,11 @@ public class RoomMapFragment extends Fragment {
         });
     }
 
+    /** Gom phòng theo tầng để FloorAdapter hiển thị từng tầng một. */
+    /*
+     * Gom phòng theo tầng để RoomGridAdapter hiển thị dạng sơ đồ.
+     * Tầng được suy ra từ số phòng, ví dụ 201 thuộc tầng 2.
+     */
     private List<FloorModel> groupByFloor(List<StayRoomModel> rooms) {
         TreeMap<Integer, List<StayRoomModel>> grouped = new TreeMap<>();
         for (StayRoomModel room : rooms) {
@@ -238,6 +279,7 @@ public class RoomMapFragment extends Fragment {
         return floors;
     }
 
+    /** Suy luận tầng từ số phòng, ví dụ 201 thuộc tầng 2. */
     private int floorOf(String roomNumber) {
         String digits = roomNumber == null ? "" : roomNumber.replaceAll("\\D+", "");
         if (digits.length() >= 3) {
@@ -249,6 +291,11 @@ public class RoomMapFragment extends Fragment {
         return 1;
     }
 
+    /** Mở panel chi tiết phòng và tải cả dịch vụ lẫn tài sản hiện đang gắn với phòng. */
+    /*
+     * Hiển thị panel chi tiết của một phòng đang lưu trú.
+     * Panel này chứa thông tin phòng, thời gian lưu trú, tiền phòng và hai tab dịch vụ/tài sản.
+     */
     private void showRoomDetail(StayRoomModel room) {
         selectedRoom = room;
         isServiceTab = true;
@@ -269,6 +316,7 @@ public class RoomMapFragment extends Fragment {
         loadRoomLines(false);
     }
 
+    /** Đóng panel chi tiết và quay lại sơ đồ phòng. */
     private void closeDetail() {
         selectedRoom = null;
         layoutRoomDetail.setVisibility(View.GONE);
@@ -276,6 +324,15 @@ public class RoomMapFragment extends Fragment {
         fabAddRoomLine.setVisibility(View.GONE);
     }
 
+    /** Tải các dòng dịch vụ hoặc tài sản của selectedRoom từ backend. */
+    /*
+     * Tải các dòng dịch vụ hoặc tài sản của phòng đang chọn.
+     *
+     * serviceTab=true  -> GET /api/rooms/{roomId}/room-services.
+     * serviceTab=false -> GET /api/rooms/{roomId}/room-assets.
+     *
+     * Response được cache vào currentServiceLines/currentAssetLines để kiểm tra trùng khi thêm mới.
+     */
     private void loadRoomLines(boolean serviceTab) {
         if (selectedRoom == null)
             return;
@@ -299,6 +356,7 @@ public class RoomMapFragment extends Fragment {
                 });
     }
 
+    /** Render các dòng dịch vụ/tài sản, gồm số lượng, thành tiền và nút xóa. */
     private void renderLines(boolean serviceTab, List<RoomLineDto> lines) {
         LinearLayout container = serviceTab ? layoutAddedServices : layoutAddedAssets;
         container.removeAllViews();
@@ -343,6 +401,11 @@ public class RoomMapFragment extends Fragment {
         }
     }
 
+    /** Kiểm tra số lượng nguyên dương rồi gọi API cập nhật số lượng dòng dịch vụ/tài sản. */
+    /*
+     * Cập nhật số lượng của một dòng dịch vụ/tài sản.
+     * Nếu số lượng không hợp lệ, hàm dừng ở UI và không gửi request.
+     */
     private void updateLineQuantity(boolean serviceTab, RoomLineDto line, EditText edtQty) {
         Integer quantity = parseQuantity(edtQty.getText() == null ? "" : edtQty.getText().toString());
         if (quantity == null) {
@@ -370,6 +433,7 @@ public class RoomMapFragment extends Fragment {
         });
     }
 
+    /** Xác nhận xóa một dòng dịch vụ/tài sản khỏi phòng trước khi gọi API delete. */
     private void confirmDeleteLine(boolean serviceTab, RoomLineDto line) {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Xóa khỏi phòng")
@@ -402,6 +466,11 @@ public class RoomMapFragment extends Fragment {
         showCatalogPickerBottomSheet(false);
     }
 
+    /** Mở bottom sheet chọn dịch vụ/tài sản trong danh mục để thêm vào phòng hiện tại. */
+    /*
+     * Mở bottom sheet chọn dịch vụ/tài sản từ danh mục.
+     * Danh mục được tải từ backend và filter tại client theo ô tìm kiếm.
+     */
     private void showCatalogPickerBottomSheet(boolean serviceTab) {
         if (selectedRoom == null) {
             Toast.makeText(getContext(), "Vui lòng chọn phòng trước", Toast.LENGTH_SHORT).show();
@@ -480,6 +549,7 @@ public class RoomMapFragment extends Fragment {
         dialog.show();
     }
 
+    /** Lọc danh mục trong picker theo tên và cập nhật trạng thái rỗng/tìm thấy. */
     private void filterCatalogItems(String keyword, List<CatalogItemDto> allItems, ServicePickerAdapter adapter,
             TextView tvEmpty, RecyclerView rvPicker, boolean serviceTab) {
         String normalized = keyword == null ? "" : keyword.trim().toLowerCase(Locale.ROOT);
@@ -504,6 +574,14 @@ public class RoomMapFragment extends Fragment {
         }
     }
 
+    /** Kiểm tra phòng/catalog id hợp lệ rồi thêm item vào phòng sau khi refresh dữ liệu hiện có. */
+    /*
+     * Thêm dịch vụ/tài sản vào phòng đang chọn.
+     *
+     * Nghiệp vụ quan trọng:
+     * - Nếu item đã có trong phòng, không tạo dòng mới mà tăng số lượng.
+     * - Nếu chưa có, gửi POST thêm dòng mới với quantity mặc định 1.
+     */
     private void addCatalogItemToCurrentRoom(boolean serviceTab, CatalogItemDto item, BottomSheetDialog dialog) {
         if (selectedRoom == null) {
             Toast.makeText(getContext(), "Không tìm thấy phòng hiện tại", Toast.LENGTH_SHORT).show();
@@ -514,6 +592,7 @@ public class RoomMapFragment extends Fragment {
             return;
         }
 
+        // catalogId là id_dichvu hoặc id_taisan đã được DTO chuẩn hóa thành id.
         String catalogId = item.id;
         if (catalogId == null || catalogId.trim().isEmpty()) {
             Toast.makeText(getContext(), serviceTab ? "Không tìm thấy mã dịch vụ" : "Không tìm thấy mã tài sản", Toast.LENGTH_SHORT).show();
@@ -559,6 +638,11 @@ public class RoomMapFragment extends Fragment {
                 });
     }
 
+    /** Tải lại dòng hiện có trước khi thêm để tránh thêm trùng dịch vụ/tài sản. */
+    /*
+     * Tải lại danh sách dòng hiện có ngay trước khi thêm.
+     * Bước này giảm rủi ro thêm trùng khi dữ liệu trên màn hình đã cũ.
+     */
     private void refreshRoomLinesBeforeAdd(boolean serviceTab, String catalogId, BottomSheetDialog dialog) {
         int roomId = selectedRoom.getRoomId();
         repository.fetchRoomLines(serviceTab, roomId, new ServiceRepository.DataCallback<List<RoomLineDto>>() {
@@ -583,6 +667,7 @@ public class RoomMapFragment extends Fragment {
         });
     }
 
+    /** Cache dòng hiện tại theo tab để kiểm tra item đã tồn tại trong phòng hay chưa. */
     private void cacheRoomLines(boolean serviceTab, List<RoomLineDto> lines) {
         if (serviceTab) {
             currentServiceLines.clear();
@@ -593,6 +678,7 @@ public class RoomMapFragment extends Fragment {
         }
     }
 
+    /** Nếu dịch vụ đã tồn tại thì tăng số lượng; nếu tài sản đã tồn tại thì báo trùng. */
     private void addCatalogItemAfterDuplicateCheck(boolean serviceTab, String catalogId, BottomSheetDialog dialog) {
         RoomLineDto existingLine = findExistingLine(serviceTab, catalogId);
         if (existingLine != null) {
@@ -628,6 +714,7 @@ public class RoomMapFragment extends Fragment {
                 });
     }
 
+    /** Với dịch vụ trùng, tăng số lượng thêm 1 thay vì tạo dòng mới. */
     private void increaseServiceQuantity(RoomLineDto line, BottomSheetDialog dialog) {
         if (line.id == null || line.id.trim().isEmpty()) {
             Toast.makeText(getContext(), "Dịch vụ này đã được chọn", Toast.LENGTH_SHORT).show();
@@ -657,6 +744,7 @@ public class RoomMapFragment extends Fragment {
     }
 
     @Nullable
+    /** Tìm dòng đã tồn tại trong cache theo catalogId để xử lý trùng. */
     private RoomLineDto findExistingLine(boolean serviceTab, String catalogId) {
         List<RoomLineDto> lines = serviceTab ? currentServiceLines : currentAssetLines;
         for (RoomLineDto line : lines) {
@@ -668,6 +756,7 @@ public class RoomMapFragment extends Fragment {
         return null;
     }
 
+    /** Lấy đúng id danh mục từ RoomLineDto, hỗ trợ cả catalog_id và service_id/asset_id. */
     private String getLineCatalogId(boolean serviceTab, RoomLineDto line) {
         if (line == null) {
             return null;
@@ -678,6 +767,7 @@ public class RoomMapFragment extends Fragment {
         return serviceTab ? line.serviceId : line.assetId;
     }
 
+    /** Dialog thêm dòng kiểu cũ, hiện vẫn giữ để tương thích với layout/popup cũ. */
     private void showAddLineDialog() {
         if (selectedRoom == null)
             return;
@@ -704,6 +794,7 @@ public class RoomMapFragment extends Fragment {
         });
     }
 
+    /** Popup chọn danh mục kiểu cũ với spinner và nhập số lượng. */
     private void showCatalogPickerDialog(boolean serviceTab, List<CatalogItemDto> catalog) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         View view = LayoutInflater.from(requireContext()).inflate(R.layout.popup_room_item, null);
@@ -730,6 +821,7 @@ public class RoomMapFragment extends Fragment {
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spCatalog.setAdapter(spinnerAdapter);
 
+        // Tính preview thành tiền = đơn giá danh mục * số lượng nhập.
         Runnable updateTotal = () -> {
             int position = spCatalog.getSelectedItemPosition();
             int quantity = parseQuantity(edtQuantity.getText() == null ? "" : edtQuantity.getText().toString()) == null
@@ -804,6 +896,7 @@ public class RoomMapFragment extends Fragment {
     }
 
     @Nullable
+    /** Parse số lượng, chỉ chấp nhận số nguyên dương. */
     private Integer parseQuantity(String value) {
         try {
             int quantity = Integer.parseInt(value.trim());
@@ -813,6 +906,7 @@ public class RoomMapFragment extends Fragment {
         }
     }
 
+    /** Chuẩn hóa trạng thái phòng từ backend sang nhãn dễ đọc trong chi tiết phòng. */
     private String readableStatus(String status) {
         if (status == null || status.trim().isEmpty())
             return "Đang sử dụng";

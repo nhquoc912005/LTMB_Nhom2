@@ -1,3 +1,6 @@
+// Module quản lý phòng Android.
+// File này bind RoomModel lên item phòng trong lưới quản lý phòng.
+// Dữ liệu chính là số phòng, loại phòng, tầng, giá và trạng thái.
 package com.project_mobile.Quan_ly_phong;
 
 import android.graphics.Color;
@@ -14,6 +17,10 @@ import com.project_mobile.R;
 
 import java.util.List;
 
+/**
+ * RoomAdapter hiển thị từng phòng và phát sự kiện chọn phòng về Fragment.
+ * Màu badge trạng thái được quyết định từ RoomModel.isEmpty/isMaintenance/isOccupied.
+ */
 public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.ViewHolder> {
 
     private List<RoomModel> roomList;
@@ -55,6 +62,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.ViewHolder> {
             }
         });
 
+        // Chọn màu badge theo nghiệp vụ trạng thái phòng: trống, bảo trì hoặc đang sử dụng.
         int bgColor;
         int textColor = Color.parseColor("#C0410D");
         if (room.isEmpty()) {

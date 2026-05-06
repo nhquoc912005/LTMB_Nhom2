@@ -1,3 +1,6 @@
+// Module xác thực Android.
+// File này xử lý luồng quên mật khẩu gồm gửi OTP, xác thực OTP và đặt lại mật khẩu.
+// Dữ liệu chính là identity email/số điện thoại, mã OTP và mật khẩu mới.
 package com.project_mobile;
 
 import android.os.Bundle;
@@ -15,6 +18,10 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * ForgotPasswordActivity dùng ViewFlipper để đi qua các bước quên mật khẩu.
+ * Class này gọi các endpoint /forgot-password, /verify-otp và /reset-password.
+ */
 public class ForgotPasswordActivity extends AppCompatActivity {
 
     private ViewFlipper viewFlipper;
@@ -32,6 +39,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         initViews();
     }
 
+    /** Gắn view và sự kiện cho từng bước trong luồng quên mật khẩu. */
     private void initViews() {
         viewFlipper = findViewById(R.id.viewFlipper);
         etIdentity = findViewById(R.id.etIdentity);
@@ -54,6 +62,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         findViewById(R.id.btnBackToLogin).setOnClickListener(v -> finish());
     }
 
+    /** Gửi email/số điện thoại lên backend để tạo OTP và chuyển sang màn nhập mã. */
     private void handleSendOtp() {
         String identity = etIdentity.getText().toString().trim();
         if (TextUtils.isEmpty(identity)) {
@@ -84,6 +93,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         });
     }
 
+    /** Kiểm tra OTP 4 số với backend trước khi cho phép nhập mật khẩu mới. */
     private void handleVerifyOtp() {
         String otp = etOtp.getText().toString().trim();
         if (otp.length() < 4) {
@@ -112,6 +122,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         });
     }
 
+    /** Kiểm tra mật khẩu mới ở client rồi gọi API đặt lại mật khẩu. */
     private void handleResetPassword() {
         String newPass = etNewPassword.getText().toString().trim();
         String confirmPass = etConfirmPassword.getText().toString().trim();

@@ -1,3 +1,6 @@
+// Module quản lý tài khoản Android.
+// File này bind UserModel lên RecyclerView và phát sự kiện khóa/sửa/xóa.
+// Dữ liệu chính gồm tên, email, điện thoại, vai trò, mã tài khoản và trạng thái khóa.
 package com.project_mobile.user;
 
 import android.content.res.ColorStateList;
@@ -17,6 +20,10 @@ import com.project_mobile.R;
 
 import java.util.List;
 
+/**
+ * UserAdapter hiển thị danh sách nhân viên trong màn UserManagementFragment.
+ * Adapter không gọi API, chỉ bind UI và chuyển action về Fragment.
+ */
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
 
     private List<UserModel> users;
@@ -33,6 +40,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         this.listener = listener;
     }
 
+    /** Nhận danh sách đã lọc từ Fragment và refresh RecyclerView. */
     public void submitList(List<UserModel> users) {
         this.users = users;
         notifyDataSetChanged();
@@ -56,6 +64,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         holder.tvStatus.setText(user.getStatusLabel());
         holder.btnToggleLock.setText(user.getToggleLabel());
 
+        // Dot và nút khóa đổi màu theo trạng thái tài khoản đang hoạt động hay tạm khóa.
         int dotColor = Color.parseColor(user.isLocked() ? "#FF1010" : "#12C85C");
         GradientDrawable dot = (GradientDrawable) holder.statusDot.getBackground().mutate();
         dot.setColor(dotColor);

@@ -1,3 +1,22 @@
+// Module đặt phòng Android.
+// File này là màn quản lý danh sách đặt phòng, thống kê trạng thái và hủy booking khi còn được phép.
+// Dữ liệu chính lấy từ /api/bookings và thao tác hủy qua /api/bookings/{id}/cancel.
+/*
+ * File: BookingManagementFragment.java
+ * Module: Quản lý đặt phòng.
+ *
+ * Luồng chính của màn hình:
+ * 1. onCreateView khởi tạo RecyclerView, ô thống kê và bộ lọc.
+ * 2. loadBookings gọi API /api/bookings để lấy dữ liệu đặt phòng.
+ * 3. filterList lọc BookingDto theo trạng thái/ngày rồi map sang Booking model cho UI.
+ * 4. BookingAdapter hiển thị từng card và phát sự kiện hủy đặt phòng về Fragment.
+ * 5. performCancelBooking gọi API /api/bookings/{id}/cancel để backend kiểm tra và cập nhật trạng thái.
+ *
+ * Dữ liệu xử lý chính:
+ * - BookingDto: dữ liệu thô từ API, giữ nguyên field backend trả về.
+ * - Booking: dữ liệu đã format cho giao diện Android.
+ * - currentFilter/allData/bookingList: lần lượt là bộ lọc hiện tại, dữ liệu gốc và dữ liệu đang hiển thị.
+ */
 package com.project_mobile.datphong_mobile;
 
 import android.app.Dialog;
@@ -43,6 +62,10 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * BookingManagementFragment là màn quản lý booking đang dùng trong MainActivity.
+ * Class này lọc booking theo trạng thái/ngày, map BookingDto sang Booking UI model và xử lý hủy đặt phòng.
+ */
 public class BookingManagementFragment extends Fragment {
 
     private static final String FILTER_ALL = "Tất cả";
@@ -54,7 +77,9 @@ public class BookingManagementFragment extends Fragment {
 
     private RecyclerView rvBookings;
     private BookingAdapter adapter;
+    // Danh sách đang hiển thị trên RecyclerView sau khi đã áp dụng filter.
     private final List<Booking> bookingList = new ArrayList<>();
+    // Danh sách gốc từ API; giữ lại để đổi filter mà không cần gọi API lại ngay.
     private List<BookingDto> allData = new ArrayList<>();
     private final List<View> statBoxes = new ArrayList<>();
     private TextView tvCountTotal;
@@ -95,6 +120,7 @@ public class BookingManagementFragment extends Fragment {
         return view;
     }
 
+    /** Hiển thị ngày hiện tại ở header của màn đặt phòng. */
     private void setHeaderDate() {
         if (tvBookingCurrentDate == null) return;
         SimpleDateFormat sdf = new SimpleDateFormat("EEEE, dd 'tháng' MM, yyyy", new Locale("vi", "VN"));
@@ -105,6 +131,14 @@ public class BookingManagementFragment extends Fragment {
         tvBookingCurrentDate.setText(date);
     }
 
+    /** Tải toàn bộ booking từ backend, cập nhật thống kê rồi áp dụng filter hiện tại. */
+    /*
+     * Luồng tải dữ liệu:
+     * - Gọi GET /api/bookings.
+     * - Lưu response.data vào allData để làm nguồn dữ liệu gốc.
+     * - updateStats đếm số lượng theo trạng thái.
+     * - filterList dùng currentFilter để map BookingDto sang Booking và cập nhật RecyclerView.
+     */
     private void loadBookings() {
         ApiService api = ApiClient.getClient().create(ApiService.class);
         api.getBookings().enqueue(new Callback<ApiResponse<List<BookingDto>>>() {
@@ -130,18 +164,27 @@ public class BookingManagementFragment extends Fragment {
         });
     }
 
+    /** Lọc danh sách booking theo trạng thái hoặc khoảng ngày, sau đó bind vào BookingAdapter. */
+    /*
+     * Map dữ liệu API sang model UI:
+     * - BookingDto giữ field dạng API/backend.
+     * - Booking giữ chuỗi đã format như "Phòng 101", "01 Th02, 2026", "1,200,000đ".
+     * - totalGuests được tự tính từ adults + children nếu backend không trả đủ.
+     */
     private void filterList(String statusFilter) {
         currentFilter = statusFilter;
         bookingList.clear();
 
         for (BookingDto bookingDto : allData) {
             String statusValue = bookingDto.status != null ? bookingDto.status : "";
+            // Kiểm tra booking có thuộc filter đang chọn không trước khi map sang card UI.
             boolean matches = matchesFilter(bookingDto, statusValue, statusFilter);
 
             if (!matches) {
                 continue;
             }
 
+            // Chuẩn hóa số phòng để card luôn hiển thị cùng một dạng "Phòng xxx".
             String roomNum = safeText(bookingDto.roomNumber, "N/A");
             if (!"N/A".equals(roomNum) && !roomNum.startsWith("Phòng")) {
                 roomNum = "Phòng " + roomNum;
@@ -152,6 +195,8 @@ public class BookingManagementFragment extends Fragment {
                 normalizedStatus = FILTER_CHECKED_IN;
             }
 
+            // Tổng số khách ưu tiên field totalGuests từ API.
+            // Nếu API không trả hoặc trả 0, app tự cộng người lớn + trẻ em để tránh hiển thị sai.
             int adults = bookingDto.adults != null ? bookingDto.adults : 0;
             int children = bookingDto.children != null ? bookingDto.children : 0;
             int totalGuests = bookingDto.totalGuests != null ? bookingDto.totalGuests : 0;
@@ -179,6 +224,7 @@ public class BookingManagementFragment extends Fragment {
         rvBookings.setAdapter(adapter);
     }
 
+    /** Đếm tổng, chờ nhận phòng, đã nhận phòng và đã hủy để hiển thị trên các ô thống kê. */
     private void updateStats(List<BookingDto> data) {
         int total = data.size();
         int waiting = 0;
@@ -198,6 +244,13 @@ public class BookingManagementFragment extends Fragment {
         if (tvCountCancelled != null) tvCountCancelled.setText(String.format(Locale.US, "%02d", cancelled));
     }
 
+    /** Gắn sự kiện cho các ô thống kê và nút lọc theo tất cả/hôm nay/tháng này. */
+    /*
+     * Thiết lập sự kiện cho nhóm bộ lọc:
+     * - Các ô thống kê lọc theo trạng thái đặt phòng.
+     * - Các nút Tất cả/Hôm nay/Tháng này lọc theo khoảng thời gian lưu trú.
+     * - Sau mỗi lần chọn, RecyclerView và màu active được cập nhật cùng lúc.
+     */
     private void setupFilters(View view) {
         View boxTotal = view.findViewById(R.id.boxTotal);
         View boxPending = view.findViewById(R.id.boxPending);
@@ -247,6 +300,7 @@ public class BookingManagementFragment extends Fragment {
         updateDateFilterButtons(btnFilterAll);
     }
 
+    /** Đổi màu ô thống kê đang chọn để người dùng biết filter nào đang active. */
     private void selectBox(View selected) {
         for (View v : statBoxes) {
             if (v == null) continue;
@@ -267,6 +321,11 @@ public class BookingManagementFragment extends Fragment {
         }
     }
 
+    /** Mở dialog xác nhận hủy booking và chặn trường hợp thiếu mã đặt phòng. */
+    /*
+     * Dialog này chỉ xác nhận ý định hủy của người dùng.
+     * Điều kiện hủy thật sự vẫn được backend kiểm tra khi gọi API cancelBooking.
+     */
     private void showCancelBookingDialog(Booking booking) {
         if (!isAdded()) return;
         if (booking.getBookingId() == null || booking.getBookingId().trim().isEmpty()) {
@@ -301,6 +360,14 @@ public class BookingManagementFragment extends Fragment {
         dialog.show();
     }
 
+    /** Gọi API hủy booking; backend sẽ kiểm tra trạng thái có còn được hủy hay không. */
+    /*
+     * Luồng hủy đặt phòng:
+     * 1. Khóa nút xác nhận để tránh gửi trùng request.
+     * 2. Gọi PUT /api/bookings/{id}/cancel.
+     * 3. Backend kiểm tra booking có còn ở trạng thái được hủy không.
+     * 4. Nếu thành công, tải lại danh sách để thống kê và card được đồng bộ.
+     */
     private void performCancelBooking(Booking booking, Dialog dialog, Button btnConfirm) {
         btnConfirm.setEnabled(false);
         btnConfirm.setText("Đang hủy...");
@@ -334,6 +401,7 @@ public class BookingManagementFragment extends Fragment {
         });
     }
 
+    /** Hiển thị dialog hủy đặt phòng thành công sau khi backend cập nhật xong. */
     private void showCancelSuccessDialog() {
         if (!isAdded()) return;
 
@@ -366,18 +434,26 @@ public class BookingManagementFragment extends Fragment {
         window.setAttributes(lp);
     }
 
+    /** Nhận diện các trạng thái được xem là chờ nhận phòng/chưa check-in. */
     private boolean isPendingStatus(String status) {
         return status.contains("Đã đặt cọc") || status.contains("Chờ check-in") || status.contains("Chờ nhận phòng");
     }
 
+    /** Nhận diện các trạng thái booking đã bước sang lưu trú thực tế. */
     private boolean isCheckedInStatus(String status) {
         return status.contains("Đang ở") || status.contains("Đã check-in") || status.contains("Đã nhận phòng");
     }
 
+    /** Nhận diện các trạng thái đã hủy từ backend để lọc và thống kê. */
     private boolean isCancelledStatus(String status) {
         return status.contains("Đã hủy") || status.contains("Hủy");
     }
 
+    /** Quyết định một booking có xuất hiện trong filter trạng thái/ngày hiện tại hay không. */
+    /*
+     * Filter theo ngày không chỉ so sánh ngày bắt đầu.
+     * Một booking được xem là thuộc hôm nay/tháng này nếu khoảng lưu trú giao với khoảng lọc.
+     */
     private boolean matchesFilter(BookingDto bookingDto, String statusValue, String filter) {
         if (FILTER_ALL.equals(filter)) {
             return true;
@@ -407,6 +483,11 @@ public class BookingManagementFragment extends Fragment {
         return false;
     }
 
+    /** Kiểm tra khoảng lưu trú có giao với ngày hôm nay hoặc tháng hiện tại không. */
+    /*
+     * Kiểm tra giao nhau giữa khoảng lưu trú và khoảng lọc.
+     * Ví dụ: booking check-in hôm qua, check-out ngày mai vẫn phải xuất hiện ở filter Hôm nay.
+     */
     private boolean isStayOverlappingRange(String checkInRaw, String checkOutRaw, long rangeStart, long rangeEnd) {
         Date checkIn = parseApiDate(checkInRaw);
         Date checkOut = parseApiDate(checkOutRaw);
@@ -472,6 +553,7 @@ public class BookingManagementFragment extends Fragment {
         return Math.round(dp * getResources().getDisplayMetrics().density);
     }
 
+    /** Format ngày từ API sang chuỗi ngắn để hiển thị trong card đặt phòng. */
     private String formatDate(String apiDate) {
         Date date = parseApiDate(apiDate);
         if (date == null) return safeText(apiDate);
@@ -480,6 +562,7 @@ public class BookingManagementFragment extends Fragment {
         return out.format(date);
     }
 
+    /** Parse nhiều định dạng date/datetime vì backend có thể trả ngày thuần hoặc ISO timestamp. */
     private Date parseApiDate(String rawDate) {
         if (rawDate == null || rawDate.trim().isEmpty()) return null;
 
@@ -511,6 +594,7 @@ public class BookingManagementFragment extends Fragment {
         return df.format(amount) + "đ";
     }
 
+    /** Ưu tiên message/error từ backend để Toast báo lỗi hủy/tải dữ liệu dễ hiểu hơn. */
     private String buildErrorMessage(Response<?> response, String fallback) {
         if (response.body() instanceof ApiResponse) {
             ApiResponse<?> apiResponse = (ApiResponse<?>) response.body();

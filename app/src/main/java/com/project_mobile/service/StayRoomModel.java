@@ -1,7 +1,14 @@
+// Module dịch vụ/tài sản Android.
+// File này là model UI cho phòng đang lưu trú trong RoomMapFragment.
+// Dữ liệu chính gồm id phòng, số phòng, trạng thái, ngày nhận/trả dự kiến và tiền phòng.
 package com.project_mobile.service;
 
 import com.project_mobile.network.ApiModels.ActiveRoomDto;
 
+/**
+ * StayRoomModel đại diện phòng đang có stayId mở.
+ * fromDto() nhận ActiveRoomDto từ API active-rooms và chuẩn hóa null thành fallback an toàn.
+ */
 public class StayRoomModel {
     private final int roomId;
     private final String roomNumber;
@@ -19,6 +26,7 @@ public class StayRoomModel {
         this.roomFee = roomFee;
     }
 
+    /** Map ActiveRoomDto sang model phòng đang lưu trú để hiển thị trên sơ đồ phòng. */
     public static StayRoomModel fromDto(ActiveRoomDto dto) {
         return new StayRoomModel(
                 dto.roomId != null ? dto.roomId : 0,

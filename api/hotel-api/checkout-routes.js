@@ -1,3 +1,6 @@
+// Module backend trả phòng.
+// File này khai báo endpoint lấy danh sách checkout, tạo hóa đơn nháp và thanh toán/trả phòng.
+// Dữ liệu chính xử lý là luu_tru, dat_phong, phong, hoa_don, thanh_toan, su_dung_dich_vu và thiet_hai.
 const express = require("express");
 
 const BOOKING_STATUS = {
@@ -29,6 +32,7 @@ const ROOM_FEE_STRATEGY = process.env.CHECKOUT_ROOM_FEE_STRATEGY || "ACTUAL_NIGH
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const columnCache = new Map();
 
+// Đọc danh sách trạng thái từ ENV, nếu không có thì dùng fallback trong code.
 function parseStatusList(raw, fallback) {
   if (!raw) return fallback;
   const statuses = raw.split(",").map((item) => item.trim()).filter(Boolean);
@@ -72,6 +76,7 @@ function sendError(res, error) {
   });
 }
 
+// Parse id bắt buộc từ path/body; sai định dạng sẽ trả lỗi nghiệp vụ 400.
 function parseRequiredId(value, fieldName) {
   const id = Number.parseInt(value, 10);
   if (!Number.isInteger(id) || id <= 0) {
@@ -80,6 +85,7 @@ function parseRequiredId(value, fieldName) {
   return id;
 }
 
+// Chuẩn hóa tiền về số nguyên, tránh NaN/null khi tính hóa đơn.
 function money(value) {
   const parsed = Number(value || 0);
   if (!Number.isFinite(parsed)) return 0;
@@ -94,6 +100,7 @@ function parseMoney(value, fieldName) {
   return Math.round(parsed);
 }
 
+// Chuẩn hóa nhãn thanh toán từ Android thành mã backend CASH hoặc TRANSFER.
 function normalizePaymentMethod(value) {
   const raw = String(value || "").trim();
   const upper = raw.toUpperCase();
@@ -139,6 +146,7 @@ function toDateOnlyMs(value) {
   return Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
 }
 
+// Tính số đêm tính phí = ngày checkout - ngày checkin, tối thiểu 1 đêm.
 function calculateStayNights(checkinAt, checkoutAt) {
   const checkinMs = toDateOnlyMs(checkinAt);
   const checkoutMs = toDateOnlyMs(checkoutAt);
@@ -154,6 +162,7 @@ function calculateActualRoomFee(rooms, nights) {
   }, 0);
 }
 
+// Tính tiền phòng theo chiến lược cấu hình: dùng tổng booking hoặc tính từ giá phòng * số đêm.
 function calculateRoomFee(stay, rooms, nights) {
   const bookingTotal = money(stay.tong_thanh_toan);
   const actualTotal = calculateActualRoomFee(rooms, nights);
@@ -176,6 +185,7 @@ function formatDate(dateStr) {
   }
 }
 
+// Map row lưu trú sang object trung gian để tính hóa đơn và trả DTO checkout.
 function mapStayRow(row) {
   const rooms = normalizeRows(row.rooms);
   return {
@@ -201,6 +211,7 @@ function mapStayRow(row) {
   };
 }
 
+// Kiểm tra schema động vì một số DB có/không có cột id_luutru/ghi_chu/yeu_cau_vat.
 async function hasColumn(client, tableName, columnName) {
   const key = `${tableName}.${columnName}`;
   if (columnCache.has(key)) return columnCache.get(key);
@@ -221,7 +232,9 @@ async function hasColumn(client, tableName, columnName) {
   return exists;
 }
 
+// Lấy lưu trú mới nhất theo mã đặt phòng và khóa row để chuẩn bị checkout/thanh toán.
 async function getStayForUpdateByBooking(client, maDatPhong) {
+  // SQL join luu_tru + dat_phong + khach_hang để có đủ thông tin khách và booking.
   const result = await client.query(
     `
     SELECT
@@ -288,7 +301,9 @@ async function getStayForUpdateById(client, idLuutru) {
   return result.rows[0] || null;
 }
 
+// Lấy danh sách phòng thuộc booking; có thể khóa phòng khi thực hiện thanh toán checkout.
 async function getRoomsForBooking(client, maDatPhong, shouldLock) {
+  // SQL đọc chi_tiet_dat_phong + phong để tính tiền phòng và cập nhật trạng thái phòng sau checkout.
   const result = await client.query(
     `
     SELECT
@@ -311,6 +326,7 @@ async function getRoomsForBooking(client, maDatPhong, shouldLock) {
   return result.rows;
 }
 
+// Lấy các dòng dịch vụ phát sinh trong thời gian lưu trú để cộng vào hóa đơn.
 async function getServiceLines(client, idLuutru) {
   const result = await client.query(
     `
@@ -334,6 +350,7 @@ async function getServiceLines(client, idLuutru) {
   return result.rows;
 }
 
+// Lấy các dòng bồi thường/tài sản hư hỏng chưa hủy để cộng vào hóa đơn.
 async function getDamageLines(client, idLuutru) {
   const result = await client.query(
     `
@@ -355,6 +372,7 @@ async function getDamageLines(client, idLuutru) {
   return result.rows;
 }
 
+// Tính hóa đơn nháp gồm tiền phòng, dịch vụ, bồi thường, tiền cọc, cần trả hoặc cần hoàn.
 async function buildDraftBill(client, stayRow, rooms, invoice) {
   const stay = mapStayRow({ ...stayRow, rooms });
   const checkoutForCharge = stay.raw_checkout || stay.raw_expected_checkout || new Date();
@@ -451,6 +469,7 @@ async function findDraftInvoiceForStay(client, idLuutru) {
   return result.rows[0] || null;
 }
 
+// Tạo mới hoặc cập nhật hóa đơn chưa thanh toán cho lưu trú hiện tại.
 async function createOrUpdateDraftInvoice(client, stay, draft) {
   let invoice = await findDraftInvoiceForStay(client, stay.id_luutru);
   const hasStayColumn = await hasColumn(client, "hoa_don", "id_luutru");
@@ -511,6 +530,7 @@ async function getInvoiceForUpdate(client, idHoaDon) {
   return result.rows[0] || null;
 }
 
+// Chỉ cho thanh toán hóa đơn đang ở trạng thái chưa thanh toán.
 function assertInvoiceCanBePaid(invoice) {
   if (!invoice.trang_thai || UNPAID_STATUSES.includes(invoice.trang_thai)) return;
   throw new BusinessError(409, "INVOICE_NOT_UNPAID", "Hóa đơn không ở trạng thái chờ thanh toán", {
@@ -554,6 +574,7 @@ async function resolveStayForInvoice(client, invoice, body) {
   );
 }
 
+// Kiểm tra lưu trú đã check-in, chưa checkout và booking còn ở trạng thái đang lưu trú.
 function assertStayCanCheckout(stay) {
   if (!stay) {
     throw new BusinessError(404, "STAY_NOT_FOUND", "Không tìm thấy thông tin lưu trú");
@@ -572,6 +593,7 @@ function assertStayCanCheckout(stay) {
   }
 }
 
+// Kiểm tra các phòng của booking đang ở trạng thái bận trước khi trả phòng.
 function assertRoomsCanCheckout(rooms) {
   if (rooms.length === 0) {
     throw new BusinessError(409, "BOOKING_HAS_NO_ROOM", "Đặt phòng chưa có thông tin phòng");
@@ -612,6 +634,10 @@ async function persistOptionalCheckoutFields(client, invoiceId, stayId, note, va
 function createCheckoutRouter(pool) {
   const router = express.Router();
 
+  // GET /api/v2/checkouts
+  // Chức năng: lấy danh sách lưu trú đang mở để màn Trả phòng hiển thị.
+  // Input query: date, q. Output: danh sách CheckoutDto đã tính tạm phí.
+  // Điều kiện nghiệp vụ: booking đang check-in, luu_tru chưa checkout và phòng đang Bận.
   router.get("/v2/checkouts", asyncRoute(async (req, res) => {
     const values = [BOOKING_STATUS.CHECKED_IN];
     const where = [
@@ -642,6 +668,7 @@ function createCheckoutRouter(pool) {
       )`);
     }
 
+    // SQL lấy lưu trú đang mở, thông tin khách, booking và phòng để build hóa đơn tạm.
     const result = await pool.query(
       `
       SELECT DISTINCT ON (p.id_phong)
@@ -737,6 +764,7 @@ function createCheckoutRouter(pool) {
     }
   }));
 
+  // Handler chung: tạo hóa đơn nháp theo mã đặt phòng.
   const createDraftByBooking = asyncRoute(async (req, res) => {
     const maDatPhong = String(req.params.maDatPhong || "").trim();
     const client = await pool.connect();
@@ -761,6 +789,7 @@ function createCheckoutRouter(pool) {
     }
   });
 
+  // Handler chung: tạo hóa đơn nháp theo id_luutru khi client có khóa lưu trú.
   const createDraftByStay = asyncRoute(async (req, res) => {
     const idLuutru = parseRequiredId(req.params.idLuutru, "ID lưu trú");
     const client = await pool.connect();
@@ -785,11 +814,18 @@ function createCheckoutRouter(pool) {
     }
   });
 
+  // GET/POST /api/v2/checkouts/:maDatPhong/draft-bill
+  // Chức năng: tạo hoặc lấy hóa đơn nháp trước khi thanh toán.
+  // Input path: maDatPhong. Output: CheckoutDto có id_hoadon và số tiền cần trả/hoàn.
   router.get("/v2/checkouts/:maDatPhong/draft-bill", createDraftByBooking);
   router.post("/v2/checkouts/:maDatPhong/draft-bill", createDraftByBooking);
   router.get("/v2/stays/:idLuutru/draft-bill", createDraftByStay);
   router.post("/v2/stays/:idLuutru/draft-bill", createDraftByStay);
 
+  // POST /api/v2/invoices/:idHoaDon/pay
+  // Chức năng: thanh toán hóa đơn và đóng lưu trú/trả phòng.
+  // Input body: phuong_thuc, so_tien, id_luutru/ma_dat_phong, ghi_chu, yeu_cau_vat.
+  // Điều kiện nghiệp vụ: số tiền phải khớp hóa đơn nháp, hóa đơn chưa thanh toán, phòng đang Bận.
   router.post("/v2/invoices/:idHoaDon/pay", asyncRoute(async (req, res) => {
     const idHoaDon = parseRequiredId(req.params.idHoaDon, "ID hóa đơn");
     const body = req.body || {};
@@ -802,6 +838,7 @@ function createCheckoutRouter(pool) {
     try {
       await client.query("BEGIN");
 
+      // Khóa hóa đơn trước khi kiểm tra trạng thái và ghi thanh toán.
       const invoice = await getInvoiceForUpdate(client, idHoaDon);
       if (!invoice) {
         throw new BusinessError(404, "INVOICE_NOT_FOUND", "Không tìm thấy hóa đơn");
@@ -811,10 +848,12 @@ function createCheckoutRouter(pool) {
       const stay = await resolveStayForInvoice(client, invoice, body);
       assertStayCanCheckout(stay);
 
+      // Khóa phòng để sau thanh toán có thể chuyển về trạng thái Trống một cách nhất quán.
       const rooms = await getRoomsForBooking(client, stay.ma_dat_phong, true);
       assertRoomsCanCheckout(rooms);
 
       const draft = await buildDraftBill(client, stay, rooms, invoice);
+      // Không cho thanh toán số tiền khác amount_due backend tính lại tại thời điểm checkout.
       if (paidAmount !== draft.amount_due) {
         throw new BusinessError(400, "PAYMENT_AMOUNT_MISMATCH", "Số tiền thanh toán không khớp với hóa đơn tạm tính", {
           expected_amount: draft.amount_due,
@@ -822,6 +861,7 @@ function createCheckoutRouter(pool) {
         });
       }
 
+      // Ghi bản ghi thanh_toan sau khi đã xác thực hóa đơn và số tiền.
       const payment = await client.query(
         `
         INSERT INTO public.thanh_toan (so_tien, phuong_thuc, trang_thai, id_hoadon)
@@ -831,6 +871,7 @@ function createCheckoutRouter(pool) {
         [paidAmount, method, INVOICE_STATUS.PAID, idHoaDon]
       );
 
+      // Đóng lưu trú, hoàn tất booking và trả phòng về trạng thái trống trong cùng transaction.
       await client.query(
         "UPDATE public.hoa_don SET tong_tien = $1, trang_thai = $2 WHERE id_hoadon = $3",
         [draft.amount_due, INVOICE_STATUS.PAID, idHoaDon]

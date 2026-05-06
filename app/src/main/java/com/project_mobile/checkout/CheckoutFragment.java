@@ -143,9 +143,20 @@ public class CheckoutFragment extends Fragment {
         ((TextView)dialog.findViewById(R.id.tvDialogDateRange)).setText(bill.getCheckInDate() + " - " + bill.getCheckOutDate());
         ((TextView)dialog.findViewById(R.id.tvDialogTotalGuests)).setText("Số người: " + bill.getTotalGuests());
         ((TextView)dialog.findViewById(R.id.tvDialogGuestDetails)).setText(bill.getAdults() + " người lớn" + (bill.getChildren() > 0 ? ", " + bill.getChildren() + " trẻ em" : ""));
-        ((TextView)dialog.findViewById(R.id.tvDialogTotal)).setText(formatMoney(bill.getTotalFee()));
+        ((TextView)dialog.findViewById(R.id.tvDialogTotal)).setText(formatMoney(bill.getGrossTotal()));
         ((TextView)dialog.findViewById(R.id.tvDialogRoomFee)).setText(formatMoney(bill.getRoomFee()));
         ((TextView)dialog.findViewById(R.id.tvDialogServiceFee)).setText(formatMoney(bill.getServiceFee()));
+        ((TextView)dialog.findViewById(R.id.tvDialogDamageFee)).setText(formatMoney(bill.getDamageFee()));
+        ((TextView)dialog.findViewById(R.id.tvDialogDeposit)).setText(formatMoney(bill.getDeposit()));
+        TextView tvDialogAmountDueLabel = dialog.findViewById(R.id.tvDialogAmountDueLabel);
+        TextView tvDialogAmountDue = dialog.findViewById(R.id.tvDialogAmountDue);
+        if (bill.getRefundAmount() > 0) {
+            tvDialogAmountDueLabel.setText("Hoàn lại:");
+            tvDialogAmountDue.setText(formatMoney(bill.getRefundAmount()));
+        } else {
+            tvDialogAmountDueLabel.setText("Cần thanh toán:");
+            tvDialogAmountDue.setText(formatMoney(bill.getAmountDue()));
+        }
         ((TextView)dialog.findViewById(R.id.tvDialogCheckoutDate)).setText(bill.getCheckOutDate());
 
         // ---> ĐOẠN XỬ LÝ CHỌN PHƯƠNG THỨC THANH TOÁN (MỚI) <---
@@ -179,22 +190,27 @@ public class CheckoutFragment extends Fragment {
         double serviceFee = money(d.serviceFee);
         double damageFee = money(d.damageFee);
         double amountDue = money(d.amountDue);
+        double grossTotal = d.grossTotal != null ? money(d.grossTotal) : roomFee + serviceFee + damageFee;
+        int nights = d.chargeableNights != null ? d.chargeableNights : 1;
         return new CheckoutBill(
-                new RoomModel(safe(d.roomNames), "Standard", "Tầng 1", totalGuests(d) + " người", formatMoney(roomFee), "Đang sử dụng", safe(d.customerName), safe(d.customerPhone), "2 ngày"),
+                new RoomModel(safe(d.roomNames), "Standard", "Tầng 1", totalGuests(d) + " người", formatMoney(roomFee), "Đang sử dụng", safe(d.customerName), safe(d.customerPhone), nights + " đêm"),
                 d.email,
                 safe(d.checkinAt),
                 safe(d.expectedCheckoutAt),
-                serviceFee + damageFee,
+                serviceFee,
                 amountDue,
                 d.adults != null ? d.adults : 0,
                 d.children != null ? d.children : 0,
                 d.idLuutru,
                 d.idHoaDon,
                 d.maDatPhong,
+                nights,
                 roomFee,
                 damageFee,
                 money(d.deposit),
-                money(d.grossTotal)
+                grossTotal,
+                amountDue,
+                money(d.refundAmount)
         );
     }
 
@@ -281,7 +297,7 @@ public class CheckoutFragment extends Fragment {
     }
 
     private String formatMoney(double value) {
-        return String.format(java.util.Locale.US, "%,.0f", value);
+        return String.format(java.util.Locale.US, "%,.0fđ", value);
     }
 
     private String safe(String value) {

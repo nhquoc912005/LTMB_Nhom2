@@ -62,16 +62,31 @@
             <TextView android:id="@+id/tvDialogRoomFee" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/livvic" android:textColor="@color/black"/>
         </LinearLayout>
 
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="12dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="8dp">
             <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Dịch vụ:" android:fontFamily="@font/livvic" android:textColor="#333333"/>
             <TextView android:id="@+id/tvDialogServiceFee" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/livvic" android:textColor="@color/black"/>
         </LinearLayout>
 
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="12dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Bồi thường:" android:fontFamily="@font/livvic" android:textColor="#333333"/>
+            <TextView android:id="@+id/tvDialogDamageFee" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/livvic" android:textColor="@color/black"/>
+        </LinearLayout>
+
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginBottom="12dp"/>
 
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="16dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="8dp">
             <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="TỔNG CỘNG:" android:fontFamily="@font/livvic" android:textStyle="bold" android:textSize="16sp" android:textColor="@color/black"/>
             <TextView android:id="@+id/tvDialogTotal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/livvic" android:textStyle="bold" android:textSize="16sp" android:textColor="#AA7E5A"/>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="8dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Đã cọc:" android:fontFamily="@font/livvic" android:textColor="#333333"/>
+            <TextView android:id="@+id/tvDialogDeposit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/livvic" android:textColor="@color/black"/>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="16dp">
+            <TextView android:id="@+id/tvDialogAmountDueLabel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Cần thanh toán:" android:fontFamily="@font/livvic" android:textStyle="bold" android:textColor="@color/black"/>
+            <TextView android:id="@+id/tvDialogAmountDue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/livvic" android:textStyle="bold" android:textColor="#AA7E5A"/>
         </LinearLayout>
 
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="16dp">

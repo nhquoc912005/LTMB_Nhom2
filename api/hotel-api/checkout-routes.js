@@ -25,7 +25,7 @@ const PAYMENT_METHODS = {
   TRANSFER: process.env.PAYMENT_METHOD_TRANSFER || "TRANSFER",
 };
 
-const ROOM_FEE_STRATEGY = process.env.CHECKOUT_ROOM_FEE_STRATEGY || "BOOKING_TOTAL_OR_ACTUAL_NIGHTS";
+const ROOM_FEE_STRATEGY = process.env.CHECKOUT_ROOM_FEE_STRATEGY || "ACTUAL_NIGHTS";
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const columnCache = new Map();
 
@@ -116,24 +116,36 @@ function normalizeRows(rows) {
   return [];
 }
 
-function calculateStayNights(checkinAt, checkoutAt) {
-  const checkin = checkinAt instanceof Date ? checkinAt : new Date(checkinAt);
-  const checkout = checkoutAt instanceof Date ? checkoutAt : new Date(checkoutAt);
-  
-  // If checkinAt was DD/MM/YYYY string, we need to parse it manually because JS Date is inconsistent with it
-  if (typeof checkinAt === 'string' && checkinAt.includes('/')) {
-    const [d, m, y] = checkinAt.split('/').map(Number);
-    checkin.setFullYear(y, m - 1, d);
+function toDateOnlyMs(value) {
+  if (!value) return null;
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) return null;
+    return Date.UTC(value.getFullYear(), value.getMonth(), value.getDate());
   }
 
-  if (Number.isNaN(checkin.getTime()) || Number.isNaN(checkout.getTime())) {
+  const raw = String(value).trim();
+  let match = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (match) {
+    return Date.UTC(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
+  }
+
+  match = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (match) {
+    return Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  }
+
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+}
+
+function calculateStayNights(checkinAt, checkoutAt) {
+  const checkinMs = toDateOnlyMs(checkinAt);
+  const checkoutMs = toDateOnlyMs(checkoutAt);
+  if (checkinMs === null || checkoutMs === null || checkoutMs <= checkinMs) {
     return 1;
   }
-  
-  if (checkout <= checkin) return 1;
-
-  const diffMs = checkout.getTime() - checkin.getTime();
-  return Math.max(1, Math.ceil(diffMs / ONE_DAY_MS));
+  return Math.max(1, Math.floor((checkoutMs - checkinMs) / ONE_DAY_MS));
 }
 
 function calculateActualRoomFee(rooms, nights) {
@@ -147,8 +159,7 @@ function calculateRoomFee(stay, rooms, nights) {
   const actualTotal = calculateActualRoomFee(rooms, nights);
 
   if (ROOM_FEE_STRATEGY === "BOOKING_TOTAL") return bookingTotal;
-  if (ROOM_FEE_STRATEGY === "ACTUAL_NIGHTS") return actualTotal;
-  return bookingTotal > 0 ? bookingTotal : actualTotal;
+  return actualTotal > 0 ? actualTotal : bookingTotal;
 }
 
 function formatDate(dateStr) {
@@ -346,8 +357,8 @@ async function getDamageLines(client, idLuutru) {
 
 async function buildDraftBill(client, stayRow, rooms, invoice) {
   const stay = mapStayRow({ ...stayRow, rooms });
-  const checkoutPreviewAt = new Date();
-  const nights = calculateStayNights(stay.raw_checkin, checkoutPreviewAt);
+  const checkoutForCharge = stay.raw_checkout || stay.raw_expected_checkout || new Date();
+  const nights = calculateStayNights(stay.raw_checkin, checkoutForCharge);
   const serviceLines = await getServiceLines(client, stay.id_luutru);
   const damageLines = await getDamageLines(client, stay.id_luutru);
 
@@ -370,7 +381,7 @@ async function buildDraftBill(client, stayRow, rooms, invoice) {
     rooms: stay.rooms,
     room_names: stay.room_names,
     checkin_at: stay.checkin_at,
-    checkout_preview_at: checkoutPreviewAt.toISOString(),
+    checkout_preview_at: checkoutForCharge instanceof Date ? checkoutForCharge.toISOString() : checkoutForCharge,
     expected_checkout_at: stay.expected_checkout_at,
     adults: stay.adults,
     children: stay.children,

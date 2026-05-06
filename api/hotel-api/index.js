@@ -30,6 +30,12 @@ const BOOKING_STATUS = {
   CHECKED_OUT_ALT: "Đã check-out",
 };
 
+const CANCELLABLE_BOOKING_STATUSES = new Set([
+  BOOKING_STATUS.RESERVED,
+  "Chờ check-in",
+  "Chờ nhận phòng",
+]);
+
 const ROOM_STATUS = {
   AVAILABLE: "Trống",
   RESERVED: "Đã đặt",
@@ -51,27 +57,47 @@ function generateBookingId() {
   return `DP${stamp}${random}`;
 }
 
+function normalizeTotalGuests(row) {
+  const storedTotal = Number(row.tong_so_nguoi ?? row.total_guests ?? 0);
+  if (Number.isFinite(storedTotal) && storedTotal > 0) {
+    return storedTotal;
+  }
+  const adults = Number(row.so_nguoi_lon ?? row.adults ?? 0);
+  const children = Number(row.so_tre_em ?? row.children ?? 0);
+  return (Number.isFinite(adults) ? adults : 0) + (Number.isFinite(children) ? children : 0);
+}
+
+function canCancelBookingStatus(status) {
+  return CANCELLABLE_BOOKING_STATUSES.has(String(status || "").trim());
+}
+
 function mapBookingRow(row) {
   if (!row) return null;
+  const totalGuests = normalizeTotalGuests(row);
   return {
     ma_dat_phong: row.ma_dat_phong,
     booking_id: row.ma_dat_phong,
     room_number: row.room_number || row.room_names || row.so_phong,
     room_names: row.room_names || row.room_number || row.so_phong,
-    ten_nguoi_dat: row.ten_nguoi_dat,
+    ten_nguoi_dat: row.ten_nguoi_dat || row.customer_name,
     customer_name: row.customer_name || row.ten_nguoi_dat,
     email: row.email,
-    sdt_nguoi_dat: row.sdt_nguoi_dat,
+    customer_email: row.email,
+    sdt_nguoi_dat: row.sdt_nguoi_dat || row.customer_phone,
     customer_phone: row.customer_phone || row.sdt_nguoi_dat,
-    tong_so_nguoi: row.tong_so_nguoi,
+    tong_so_nguoi: totalGuests,
+    total_guests: totalGuests,
     so_nguoi_lon: row.so_nguoi_lon,
+    adults: row.so_nguoi_lon ?? row.adults,
     so_tre_em: row.so_tre_em,
+    children: row.so_tre_em ?? row.children,
     ngay_nhan: row.ngay_nhan,
     ngay_tra: row.ngay_tra,
     payment_method: row.payment_method || row.phuong_thuc_thanh_toan,
     total_amount: row.total_amount ?? row.tong_thanh_toan,
     tong_thanh_toan: row.tong_thanh_toan ?? row.total_amount,
     trang_thai: row.trang_thai,
+    status: row.trang_thai,
     note: row.note || row.ghi_chu,
     rooms: Array.isArray(row.rooms) ? row.rooms : [],
   };
@@ -207,7 +233,8 @@ app.get("/api/bookings", async (req, res) => {
         dp.ten_nguoi_dat as customer_name,
         dp.email,
         dp.sdt_nguoi_dat as customer_phone,
-        dp.tong_so_nguoi,
+        COALESCE(NULLIF(dp.tong_so_nguoi, 0), COALESCE(dp.so_nguoi_lon, 0) + COALESCE(dp.so_tre_em, 0), 0) AS tong_so_nguoi,
+        COALESCE(NULLIF(dp.tong_so_nguoi, 0), COALESCE(dp.so_nguoi_lon, 0) + COALESCE(dp.so_tre_em, 0), 0) AS total_guests,
         dp.so_nguoi_lon,
         dp.so_tre_em,
         dp.ngay_nhan,
@@ -224,7 +251,7 @@ app.get("/api/bookings", async (req, res) => {
     `);
     res.json({
       success: true,
-      data: result.rows,
+      data: result.rows.map(mapBookingRow),
     });
   } catch (err) {
     console.error(err);
@@ -355,6 +382,7 @@ app.post("/api/bookings", async (req, res) => {
       customer_name,
       ten_nguoi_dat,
       email,
+      customer_email,
       phone,
       sdt_nguoi_dat,
       total_guests,
@@ -395,8 +423,10 @@ app.post("/api/bookings", async (req, res) => {
     const maDatPhong = generateBookingId();
     const roomSnapshot = rooms.rows.map((room) => room.ten_phong).join(", ");
     const guestName = customer_name || ten_nguoi_dat;
+    const bookingEmail = email || customer_email;
     const phoneNumber = phone || sdt_nguoi_dat;
-    const totalGuests = total_guests ?? (Number(adults || 0) + Number(children || 0));
+    const requestedTotalGuests = Number(total_guests || 0);
+    const totalGuests = requestedTotalGuests > 0 ? requestedTotalGuests : (Number(adults || 0) + Number(children || 0));
     const insert = await client.query(
       `INSERT INTO public.dat_phong
         (ma_dat_phong, so_phong, ten_nguoi_dat, email, sdt_nguoi_dat, tong_so_nguoi, so_nguoi_lon, so_tre_em, ngay_nhan, ngay_tra, tong_thanh_toan, ghi_chu, phuong_thuc_thanh_toan, trang_thai)
@@ -406,7 +436,7 @@ app.post("/api/bookings", async (req, res) => {
         maDatPhong,
         roomSnapshot,
         guestName,
-        email,
+        bookingEmail,
         phoneNumber,
         totalGuests,
         adults,
@@ -451,14 +481,28 @@ app.put("/api/bookings/:id/cancel", async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-    const result = await client.query(
-      "UPDATE public.dat_phong SET trang_thai = $1 WHERE ma_dat_phong = $2 RETURNING *",
-      [BOOKING_STATUS.CANCELLED, req.params.id]
+    const current = await client.query(
+      "SELECT ma_dat_phong, trang_thai FROM public.dat_phong WHERE ma_dat_phong = $1 FOR UPDATE",
+      [req.params.id]
     );
-    if (result.rows.length === 0) {
+    if (current.rows.length === 0) {
       await client.query("ROLLBACK");
       return res.status(404).json({ success: false, message: "Không tìm thấy đặt phòng" });
     }
+
+    const currentStatus = current.rows[0].trang_thai;
+    if (!canCancelBookingStatus(currentStatus)) {
+      await client.query("ROLLBACK");
+      return res.status(409).json({
+        success: false,
+        message: `Không thể hủy đặt phòng ở trạng thái "${currentStatus || "không xác định"}". Chỉ có thể hủy đặt phòng chờ nhận phòng hoặc đã đặt cọc.`,
+      });
+    }
+
+    await client.query(
+      "UPDATE public.dat_phong SET trang_thai = $1 WHERE ma_dat_phong = $2 RETURNING *",
+      [BOOKING_STATUS.CANCELLED, req.params.id]
+    );
     await releaseBookingRooms(client, req.params.id);
     const booking = await getBookingDetails(client, req.params.id);
     await client.query("COMMIT");

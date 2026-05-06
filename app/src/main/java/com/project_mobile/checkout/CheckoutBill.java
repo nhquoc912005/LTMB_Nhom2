@@ -14,10 +14,13 @@ public class CheckoutBill {
     private Integer idLuutru;
     private Integer idHoaDon;
     private String maDatPhong;
+    private int chargeableNights;
     private double roomFee;
     private double damageFee;
     private double deposit;
     private double grossTotal;
+    private double amountDue;
+    private double refundAmount;
 
     public CheckoutBill(RoomModel roomModel, String customerEmail, String checkInDate, String checkOutDate, double serviceFee, double totalFee, int adults, int children) {
         this.roomModel = roomModel;
@@ -30,15 +33,18 @@ public class CheckoutBill {
         this.children = children;
     }
 
-    public CheckoutBill(RoomModel roomModel, String customerEmail, String checkInDate, String checkOutDate, double serviceFee, double totalFee, int adults, int children, Integer idLuutru, Integer idHoaDon, String maDatPhong, double roomFee, double damageFee, double deposit, double grossTotal) {
+    public CheckoutBill(RoomModel roomModel, String customerEmail, String checkInDate, String checkOutDate, double serviceFee, double totalFee, int adults, int children, Integer idLuutru, Integer idHoaDon, String maDatPhong, int chargeableNights, double roomFee, double damageFee, double deposit, double grossTotal, double amountDue, double refundAmount) {
         this(roomModel, customerEmail, checkInDate, checkOutDate, serviceFee, totalFee, adults, children);
         this.idLuutru = idLuutru;
         this.idHoaDon = idHoaDon;
         this.maDatPhong = maDatPhong;
+        this.chargeableNights = chargeableNights;
         this.roomFee = roomFee;
         this.damageFee = damageFee;
         this.deposit = deposit;
         this.grossTotal = grossTotal;
+        this.amountDue = amountDue;
+        this.refundAmount = refundAmount;
     }
 
     public RoomModel getRoomModel() { return roomModel; }
@@ -55,8 +61,11 @@ public class CheckoutBill {
     public Integer getIdHoaDon() { return idHoaDon; }
     public void setIdHoaDon(Integer idHoaDon) { this.idHoaDon = idHoaDon; }
     public String getMaDatPhong() { return maDatPhong; }
+    public int getChargeableNights() { return chargeableNights; }
     public double getRoomFee() { return roomFee; }
     public double getDamageFee() { return damageFee; }
     public double getDeposit() { return deposit; }
     public double getGrossTotal() { return grossTotal; }
+    public double getAmountDue() { return amountDue; }
+    public double getRefundAmount() { return refundAmount; }
 }

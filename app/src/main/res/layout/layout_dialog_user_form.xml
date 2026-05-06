@@ -84,6 +84,19 @@
             <TextView
                 style="@style/UserFormLabel"
                 android:layout_marginTop="18dp"
+                android:text="Giới tính *" />
+
+            <Spinner
+                android:id="@+id/spGender"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="@drawable/bg_edittext_border"
+                android:fontFamily="@font/livvic"
+                android:paddingHorizontal="14dp" />
+
+            <TextView
+                style="@style/UserFormLabel"
+                android:layout_marginTop="18dp"
                 android:text="Vai trò *" />
 
             <Spinner
@@ -149,7 +162,10 @@
             android:text="Tạo tài khoản"
             android:textAllCaps="false"
             android:textColor="@color/white"
-            android:textSize="18sp"
+            android:textSize="16sp"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:ellipsize="end"
             app:backgroundTint="@color/app_shell_beige"
             app:cornerRadius="8dp" />
     </LinearLayout>

@@ -15,3 +15,6 @@ ALTER TABLE public.luu_tru
 
 ALTER TABLE public.tai_khoan
   ADD COLUMN IF NOT EXISTS trang_thai character varying DEFAULT 'Hoạt động';
+
+ALTER TABLE public.tai_khoan
+  ADD COLUMN IF NOT EXISTS gioi_tinh character varying;

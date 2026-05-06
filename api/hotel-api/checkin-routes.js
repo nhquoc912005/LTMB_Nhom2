@@ -3,13 +3,14 @@ const express = require("express");
 const router = express.Router();
 
 const BOOKING_STATUS = {
-  WAITING_CHECKIN: ["Đã đặt cọc", "Chờ check-in", "da_dat", "da_xac_nhan"],
+  WAITING_CHECKIN: ["Đã đặt cọc", "Chờ check-in", "Chờ nhận phòng", "da_dat", "da_xac_nhan"],
   CHECKED_IN: "Đang ở",
 };
 
 const ROOM_STATUS = {
   AVAILABLE: "Trống",
   OCCUPIED: "Bận",
+  STAYING: "Đang lưu trú",
 };
 
 class BusinessError extends Error {
@@ -70,6 +71,10 @@ function buildStayPeriod(checkIn, checkOut) {
   return [checkIn, checkOut].filter(Boolean).join(" - ");
 }
 
+function isWaitingCheckInStatus(status) {
+  return BOOKING_STATUS.WAITING_CHECKIN.includes(String(status || "").trim());
+}
+
 function mapBookingRow(row) {
   const rooms = normalizeRows(row.rooms);
   const adults = Number(row.so_nguoi_lon || 0);
@@ -126,7 +131,25 @@ module.exports = function (pool) {
           AND lt.thoi_gian_checkin_thuc_te IS NOT NULL
           AND lt.thoi_gian_checkout_thuc_te IS NULL
       )`,
+      `NOT EXISTS (
+        SELECT 1
+        FROM public.chi_tiet_dat_phong target_room
+        JOIN public.chi_tiet_dat_phong other_room ON other_room.id_phong = target_room.id_phong
+        JOIN public.luu_tru other_stay ON other_stay.ma_dat_phong = other_room.ma_dat_phong
+        WHERE target_room.ma_dat_phong = dp.ma_dat_phong
+          AND other_stay.ma_dat_phong <> dp.ma_dat_phong
+          AND other_stay.thoi_gian_checkin_thuc_te IS NOT NULL
+          AND other_stay.thoi_gian_checkout_thuc_te IS NULL
+      )`,
+      `NOT EXISTS (
+        SELECT 1
+        FROM public.chi_tiet_dat_phong busy_room
+        JOIN public.phong busy_phong ON busy_phong.id_phong = busy_room.id_phong
+        WHERE busy_room.ma_dat_phong = dp.ma_dat_phong
+          AND busy_phong.trang_thai = ANY($2::text[])
+      )`,
     ];
+    values.push([ROOM_STATUS.OCCUPIED, ROOM_STATUS.STAYING]);
 
     if (req.query.from) {
       values.push(String(req.query.from).trim());
@@ -239,10 +262,16 @@ module.exports = function (pool) {
       if (!booking) {
         throw new BusinessError(404, "NOT_FOUND", "Không tìm thấy đơn đặt phòng");
       }
+      if (!isWaitingCheckInStatus(booking.trang_thai)) {
+        throw new BusinessError(409, "BOOKING_STATUS_INVALID", "Đơn đặt phòng không ở trạng thái chờ nhận phòng", {
+          current_status: booking.trang_thai,
+          allowed_statuses: BOOKING_STATUS.WAITING_CHECKIN,
+        });
+      }
 
       const roomsResult = await client.query(
         `
-        SELECT p.id_phong, p.ten_phong
+        SELECT p.id_phong, p.ten_phong, p.trang_thai
         FROM public.chi_tiet_dat_phong ctdp
         JOIN public.phong p ON ctdp.id_phong = p.id_phong
         WHERE ctdp.ma_dat_phong = $1
@@ -251,18 +280,47 @@ module.exports = function (pool) {
         [maDatPhong]
       );
       const roomIds = roomsResult.rows.map((room) => room.id_phong);
+      if (roomIds.length === 0) {
+        throw new BusinessError(409, "BOOKING_HAS_NO_ROOM", "Đơn đặt phòng chưa có thông tin phòng");
+      }
 
-      await client.query(
+      const existingOwnStay = await client.query(
         `
-        UPDATE public.luu_tru lt
-        SET thoi_gian_checkout_thuc_te = CURRENT_TIMESTAMP
-        FROM public.chi_tiet_dat_phong ctdp
-        WHERE lt.ma_dat_phong = ctdp.ma_dat_phong
-          AND ctdp.id_phong = ANY($1::int[])
-          AND lt.thoi_gian_checkout_thuc_te IS NULL
+        SELECT id_luutru
+        FROM public.luu_tru
+        WHERE ma_dat_phong = $1
+          AND thoi_gian_checkin_thuc_te IS NOT NULL
+          AND thoi_gian_checkout_thuc_te IS NULL
+        LIMIT 1
         `,
-        [roomIds]
+        [maDatPhong]
       );
+      if (existingOwnStay.rows.length > 0) {
+        throw new BusinessError(409, "BOOKING_ALREADY_CHECKED_IN", "Đơn đặt phòng này đã có lưu trú đang mở");
+      }
+
+      const occupiedStay = await client.query(
+        `
+        SELECT DISTINCT p.ten_phong, lt.ma_dat_phong
+        FROM public.luu_tru lt
+        JOIN public.chi_tiet_dat_phong ctdp ON ctdp.ma_dat_phong = lt.ma_dat_phong
+        JOIN public.phong p ON p.id_phong = ctdp.id_phong
+        WHERE ctdp.id_phong = ANY($1::int[])
+          AND lt.ma_dat_phong <> $2
+          AND lt.thoi_gian_checkin_thuc_te IS NOT NULL
+          AND lt.thoi_gian_checkout_thuc_te IS NULL
+        LIMIT 1
+        `,
+        [roomIds, maDatPhong]
+      );
+      if (occupiedStay.rows.length > 0) {
+        throw new BusinessError(409, "ROOM_OCCUPIED_BY_STAY", `Phòng ${occupiedStay.rows[0].ten_phong} đang có khách lưu trú, không thể nhận phòng.`);
+      }
+
+      const busyRoom = roomsResult.rows.find((room) => [ROOM_STATUS.OCCUPIED, ROOM_STATUS.STAYING].includes(room.trang_thai));
+      if (busyRoom) {
+        throw new BusinessError(409, "ROOM_STATUS_OCCUPIED", `Phòng ${busyRoom.ten_phong} đang ở trạng thái ${busyRoom.trang_thai}, không thể nhận phòng.`);
+      }
 
       let finalIdKh = booking.id_kh;
       const guestResult = await client.query(

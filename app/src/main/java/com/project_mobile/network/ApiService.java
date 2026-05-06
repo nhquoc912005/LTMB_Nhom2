@@ -113,6 +113,9 @@ public interface ApiService {
     @GET("/api/users")
     Call<ApiResponse<List<ApiModels.UserDto>>> getUsers();
 
+    @GET("/api/users/roles")
+    Call<ApiResponse<List<ApiModels.RoleDto>>> getUserRoles();
+
     @POST("/api/users")
     Call<ApiResponse<ApiModels.UserDto>> createUser(@Body ApiModels.UserDto req);
 

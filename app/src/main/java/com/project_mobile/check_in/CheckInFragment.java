@@ -23,6 +23,8 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.project_mobile.R;
+import org.json.JSONObject;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -270,7 +272,7 @@ public class CheckInFragment extends Fragment {
                 } else {
                     String msg = response.body() != null && response.body().message != null
                             ? response.body().message
-                            : "Không thể nhận phòng";
+                            : buildErrorMessage(response, "Không thể nhận phòng");
                     if (isAdded()) {
                         android.widget.Toast.makeText(getContext(), msg, android.widget.Toast.LENGTH_SHORT).show();
                     }
@@ -433,6 +435,26 @@ public class CheckInFragment extends Fragment {
     private Integer firstRoomId(com.project_mobile.network.ApiModels.BookingDto booking) {
         if (booking == null || booking.rooms == null || booking.rooms.isEmpty()) return null;
         return booking.rooms.get(0).id;
+    }
+
+    private String buildErrorMessage(retrofit2.Response<?> response, String fallback) {
+        try {
+            if (response.errorBody() != null) {
+                String raw = response.errorBody().string();
+                if (raw != null && !raw.trim().isEmpty()) {
+                    JSONObject json = new JSONObject(raw);
+                    if (json.has("message") && !json.optString("message").trim().isEmpty()) {
+                        return json.optString("message");
+                    }
+                    if (json.has("error") && !json.optString("error").trim().isEmpty()) {
+                        return json.optString("error");
+                    }
+                    return raw;
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return fallback;
     }
 
     private void showSuccessDialog(CheckInModel item, String message) {

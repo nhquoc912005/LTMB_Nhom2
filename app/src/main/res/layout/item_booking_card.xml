@@ -33,6 +33,7 @@
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:src="@drawable/ic_hamburger"
+                android:visibility="gone"
                 app:tint="#666666" />
 
             <TextView

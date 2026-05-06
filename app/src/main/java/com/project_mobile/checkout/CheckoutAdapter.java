@@ -50,9 +50,18 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.Checko
         holder.tvAdults.setText("Người lớn: " + bill.getAdults());
         holder.tvChildren.setText("Trẻ em: " + bill.getChildren());
 
-        holder.tvRoomFee.setText(bill.getRoomModel().getPrice());
-        holder.tvServiceFee.setText(formatter.format(bill.getServiceFee()));
-        holder.tvTotalFee.setText(formatter.format(bill.getTotalFee()));
+        holder.tvRoomFee.setText(formatMoney(bill.getRoomFee()));
+        holder.tvServiceFee.setText(formatMoney(bill.getServiceFee()));
+        holder.tvDamageFee.setText(formatMoney(bill.getDamageFee()));
+        holder.tvTotalFee.setText(formatMoney(bill.getGrossTotal()));
+        holder.tvDeposit.setText(formatMoney(bill.getDeposit()));
+        if (bill.getRefundAmount() > 0) {
+            holder.tvAmountDueLabel.setText("Hoàn lại:");
+            holder.tvAmountDue.setText(formatMoney(bill.getRefundAmount()));
+        } else {
+            holder.tvAmountDueLabel.setText("Cần thanh toán:");
+            holder.tvAmountDue.setText(formatMoney(bill.getAmountDue()));
+        }
 
         holder.btnPay.setOnClickListener(v -> {
             if (listener != null) listener.onCheckoutClick(bill);
@@ -64,8 +73,13 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.Checko
         return billList != null ? billList.size() : 0;
     }
 
+    private String formatMoney(double value) {
+        return formatter.format(value) + "đ";
+    }
+
     public static class CheckoutViewHolder extends RecyclerView.ViewHolder {
-        TextView tvCustomerName, tvRoomInfo, tvPhone, tvEmail, tvDate, tvRoomFee, tvServiceFee, tvTotalFee;
+        TextView tvCustomerName, tvRoomInfo, tvPhone, tvEmail, tvDate, tvRoomFee, tvServiceFee, tvDamageFee, tvTotalFee;
+        TextView tvDeposit, tvAmountDueLabel, tvAmountDue;
         TextView tvTotalGuests, tvAdults, tvChildren;
         Button btnPay;
 
@@ -83,7 +97,11 @@ public class CheckoutAdapter extends RecyclerView.Adapter<CheckoutAdapter.Checko
 
             tvRoomFee = itemView.findViewById(R.id.tvRoomFee);
             tvServiceFee = itemView.findViewById(R.id.tvServiceFee);
+            tvDamageFee = itemView.findViewById(R.id.tvDamageFee);
             tvTotalFee = itemView.findViewById(R.id.tvTotalFee);
+            tvDeposit = itemView.findViewById(R.id.tvDeposit);
+            tvAmountDueLabel = itemView.findViewById(R.id.tvAmountDueLabel);
+            tvAmountDue = itemView.findViewById(R.id.tvAmountDue);
             btnPay = itemView.findViewById(R.id.btnPayAndCheckout);
         }
     }

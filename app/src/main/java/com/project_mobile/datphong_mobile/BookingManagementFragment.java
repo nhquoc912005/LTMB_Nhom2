@@ -1,6 +1,7 @@
 package com.project_mobile.datphong_mobile;
 
 import android.app.Dialog;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -26,12 +27,14 @@ import com.project_mobile.network.ApiClient;
 import com.project_mobile.network.ApiModels.ApiResponse;
 import com.project_mobile.network.ApiModels.BookingDto;
 import com.project_mobile.network.ApiService;
+import com.google.android.material.button.MaterialButton;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -43,6 +46,8 @@ import retrofit2.Response;
 public class BookingManagementFragment extends Fragment {
 
     private static final String FILTER_ALL = "Tất cả";
+    private static final String FILTER_TODAY = "Hôm nay";
+    private static final String FILTER_MONTH = "Tháng này";
     private static final String FILTER_PENDING = "Chờ nhận phòng";
     private static final String FILTER_CHECKED_IN = "Đã nhận phòng";
     private static final String FILTER_CANCELLED = "Đã hủy";
@@ -57,6 +62,9 @@ public class BookingManagementFragment extends Fragment {
     private TextView tvCountCheckedIn;
     private TextView tvCountCancelled;
     private TextView tvBookingCurrentDate;
+    private MaterialButton btnFilterAll;
+    private MaterialButton btnFilterToday;
+    private MaterialButton btnFilterMonth;
     private String currentFilter = FILTER_ALL;
 
     @Nullable
@@ -126,31 +134,9 @@ public class BookingManagementFragment extends Fragment {
         currentFilter = statusFilter;
         bookingList.clear();
 
-        long now = System.currentTimeMillis();
-        long oneWeekMs = 7L * 24 * 60 * 60 * 1000;
-
         for (BookingDto bookingDto : allData) {
             String statusValue = bookingDto.status != null ? bookingDto.status : "";
-            boolean matches = false;
-
-            boolean withinWeek = true;
-            if (FILTER_ALL.equals(statusFilter)) {
-                Date checkInDate = parseApiDate(bookingDto.checkIn);
-                if (checkInDate != null) {
-                    long diff = checkInDate.getTime() - now;
-                    withinWeek = diff >= -24L * 60 * 60 * 1000 && diff <= oneWeekMs;
-                }
-            }
-
-            if (FILTER_ALL.equals(statusFilter)) {
-                matches = withinWeek;
-            } else if (FILTER_PENDING.equals(statusFilter) && isPendingStatus(statusValue)) {
-                matches = true;
-            } else if (FILTER_CHECKED_IN.equals(statusFilter) && isCheckedInStatus(statusValue)) {
-                matches = true;
-            } else if (FILTER_CANCELLED.equals(statusFilter) && isCancelledStatus(statusValue)) {
-                matches = true;
-            }
+            boolean matches = matchesFilter(bookingDto, statusValue, statusFilter);
 
             if (!matches) {
                 continue;
@@ -166,19 +152,26 @@ public class BookingManagementFragment extends Fragment {
                 normalizedStatus = FILTER_CHECKED_IN;
             }
 
+            int adults = bookingDto.adults != null ? bookingDto.adults : 0;
+            int children = bookingDto.children != null ? bookingDto.children : 0;
+            int totalGuests = bookingDto.totalGuests != null ? bookingDto.totalGuests : 0;
+            if (totalGuests <= 0) {
+                totalGuests = adults + children;
+            }
+
             bookingList.add(new Booking(
                     bookingDto.bookingId,
                     roomNum,
                     normalizedStatus,
                     safeText(bookingDto.customerName, "Khách vãng lai"),
-                    safeText(bookingDto.email),
+                    safeText(bookingDto.email, "Chưa có email"),
                     safeText(bookingDto.phone),
                     formatDate(bookingDto.checkIn),
                     formatDate(bookingDto.checkOut),
                     formatCurrency(bookingDto.totalAmount != null ? bookingDto.totalAmount : 0),
-                    bookingDto.totalGuests != null ? bookingDto.totalGuests : 0,
-                    bookingDto.adults != null ? bookingDto.adults : 0,
-                    bookingDto.children != null ? bookingDto.children : 0
+                    totalGuests,
+                    adults,
+                    children
             ));
         }
 
@@ -214,21 +207,44 @@ public class BookingManagementFragment extends Fragment {
         boxTotal.setOnClickListener(v -> {
             filterList(FILTER_ALL);
             selectBox(v);
+            updateDateFilterButtons(btnFilterAll);
         });
         boxPending.setOnClickListener(v -> {
             filterList(FILTER_PENDING);
             selectBox(v);
+            updateDateFilterButtons(null);
         });
         boxCheckedIn.setOnClickListener(v -> {
             filterList(FILTER_CHECKED_IN);
             selectBox(v);
+            updateDateFilterButtons(null);
         });
         boxCancelled.setOnClickListener(v -> {
             filterList(FILTER_CANCELLED);
             selectBox(v);
+            updateDateFilterButtons(null);
         });
 
-        view.findViewById(R.id.btnFilterAll).setOnClickListener(v -> loadBookings());
+        btnFilterAll = view.findViewById(R.id.btnFilterAll);
+        btnFilterToday = view.findViewById(R.id.btnFilterToday);
+        btnFilterMonth = view.findViewById(R.id.btnFilterMonth);
+
+        btnFilterAll.setOnClickListener(v -> {
+            filterList(FILTER_ALL);
+            updateDateFilterButtons(btnFilterAll);
+            selectBox(boxTotal);
+        });
+        btnFilterToday.setOnClickListener(v -> {
+            filterList(FILTER_TODAY);
+            updateDateFilterButtons(btnFilterToday);
+            selectBox(null);
+        });
+        btnFilterMonth.setOnClickListener(v -> {
+            filterList(FILTER_MONTH);
+            updateDateFilterButtons(btnFilterMonth);
+            selectBox(null);
+        });
+        updateDateFilterButtons(btnFilterAll);
     }
 
     private void selectBox(View selected) {
@@ -270,13 +286,17 @@ public class BookingManagementFragment extends Fragment {
         TextView tvCheckIn = dialog.findViewById(R.id.tvCancelCheckInDate);
         TextView tvCheckOut = dialog.findViewById(R.id.tvCancelCheckOutDate);
         Button btnConfirm = dialog.findViewById(R.id.btnConfirmCancelBooking);
+        Button btnCancel = dialog.findViewById(R.id.btnCancel);
+        TextView tvClose = dialog.findViewById(R.id.tvClose);
 
         tvGuestName.setText("Họ và tên: " + safeText(booking.getCustomerName(), "Khách vãng lai"));
-        tvGuestEmail.setText("Email: " + safeText(booking.getCustomerEmail()));
+        tvGuestEmail.setText("Email: " + safeText(booking.getCustomerEmail(), "Chưa có email"));
         tvGuestPhone.setText("SĐT: " + safeText(booking.getCustomerPhone()));
         tvCheckIn.setText(safeText(booking.getCheckInDate()));
         tvCheckOut.setText(safeText(booking.getCheckOutDate()));
 
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        tvClose.setOnClickListener(v -> dialog.dismiss());
         btnConfirm.setOnClickListener(v -> performCancelBooking(booking, dialog, btnConfirm));
         dialog.show();
     }
@@ -351,11 +371,105 @@ public class BookingManagementFragment extends Fragment {
     }
 
     private boolean isCheckedInStatus(String status) {
-        return status.contains("Đang ở") || status.contains("Đã check-in") || status.contains("Đã nhận phòng") || status.contains("nhận phòng");
+        return status.contains("Đang ở") || status.contains("Đã check-in") || status.contains("Đã nhận phòng");
     }
 
     private boolean isCancelledStatus(String status) {
         return status.contains("Đã hủy") || status.contains("Hủy");
+    }
+
+    private boolean matchesFilter(BookingDto bookingDto, String statusValue, String filter) {
+        if (FILTER_ALL.equals(filter)) {
+            return true;
+        }
+        if (FILTER_TODAY.equals(filter)) {
+            Calendar today = Calendar.getInstance();
+            return isStayOverlappingRange(bookingDto.checkIn, bookingDto.checkOut, startOfDay(today), endOfDay(today));
+        }
+        if (FILTER_MONTH.equals(filter)) {
+            Calendar monthStart = Calendar.getInstance();
+            monthStart.set(Calendar.DAY_OF_MONTH, 1);
+
+            Calendar monthEnd = (Calendar) monthStart.clone();
+            monthEnd.set(Calendar.DAY_OF_MONTH, monthEnd.getActualMaximum(Calendar.DAY_OF_MONTH));
+
+            return isStayOverlappingRange(bookingDto.checkIn, bookingDto.checkOut, startOfDay(monthStart), endOfDay(monthEnd));
+        }
+        if (FILTER_PENDING.equals(filter)) {
+            return isPendingStatus(statusValue);
+        }
+        if (FILTER_CHECKED_IN.equals(filter)) {
+            return isCheckedInStatus(statusValue);
+        }
+        if (FILTER_CANCELLED.equals(filter)) {
+            return isCancelledStatus(statusValue);
+        }
+        return false;
+    }
+
+    private boolean isStayOverlappingRange(String checkInRaw, String checkOutRaw, long rangeStart, long rangeEnd) {
+        Date checkIn = parseApiDate(checkInRaw);
+        Date checkOut = parseApiDate(checkOutRaw);
+        if (checkIn == null && checkOut == null) {
+            return false;
+        }
+
+        long stayStart = checkIn != null ? startOfDay(checkIn) : startOfDay(checkOut);
+        long stayEnd = checkOut != null ? endOfDay(checkOut) : endOfDay(checkIn);
+        if (stayStart > stayEnd) {
+            long temp = stayStart;
+            stayStart = stayEnd;
+            stayEnd = temp;
+        }
+        return stayStart <= rangeEnd && stayEnd >= rangeStart;
+    }
+
+    private long startOfDay(Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        return startOfDay(calendar);
+    }
+
+    private long endOfDay(Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        return endOfDay(calendar);
+    }
+
+    private long startOfDay(Calendar calendar) {
+        Calendar copy = (Calendar) calendar.clone();
+        copy.set(Calendar.HOUR_OF_DAY, 0);
+        copy.set(Calendar.MINUTE, 0);
+        copy.set(Calendar.SECOND, 0);
+        copy.set(Calendar.MILLISECOND, 0);
+        return copy.getTimeInMillis();
+    }
+
+    private long endOfDay(Calendar calendar) {
+        Calendar copy = (Calendar) calendar.clone();
+        copy.set(Calendar.HOUR_OF_DAY, 23);
+        copy.set(Calendar.MINUTE, 59);
+        copy.set(Calendar.SECOND, 59);
+        copy.set(Calendar.MILLISECOND, 999);
+        return copy.getTimeInMillis();
+    }
+
+    private void updateDateFilterButtons(@Nullable MaterialButton selectedButton) {
+        updateDateFilterButton(btnFilterAll, selectedButton == btnFilterAll);
+        updateDateFilterButton(btnFilterToday, selectedButton == btnFilterToday);
+        updateDateFilterButton(btnFilterMonth, selectedButton == btnFilterMonth);
+    }
+
+    private void updateDateFilterButton(@Nullable MaterialButton button, boolean active) {
+        if (button == null) return;
+        button.setBackgroundTintList(ColorStateList.valueOf(active ? 0xFFA3734D : 0xFFFFFFFF));
+        button.setTextColor(active ? 0xFFFFFFFF : 0xFF8B6D5A);
+        button.setStrokeColor(ColorStateList.valueOf(active ? 0xFFA3734D : 0xFFD1C19F));
+        button.setStrokeWidth(dpToPx(active ? 0 : 1));
+    }
+
+    private int dpToPx(int dp) {
+        return Math.round(dp * getResources().getDisplayMetrics().density);
     }
 
     private String formatDate(String apiDate) {
@@ -374,7 +488,9 @@ public class BookingManagementFragment extends Fragment {
                 "yyyy-MM-dd HH:mm:ss",
                 "yyyy-MM-dd'T'HH:mm:ss",
                 "yyyy-MM-dd'T'HH:mm:ss.SSS",
+                "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
                 "yyyy-MM-dd'T'HH:mm:ss.SSSX",
+                "yyyy-MM-dd'T'HH:mm:ssXXX",
                 "yyyy-MM-dd'T'HH:mm:ssX"
         };
 

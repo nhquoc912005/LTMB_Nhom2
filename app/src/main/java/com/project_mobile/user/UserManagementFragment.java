@@ -41,8 +41,7 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
     private TextView tvTotalUsers;
     private TextView tvActiveUsers;
     private TextView tvLockedUsers;
-
-    private static final String[] ROLES = { "Quản trị viên", "Quản lý", "Lễ tân" };
+    private final List<RoleOption> roleOptions = new ArrayList<>();
 
     @Nullable
     @Override
@@ -60,6 +59,7 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
         adapter = new UserAdapter(filteredUsers, this);
         recyclerView.setAdapter(adapter);
 
+        fetchRoles(null);
         fetchUsers();
 
         view.findViewById(R.id.btnAddUser).setOnClickListener(v -> showUserForm(null));
@@ -175,6 +175,8 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
                             dto.email,
                             dto.phone,
                             dto.role != null ? dto.role : dto.position,
+                            dto.gender,
+                            dto.idVaitro,
                             dto.locked != null ? dto.locked : Boolean.FALSE.equals(dto.active)
                         ));
                     }
@@ -234,14 +236,25 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
         EditText edtEmail = formView.findViewById(R.id.edtEmail);
         EditText edtPhone = formView.findViewById(R.id.edtPhone);
         EditText edtPassword = formView.findViewById(R.id.edtPassword);
+        Spinner spGender = formView.findViewById(R.id.spGender);
         Spinner spRole = formView.findViewById(R.id.spRole);
         LinearLayout passwordGroup = formView.findViewById(R.id.llPasswordGroup);
         MaterialButton btnSubmit = formView.findViewById(R.id.btnSubmitUserForm);
 
-        ArrayAdapter<String> roleAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item,
-                ROLES);
-        roleAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spRole.setAdapter(roleAdapter);
+        ArrayAdapter<String> genderAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item,
+                new String[]{"Nam", "Nữ"});
+        genderAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spGender.setAdapter(genderAdapter);
+
+        configureRoleSpinner(spRole, editingUser);
+        btnSubmit.setEnabled(!roleOptions.isEmpty());
+        if (roleOptions.isEmpty()) {
+            fetchRoles(() -> {
+                if (!isAdded()) return;
+                configureRoleSpinner(spRole, editingUser);
+                btnSubmit.setEnabled(!roleOptions.isEmpty());
+            });
+        }
 
         title.setText(isEdit ? "Cập nhật người dùng" : "Thêm người dùng mới");
         btnSubmit.setText(isEdit ? "Cập nhật" : "Tạo tài khoản");
@@ -251,7 +264,7 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
             edtFullName.setText(editingUser.getFullName());
             edtEmail.setText(editingUser.getEmail());
             edtPhone.setText(editingUser.getPhone());
-            spRole.setSelection(Math.max(0, roleIndexOf(editingUser.getRole())));
+            spGender.setSelection("Nữ".equals(editingUser.getGender()) ? 1 : 0);
         }
 
         formView.findViewById(R.id.btnCloseUserForm).setOnClickListener(v -> dialog.dismiss());
@@ -260,7 +273,11 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
             String fullName = edtFullName.getText().toString().trim();
             String email = edtEmail.getText().toString().trim();
             String phone = edtPhone.getText().toString().trim();
-            String role = spRole.getSelectedItem() == null ? "" : spRole.getSelectedItem().toString();
+            String gender = spGender.getSelectedItem() == null ? "Nam" : spGender.getSelectedItem().toString();
+            RoleOption selectedRole = spRole.getSelectedItem() instanceof RoleOption
+                    ? (RoleOption) spRole.getSelectedItem()
+                    : null;
+            String role = selectedRole == null || selectedRole.id == null ? "" : selectedRole.name;
             String password = edtPassword.getText().toString();
 
             String validationError = validateUserForm(fullName, email, phone, role, password, isEdit);
@@ -275,6 +292,8 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
             dto.phone = phone;
             dto.role = role;
             dto.position = role;
+            dto.idVaitro = selectedRole == null ? null : selectedRole.id;
+            dto.gender = gender;
             dto.username = fullName.toLowerCase(Locale.ROOT).replaceAll("\\s+", "_");
             dto.password = password; 
 
@@ -350,13 +369,69 @@ public class UserManagementFragment extends Fragment implements UserAdapter.User
         return null;
     }
 
-    private int roleIndexOf(String role) {
-        for (int i = 0; i < ROLES.length; i++) {
-            if (ROLES[i].equals(role)) {
+    private void fetchRoles(@Nullable Runnable afterLoaded) {
+        com.project_mobile.network.ApiService api = com.project_mobile.network.ApiClient.getClient().create(com.project_mobile.network.ApiService.class);
+        api.getUserRoles().enqueue(new retrofit2.Callback<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.RoleDto>>>() {
+            @Override
+            public void onResponse(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.RoleDto>>> call, retrofit2.Response<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.RoleDto>>> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().success && response.body().data != null) {
+                    roleOptions.clear();
+                    for (com.project_mobile.network.ApiModels.RoleDto dto : response.body().data) {
+                        if (dto != null && dto.idVaitro != null && dto.name != null && !dto.name.trim().isEmpty()) {
+                            roleOptions.add(new RoleOption(dto.idVaitro, dto.name));
+                        }
+                    }
+                    if (afterLoaded != null) afterLoaded.run();
+                } else if (afterLoaded != null) {
+                    afterLoaded.run();
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<com.project_mobile.network.ApiModels.ApiResponse<List<com.project_mobile.network.ApiModels.RoleDto>>> call, Throwable t) {
+                if (afterLoaded != null) afterLoaded.run();
+            }
+        });
+    }
+
+    private void configureRoleSpinner(Spinner spRole, @Nullable UserModel editingUser) {
+        List<RoleOption> options = roleOptions.isEmpty() ? new ArrayList<>() : new ArrayList<>(roleOptions);
+        if (options.isEmpty()) {
+            options.add(new RoleOption(null, "Đang tải vai trò..."));
+        }
+        ArrayAdapter<RoleOption> roleAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, options);
+        roleAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spRole.setAdapter(roleAdapter);
+        if (editingUser != null && !roleOptions.isEmpty()) {
+            spRole.setSelection(Math.max(0, roleIndexOf(editingUser)));
+        }
+    }
+
+    private int roleIndexOf(UserModel user) {
+        for (int i = 0; i < roleOptions.size(); i++) {
+            RoleOption option = roleOptions.get(i);
+            if ((user.getRoleId() != null && user.getRoleId().equals(option.id))
+                    || (user.getRole() != null && user.getRole().equals(option.name))) {
                 return i;
             }
         }
         return 0;
+    }
+
+    private static class RoleOption {
+        final Integer id;
+        final String name;
+
+        RoleOption(Integer id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        @NonNull
+        @Override
+        public String toString() {
+            return name;
+        }
     }
 
     private String nextUserCode() {

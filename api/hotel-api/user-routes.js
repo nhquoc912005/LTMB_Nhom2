@@ -11,14 +11,19 @@ function mapUserRow(row) {
     phone: row.so_dien_thoai,
     position: row.chuc_vu || row.ten_vaitro || "Nhân viên",
     id_vaitro: row.id_vaitro,
+    gender: row.gioi_tinh,
+    gioi_tinh: row.gioi_tinh,
     active: !locked,
     locked,
   };
 }
 
-async function ensureAccountStatusColumn(pool) {
+async function ensureAccountColumns(pool) {
   await pool.query(
     "ALTER TABLE public.tai_khoan ADD COLUMN IF NOT EXISTS trang_thai character varying DEFAULT 'Hoạt động'"
+  );
+  await pool.query(
+    "ALTER TABLE public.tai_khoan ADD COLUMN IF NOT EXISTS gioi_tinh character varying"
   );
 }
 
@@ -45,8 +50,22 @@ async function getUserById(pool, id) {
 
 module.exports = function (pool) {
   const router = express.Router();
-  const schemaReady = ensureAccountStatusColumn(pool).catch((error) => {
-    console.error("Không thể bảo đảm cột trạng thái tài khoản:", error.message);
+  const schemaReady = ensureAccountColumns(pool).catch((error) => {
+    console.error("Không thể bảo đảm cột tài khoản:", error.message);
+  });
+
+  router.get("/roles", async (req, res) => {
+    try {
+      const result = await pool.query(
+        `SELECT id_vaitro, ten_vaitro
+         FROM public.vai_tro
+         ORDER BY id_vaitro ASC`
+      );
+      res.json({ success: true, data: result.rows });
+    } catch (error) {
+      console.error("Lỗi lấy danh sách vai trò:", error);
+      res.status(500).json({ success: false, message: "Lỗi lấy danh sách vai trò" });
+    }
   });
 
   router.get("/", async (req, res) => {
@@ -74,6 +93,8 @@ module.exports = function (pool) {
       phone,
       role,
       position,
+      gender,
+      gioi_tinh,
       id_vaitro,
       idVaitro,
       active = true,
@@ -84,12 +105,13 @@ module.exports = function (pool) {
       const roleLabel = role || position || "Nhân viên";
       const roleId = await resolveRoleId(pool, roleLabel, id_vaitro || idVaitro);
       const status = locked || active === false ? "Tạm khóa" : "Hoạt động";
+      const genderValue = gender || gioi_tinh || "Nam";
       const result = await pool.query(
         `INSERT INTO public.tai_khoan
-           (ten_dang_nhap, mat_khau, ho_ten, email, so_dien_thoai, chuc_vu, id_vaitro, trang_thai)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+           (ten_dang_nhap, mat_khau, ho_ten, email, so_dien_thoai, gioi_tinh, chuc_vu, id_vaitro, trang_thai)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          RETURNING id_taikhoan`,
-        [username, password, fullName, email, phone, roleLabel, roleId, status]
+        [username, password, fullName, email, phone, genderValue, roleLabel, roleId, status]
       );
       const user = await getUserById(pool, result.rows[0].id_taikhoan);
       res.status(201).json({ success: true, data: user });
@@ -101,7 +123,7 @@ module.exports = function (pool) {
 
   router.put("/:id", async (req, res) => {
     const { id } = req.params;
-    const { fullName, email, phone, role, position, password, id_vaitro, idVaitro, active, locked } = req.body;
+    const { fullName, email, phone, role, position, password, id_vaitro, idVaitro, gender, gioi_tinh, active, locked } = req.body;
     try {
       await schemaReady;
       const roleLabel = role || position;
@@ -112,13 +134,14 @@ module.exports = function (pool) {
          SET ho_ten = COALESCE($1, ho_ten),
              email = COALESCE($2, email),
              so_dien_thoai = COALESCE($3, so_dien_thoai),
-             chuc_vu = COALESCE($4, chuc_vu),
-             mat_khau = COALESCE(NULLIF($5, ''), mat_khau),
-             id_vaitro = COALESCE($6, id_vaitro),
-             trang_thai = COALESCE($7, trang_thai)
-         WHERE id_taikhoan = $8
+             gioi_tinh = COALESCE($4, gioi_tinh),
+             chuc_vu = COALESCE($5, chuc_vu),
+             mat_khau = COALESCE(NULLIF($6, ''), mat_khau),
+             id_vaitro = COALESCE($7, id_vaitro),
+             trang_thai = COALESCE($8, trang_thai)
+         WHERE id_taikhoan = $9
          RETURNING id_taikhoan`,
-        [fullName, email, phone, roleLabel, password, roleId, status, id]
+        [fullName, email, phone, gender || gioi_tinh, roleLabel, password, roleId, status, id]
       );
       if (result.rows.length === 0) {
         return res.status(404).json({ success: false, message: "Người dùng không tồn tại" });

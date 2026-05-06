@@ -22,6 +22,7 @@ public class ApiModels {
         @SerializedName(value = "customer_name", alternate = {"ten_nguoi_dat", "customerName"})
         public String customerName;
 
+        @SerializedName(value = "email", alternate = {"customer_email"})
         public String email;
         @SerializedName(value = "customer_phone", alternate = {"sdt_nguoi_dat", "customerPhone", "phone"})
         public String phone;
@@ -51,7 +52,7 @@ public class ApiModels {
         public Double totalAmount;
 
         public String note;
-        @SerializedName("trang_thai")
+        @SerializedName(value = "trang_thai", alternate = {"status"})
         public String status;
 
         public List<RoomDto> rooms;
@@ -194,8 +195,18 @@ public class ApiModels {
         public String position;
         @SerializedName("id_vaitro")
         public Integer idVaitro;
+        @SerializedName(value = "gender", alternate = {"gioi_tinh"})
+        public String gender;
         public Boolean active;
         public Boolean locked;
+    }
+
+    public static class RoleDto {
+        @SerializedName("id_vaitro")
+        public Integer idVaitro;
+
+        @SerializedName("ten_vaitro")
+        public String name;
     }
 
     public static class StatusRequest {
@@ -263,6 +274,9 @@ public class ApiModels {
 
         public Integer adults;
         public Integer children;
+
+        @SerializedName("chargeable_nights")
+        public Integer chargeableNights;
 
         @SerializedName("room_fee")
         public Double roomFee;
